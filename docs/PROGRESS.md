@@ -37,10 +37,8 @@ All work lives on branch `claude/vibrant-newton-gzwmx2`.
 * Screenshots: `flutter test test/visual/screens_test.dart --dart-define=SHOT_OUT=dir`.
 
 ## Known issues / environment notes
-* Pushing from the authoring session failed with HTTP 403 (the Claude GitHub
-  App lacked write access to the repository). Commits and tags (v0.0.0–v0.9.0)
-  are local; a full `haftnard.bundle` (git bundle, untracked) sits in the repo
-  root as a fallback.
+* Owner action (optional): set `main` as the default branch on GitHub.
+* Branch pushes work; tag pushes from the session get 403, so CI makes releases.
 * No physical device was available: performance targets are designed for
   (cached board pictures and checker images, isolate AI, memoised legal moves,
   pooled SFX, particle caps) but not profiled on hardware.

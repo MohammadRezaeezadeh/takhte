@@ -2,8 +2,7 @@ name: CI
 
 on:
   push:
-    branches: ["**"]
-    tags: ["v*"]
+    branches: [main, claude/vibrant-newton-gzwmx2]
   pull_request:
   workflow_dispatch:
 
@@ -48,13 +47,16 @@ jobs:
     name: Build APK & AAB
     needs: test
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -62,14 +64,9 @@ jobs:
           cache: true
       - run: flutter pub get
 
-      # Signing. Priority: (1) repository secrets, (2) cached CI keystore,
-      # (3) freshly generated keystore. Never fails for missing secrets.
-      - name: Restore CI keystore cache
-        id: ks-cache
-        uses: actions/cache@v4
-        with:
-          path: android/ci-release.jks
-          key: haftnard-ci-keystore-v1
+      # Signing: repository secrets if present, otherwise the committed CI
+      # keystore (android/ci/haftnard-ci.jks) so every build installs over the
+      # previous one. See docs/RELEASE.md.
       - name: Prepare signing
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -81,51 +78,113 @@ jobs:
           if [ -n "$KEYSTORE_BASE64" ]; then
             echo "Using keystore from repository secrets."
             echo "$KEYSTORE_BASE64" | base64 -d > android/release.jks
-            cat > android/key.properties <<PROPS
-          storeFile=../release.jks
-          storePassword=$KEYSTORE_PASSWORD
-          keyAlias=$KEY_ALIAS
-          keyPassword=$KEY_PASSWORD
-          PROPS
+            printf 'storeFile=../release.jks\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
+              "$KEYSTORE_PASSWORD" "$KEY_ALIAS" "$KEY_PASSWORD" > android/key.properties
           else
-            if [ ! -f android/ci-release.jks ]; then
-              echo "No secrets; generating a CI keystore."
-              keytool -genkeypair -v -keystore android/ci-release.jks \
-                -storepass haftnard-ci -keypass haftnard-ci -alias haftnard \
-                -keyalg RSA -keysize 2048 -validity 10000 \
-                -dname "CN=HaftNard CI, O=HaftNard, C=IR"
-            else
-              echo "Using cached CI keystore."
-            fi
-            cat > android/key.properties <<PROPS
-          storeFile=../ci-release.jks
-          storePassword=haftnard-ci
-          keyAlias=haftnard
-          keyPassword=haftnard-ci
-          PROPS
+            echo "Using the committed CI keystore."
+            printf 'storeFile=../ci/haftnard-ci.jks\nstorePassword=haftnard-ci\nkeyAlias=haftnard\nkeyPassword=haftnard-ci\n' \
+              > android/key.properties
           fi
-          sed -i 's/^ *//' android/key.properties
-      - name: Build APK (universal)
-        run: flutter build apk --release
-      - name: Build APKs (per ABI, smaller downloads)
+
+      - name: Build APKs (per ABI)
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk build/haftnard-universal.apk
-          flutter build apk --release --split-per-abi
+          for i in 1 2 3; do
+            flutter build apk --release --split-per-abi && break
+            echo "Retrying in 20s ($i)"; sleep 20
+          done
+          test -f build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/haftnard-arm64.apk
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/haftnard-armv7.apk
+      - name: Build APK (universal)
+        run: |
+          for i in 1 2 3; do
+            flutter build apk --release && break
+            echo "Retrying in 20s ($i)"; sleep 20
+          done
+          test -f build/app/outputs/flutter-apk/app-release.apk
       - name: Build AAB
-        run: flutter build appbundle --release
+        run: |
+          for i in 1 2 3; do
+            flutter build appbundle --release && break
+            echo "Retrying in 20s ($i)"; sleep 20
+          done
+      - name: Collect outputs
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk dist/haftnard-universal.apk
+          cp build/app/outputs/bundle/release/app-release.aab dist/haftnard.aab
+          ls -la dist
       - uses: actions/upload-artifact@v4
         with:
           name: haftnard-android
-          path: |
-            build/haftnard-universal.apk
-            build/app/outputs/flutter-apk/app-*-release.apk
-            build/app/outputs/bundle/release/app-release.aab
-      - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
+          path: dist/
+
+  release:
+    name: Publish release
+    needs: build-android
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Serialize releases so two pushes never pick the same tag.
+    concurrency:
+      group: release
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: haftnard-android
+          path: dist
+      - name: Compute tag and notes
+        id: meta
+        run: |
+          set -e
+          git fetch --tags --force
+          version=$(grep -E '^version:' pubspec.yaml | sed -E 's/version:[[:space:]]*([0-9.]+).*/\1/')
+          # Skip if this exact commit is already released (e.g. main and the
+          # work branch point at the same commit).
+          if git tag --points-at HEAD | grep -q '^v'; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Commit already released as $(git tag --points-at HEAD | head -1)"
+            exit 0
+          fi
+          tag="v$version"
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            tag="v$version-build.${GITHUB_RUN_NUMBER}"
+            n=1
+            while git rev-parse -q --verify "refs/tags/$tag" >/dev/null; do
+              tag="v$version-build.${GITHUB_RUN_NUMBER}.$n"; n=$((n+1))
+            done
+          fi
+          prev=$(git tag --list 'v*' --sort=-creatordate | head -1)
+          {
+            echo "## HaftNard $tag"
+            echo
+            echo "Download **haftnard-arm64.apk** for most phones (or haftnard-universal.apk)."
+            echo
+            echo "### Changes"
+            if [ -n "$prev" ]; then
+              git log "$prev..HEAD" --no-merges --pretty='- %s' | head -40
+            else
+              git log --no-merges --pretty='- %s' | head -40
+            fi
+          } > notes.md
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "Releasing $tag (previous: ${prev:-none})"
+      - name: Publish GitHub Release
+        if: steps.meta.outputs.skip != 'true'
+        uses: softprops/action-gh-release@v2.2.1
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: HaftNard ${{ steps.meta.outputs.tag }}
+          body_path: notes.md
+          make_latest: "true"
           files: |
-            build/haftnard-universal.apk
-            build/app/outputs/flutter-apk/app-*-release.apk
-            build/app/outputs/bundle/release/app-release.aab
-          generate_release_notes: true
+            dist/haftnard-arm64.apk
+            dist/haftnard-armv7.apk
+            dist/haftnard-universal.apk
+            dist/haftnard.aab

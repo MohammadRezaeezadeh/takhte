@@ -25,3 +25,4 @@ android/captures/
 
 # Offline git bundles
 *.bundle
+!android/ci/haftnard-ci.jks
