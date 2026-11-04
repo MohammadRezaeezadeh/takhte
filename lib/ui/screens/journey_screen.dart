@@ -85,8 +85,8 @@ class _JourneyScreenState extends ConsumerState<JourneyScreen> {
         match: MatchState(
           MatchConfig(
             seed: deriveSeed(run.seed, run.stage * 31 + _retry),
-            cardPool: run.cardPool(unlocked),
-            white: run.playerMods(stage.boss),
+            cardPool: unlocked,
+            white: run.playerMods(stage.boss, pool: unlocked),
             black: run.opponentMods(stage.boss),
           ),
         ),

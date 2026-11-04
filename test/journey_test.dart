@@ -41,6 +41,11 @@ void main() {
     final ban = run.shop.firstWhere((o) => o.kind == 'banish');
     expect(run.buy(ban, banishCard: CardId.fog), isTrue);
     expect(run.cardPool([CardId.fog, CardId.curse]), [CardId.curse]);
+    // Banishing only shrinks the player's own offers.
+    expect(run.playerMods(null, pool: [CardId.fog, CardId.curse]).cardPool, [
+      CardId.curse,
+    ]);
+    expect(run.opponentMods(null).cardPool, isNull);
   });
 
   test('losing ends the run unless Second Wind', () {

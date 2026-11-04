@@ -488,7 +488,7 @@ class JourneyRun {
   JourneyStage get current => map[math.min(stage, stages - 1)];
 
   /// Talisman-derived modifiers for the player, merged with a boss rule.
-  SideMods playerMods(Boss? boss) {
+  SideMods playerMods(Boss? boss, {List<String>? pool}) {
     final bp = boss?.player ?? SideMods.none;
     var p7 = 1.0 + 0.25 * luckUpgrades;
     if (has('lucky_star')) p7 *= 1.5;
@@ -511,6 +511,7 @@ class JourneyRun {
       startLucky: has('horseshoe') ? 1 : 0,
       capDice: bp.capDice,
       pickBonus: has('twin_fate') ? 1 : 0,
+      cardPool: pool == null ? null : cardPool(pool),
       startCards: [
         for (final e in _startCardTalismans.entries)
           if (has(e.key)) e.value,
