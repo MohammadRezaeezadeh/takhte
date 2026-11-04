@@ -15,6 +15,7 @@ class Settings {
     this.showPips = true,
     this.tutorialDone = false,
     this.sevenTutorialDone = false,
+    this.showFps = false,
   });
 
   factory Settings.fromJson(Map<String, Object?> j) => Settings(
@@ -32,6 +33,7 @@ class Settings {
     showPips: j['showPips'] as bool? ?? true,
     tutorialDone: j['tutorialDone'] as bool? ?? false,
     sevenTutorialDone: j['sevenTutorialDone'] as bool? ?? false,
+    showFps: j['showFps'] as bool? ?? false,
   );
 
   /// 'system', 'en' or 'fa'.
@@ -54,6 +56,9 @@ class Settings {
   final bool tutorialDone;
   final bool sevenTutorialDone;
 
+  /// Hidden developer overlay with frame timings.
+  final bool showFps;
+
   Settings copyWith({
     String? language,
     bool? homeOnRight,
@@ -69,6 +74,7 @@ class Settings {
     bool? showPips,
     bool? tutorialDone,
     bool? sevenTutorialDone,
+    bool? showFps,
   }) => Settings(
     language: language ?? this.language,
     homeOnRight: homeOnRight ?? this.homeOnRight,
@@ -84,6 +90,7 @@ class Settings {
     showPips: showPips ?? this.showPips,
     tutorialDone: tutorialDone ?? this.tutorialDone,
     sevenTutorialDone: sevenTutorialDone ?? this.sevenTutorialDone,
+    showFps: showFps ?? this.showFps,
   );
 
   Map<String, Object?> toJson() => {
@@ -101,5 +108,6 @@ class Settings {
     'showPips': showPips,
     'tutorialDone': tutorialDone,
     'sevenTutorialDone': sevenTutorialDone,
+    'showFps': showFps,
   };
 }

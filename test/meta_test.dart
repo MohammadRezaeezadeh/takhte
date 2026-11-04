@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:haftnard/meta/cosmetics.dart';
 import 'package:haftnard/meta/profile.dart';
 import 'package:haftnard/meta/save.dart';
 import 'package:haftnard/meta/settings.dart';
+import 'package:haftnard/ui/widgets/fps_overlay.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -82,5 +84,14 @@ void main() {
       final sum = b.items.fold<int>(0, (a, id) => a + itemById(id)!.coins);
       expect(b.coins, lessThan(sum), reason: '${b.id} must be a discount');
     }
+  });
+
+  test('displayed app version matches pubspec', () {
+    final pubspec = File('pubspec.yaml').readAsStringSync();
+    final v = RegExp(
+      r'^version:\s*([0-9.]+)',
+      multiLine: true,
+    ).firstMatch(pubspec)!.group(1);
+    expect(kAppVersion, v);
   });
 }

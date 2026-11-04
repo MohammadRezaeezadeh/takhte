@@ -7,6 +7,7 @@ import 'package:haftnard/l10n/gen/app_localizations.dart';
 import 'package:haftnard/meta/meta_state.dart';
 import 'package:haftnard/ui/screens/splash_screen.dart';
 import 'package:haftnard/ui/theme.dart';
+import 'package:haftnard/ui/widgets/fps_overlay.dart';
 
 class HaftNardApp extends ConsumerStatefulWidget {
   const HaftNardApp({super.key, this.home});
@@ -72,7 +73,14 @@ class _HaftNardAppState extends ConsumerState<HaftNardApp>
             disableAnimations: settings.reducedMotion || mq.disableAnimations,
             textScaler: mq.textScaler.clamp(maxScaleFactor: 1.3),
           ),
-          child: child!,
+          child: settings.showFps
+              ? Stack(
+                  children: [
+                    child!,
+                    const Positioned(top: 30, left: 6, child: FpsOverlay()),
+                  ],
+                )
+              : child!,
         );
       },
       home: widget.home ?? const SplashScreen(),

@@ -8,6 +8,7 @@ import 'package:haftnard/meta/settings.dart';
 import 'package:haftnard/ui/app.dart';
 import 'package:haftnard/ui/game/overlays.dart';
 import 'package:haftnard/ui/theme.dart';
+import 'package:haftnard/ui/widgets/fps_overlay.dart';
 import 'package:haftnard/ui/widgets/jewel.dart';
 import 'package:haftnard/ui/widgets/menu_background.dart';
 import 'package:haftnard/ui/widgets/top_bar.dart';
@@ -176,6 +177,21 @@ class SettingsScreen extends ConsumerWidget {
                                 style: const TextStyle(
                                   fontSize: 13,
                                   height: 1.5,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              // Long-press toggles the hidden FPS overlay.
+                              GestureDetector(
+                                onLongPress: () {
+                                  set(s.copyWith(showFps: !s.showFps));
+                                  Sfx.instance.haptic(HapticKind.medium);
+                                },
+                                child: Text(
+                                  'HaftNard v$kAppVersion${s.showFps ? ' · FPS' : ''}',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.muted,
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 12),
