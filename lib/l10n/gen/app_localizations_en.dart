@@ -848,4 +848,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get targetPoint2 => 'Tap two points';
+
+  @override
+  String get bar => 'Bar';
 }

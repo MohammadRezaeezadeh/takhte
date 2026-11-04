@@ -1477,6 +1477,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap two points'**
   String get targetPoint2;
+
+  /// No description provided for @bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Bar'**
+  String get bar;
 }
 
 class _AppLocalizationsDelegate

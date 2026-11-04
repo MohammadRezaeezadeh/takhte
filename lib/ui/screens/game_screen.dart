@@ -686,6 +686,55 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     );
   }
 
+  /// Invisible semantics nodes over each point so screen readers can read and
+  /// activate the Flame board.
+  Widget _boardSemantics() {
+    if (!game.isLoaded) return const SizedBox.shrink();
+    final s = ctrl.state;
+    final l = context.l10n;
+    final lang = context.lang;
+    final local = session.isPassAndPlay ? s.current : ctrl.localSide;
+    String owner(Side side) => side == local ? l.you : _name(side);
+    final nodes = <Widget>[];
+    for (var abs = 1; abs <= 24; abs++) {
+      final r = game.layout.pointHitRect(abs);
+      final (side, n) = s.board.atAbsolute(abs);
+      final rel = toRelative(local, abs);
+      final label = side == null
+          ? formatNumber(rel, lang)
+          : '${formatNumber(rel, lang)}: ${formatNumber(n, lang)} × ${owner(side)}';
+      nodes.add(
+        Positioned.fromRect(
+          rect: r,
+          child: Semantics(
+            container: true,
+            button: true,
+            label: label,
+            onTap: () => game.handleTap(r.center),
+            child: const SizedBox.expand(),
+          ),
+        ),
+      );
+    }
+    for (final side in Side.values) {
+      final bar = s.board.onBar(side);
+      if (bar == 0) continue;
+      nodes.add(
+        Positioned.fromRect(
+          rect: game.layout.bar,
+          child: Semantics(
+            container: true,
+            button: true,
+            label: '${l.bar}: ${formatNumber(bar, lang)} × ${owner(side)}',
+            onTap: () => game.handleTap(game.layout.bar.center),
+            child: const SizedBox.expand(),
+          ),
+        ),
+      );
+    }
+    return Stack(children: nodes);
+  }
+
   // --- Build --------------------------------------------------------------------
 
   @override
@@ -716,6 +765,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final board = Stack(
       children: [
         Positioned.fill(child: GameWidget(game: game)),
+        Positioned.fill(child: IgnorePointer(child: _boardSemantics())),
         PositionedDirectional(
           top: 6,
           end: 6,

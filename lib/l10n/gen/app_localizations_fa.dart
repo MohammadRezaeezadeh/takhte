@@ -851,4 +851,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get targetPoint2 => 'دو خانه را انتخاب کن';
+
+  @override
+  String get bar => 'بار';
 }

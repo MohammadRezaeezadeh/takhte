@@ -434,5 +434,6 @@
   "howToPlay": "How to play",
   "targetOwnBlot2": "Tap two of your lone checkers",
   "targetEmpty2": "Tap two empty points",
-  "targetPoint2": "Tap two points"
+  "targetPoint2": "Tap two points",
+  "bar": "Bar"
 }

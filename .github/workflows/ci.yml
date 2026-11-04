@@ -36,6 +36,8 @@ jobs:
         run: flutter analyze --fatal-infos --fatal-warnings
       - name: Test
         run: flutter test --coverage
+      - name: Balance simulator smoke run
+        run: dart run tool/simulate.dart --games 24 --quiet --out build/balance-smoke.md
       - uses: actions/upload-artifact@v4
         with:
           name: coverage
