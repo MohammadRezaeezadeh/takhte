@@ -59,9 +59,9 @@ class Sfx {
     if (!available || _loaded) return;
     try {
       FlameAudio.audioCache.prefix = 'assets/audio/';
-      await FlameAudio.audioCache.loadAll([for (final f in files) '$f.wav']);
+      await FlameAudio.audioCache.loadAll([for (final f in files) '$f.ogg']);
       for (final f in _pooled) {
-        _pools[f] = await FlameAudio.createPool('$f.wav', maxPlayers: 3);
+        _pools[f] = await FlameAudio.createPool('$f.ogg', maxPlayers: 3);
       }
       _loaded = true;
     } on Object {
@@ -82,7 +82,7 @@ class Sfx {
     }
     try {
       unawaited(
-        FlameAudio.play('$name.wav', volume: volume).then((p) async {
+        FlameAudio.play('$name.ogg', volume: volume).then((p) async {
           if (rate != 1) await p.setPlaybackRate(rate);
         }),
       );
@@ -106,7 +106,7 @@ class Sfx {
       if (track != null) _track = track;
       if (on && musicOn && !_ambient) {
         await FlameAudio.bgm.initialize();
-        await FlameAudio.bgm.play('$_track.wav', volume: 0.35);
+        await FlameAudio.bgm.play('$_track.ogg', volume: 0.35);
         _ambient = true;
       } else if ((!on || !musicOn) && _ambient) {
         await FlameAudio.bgm.stop();

@@ -89,7 +89,7 @@ jobs:
       - name: Build APKs (per ABI)
         run: |
           for i in 1 2 3; do
-            flutter build apk --release --split-per-abi && break
+            flutter build apk --release --split-per-abi --obfuscate --split-debug-info=build/symbols && break
             echo "Retrying in 20s ($i)"; sleep 20
           done
           test -f build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
@@ -99,14 +99,14 @@ jobs:
       - name: Build APK (universal)
         run: |
           for i in 1 2 3; do
-            flutter build apk --release && break
+            flutter build apk --release --obfuscate --split-debug-info=build/symbols && break
             echo "Retrying in 20s ($i)"; sleep 20
           done
           test -f build/app/outputs/flutter-apk/app-release.apk
       - name: Build AAB
         run: |
           for i in 1 2 3; do
-            flutter build appbundle --release && break
+            flutter build appbundle --release --obfuscate --split-debug-info=build/symbols && break
             echo "Retrying in 20s ($i)"; sleep 20
           done
       - name: Collect outputs
@@ -118,6 +118,11 @@ jobs:
         with:
           name: haftnard-android
           path: dist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: haftnard-symbols
+          path: build/symbols/
+          if-no-files-found: ignore
 
   release:
     name: Publish release

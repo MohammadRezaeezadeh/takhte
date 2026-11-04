@@ -1,7 +1,8 @@
-// Procedurally synthesizes every sound effect used by the game as 16-bit mono
-// WAV files in assets/audio/. Deterministic: the same output every run.
+// Procedurally synthesizes every sound effect used by the game. Writes 16-bit
+// mono WAV masters to build/sfx/ and encodes them with ffmpeg (Vorbis q4) to
+// assets/audio/*.ogg — about 6x smaller in the APK. Deterministic masters.
 //
-//   dart run tool/gen_sfx.dart
+//   dart run tool/gen_sfx.dart   (needs ffmpeg on PATH)
 // ignore_for_file: avoid_print
 import 'dart:io';
 import 'dart:math' as math;
@@ -174,8 +175,14 @@ void write(String name, List<double> b, {double gain = 0.9}) {
     final s = (v.clamp(-1.0, 1.0) * 32767).round();
     data.setInt16(44 + i * 2, s, Endian.little);
   }
-  File('assets/audio/$name.wav').writeAsBytesSync(data.buffer.asUint8List());
-  print('assets/audio/$name.wav  ${(b.length / sr).toStringAsFixed(2)}s');
+  final wav = File('build/sfx/$name.wav')..createSync(recursive: true);
+  wav.writeAsBytesSync(data.buffer.asUint8List());
+  final r = Process.runSync('ffmpeg', [
+    ...['-loglevel', 'error', '-y', '-i', wav.path],
+    ...['-c:a', 'libvorbis', '-q:a', '4', 'assets/audio/$name.ogg'],
+  ]);
+  if (r.exitCode != 0) throw StateError('ffmpeg failed for $name: ${r.stderr}');
+  print('assets/audio/$name.ogg  ${(b.length / sr).toStringAsFixed(2)}s');
 }
 
 void main() {
