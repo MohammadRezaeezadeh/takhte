@@ -137,14 +137,26 @@ class _Chk {
 
 class _Die {
   _Die(this.value, this.pos);
+
+  /// Decided before the throw; never changes once landed (only a Lucky
+  /// Charm / Fate's Edit / reroll edits it on purpose).
   int value;
   Offset pos;
   Offset target = Offset.zero;
   Offset start = Offset.zero;
   double angle = 0;
+
+  /// Resting tilt the tumble settles on.
+  double tilt = 0;
   double spin = 0;
   bool used = false;
   double t = 1;
+
+  /// 1 = spinning too fast to read, 0 = landed.
+  double blur = 0;
+
+  /// Grows from small when a double clones its twins.
+  double scale = 1;
 }
 
 /// The board scene. Implements [MatchPresenter] so the controller can await
@@ -487,7 +499,11 @@ class BoardGame extends FlameGame implements MatchPresenter {
           await _rollOpening(e.white, e.black);
           lastMoveOff = false;
         case DiceRolled():
-          await _rollDice(e.side, e.dice);
+          if (_keepOpeningDice) {
+            _keepOpeningDice = false;
+          } else {
+            await _rollDice(e.side, e.dice);
+          }
         case SevenRolled():
           await _rollSeven(e.side);
         case MovePlayed(:final side, :final move):
@@ -609,7 +625,8 @@ class BoardGame extends FlameGame implements MatchPresenter {
             size: 6,
           );
         case TurnStarted():
-          _dice.clear();
+          // The opening dice stay on the board as the starter's roll.
+          if (!_keepOpeningDice) _dice.clear();
         case GameEnded(:final winner):
           await Future<void>.delayed(
             Duration(milliseconds: (300 / _speed).round()),
@@ -655,45 +672,62 @@ class BoardGame extends FlameGame implements MatchPresenter {
       );
   }
 
+  /// True while dice are in the air or cloning: state syncs must not touch
+  /// them until they have landed.
+  bool _diceAnimating = false;
+
+  /// Set after the opening throw: the next DiceRolled (the same two values,
+  /// now the starter's roll) must not throw them again.
+  bool _keepOpeningDice = false;
+
+  /// Throws [live] towards their targets. Each die's face is already final:
+  /// the tumble is a spin blur that settles exactly on it, so no random face
+  /// is ever readable and nothing changes after landing.
   Future<void> _tumble(List<_Die> live, double dur) async {
     // Work on a snapshot: a resync may replace the live list mid-animation.
     final dice = List<_Die>.of(live);
     for (final d in dice) {
-      d.start = d.pos;
-      d.t = 0;
-      d.spin = (_rng.nextDouble() - 0.5) * 18;
+      d
+        ..start = d.pos
+        ..t = 0
+        ..blur = 1
+        ..tilt = (_rng.nextDouble() - 0.5) * 0.3
+        ..spin = (_rng.nextBool() ? 1 : -1) * (5 + _rng.nextDouble() * 3);
     }
     Sfx.instance.play('dice_roll');
-    final steps = (dur * 60).round();
-    final finals = [for (final d in dice) d.value];
+    final steps = math.max(1, (dur * 60).round());
     for (var i = 0; i < steps; i++) {
       await Future<void>.delayed(const Duration(milliseconds: 16));
       if (!isMounted) return;
       final t = (i + 1) / steps;
-      for (var k = 0; k < dice.length; k++) {
-        final d = dice[k];
+      for (final d in dice) {
         d.t = t;
         final e = 1 - math.pow(1 - t, 3).toDouble();
         final bounce =
             (math.sin(t * math.pi * 3) * (1 - t)).abs() * layout.dieSize * 0.6;
-        d.pos = Offset.lerp(d.start, d.target, e)!.translate(0, -bounce);
-        d.angle += d.spin * (1 - t) / 60;
-        if (t < 0.8 && i % 4 == 0) d.value = _rng.nextInt(6) + 1;
+        d
+          ..pos = Offset.lerp(d.start, d.target, e)!.translate(0, -bounce)
+          // Decelerating spin that ends exactly on the resting tilt.
+          ..angle = d.tilt + d.spin * math.pi * (1 - e)
+          ..blur = t < 0.7 ? 1 : (1 - (t - 0.7) / 0.25).clamp(0.0, 1.0);
       }
     }
-    for (var k = 0; k < dice.length; k++) {
-      dice[k]
-        ..value = finals[k]
-        ..pos = dice[k].target
+    for (final d in dice) {
+      d
+        ..pos = d.target
+        ..angle = d.tilt
+        ..blur = 0
         ..t = 1;
     }
     Sfx.instance.play('dice_land');
     Sfx.instance.haptic(HapticKind.light);
   }
 
+  /// Dice positions. One spacing for every count, so a double's two landed
+  /// dice already sit on the middle two of the four slots and never move.
   List<Offset> _diceSlots(Side side, int n) {
     final c = layout.diceCenter(side);
-    final s = layout.dieSize * (n > 2 ? 1.05 : 1.25);
+    final s = layout.dieSize * 1.12;
     return [for (var i = 0; i < n; i++) c.translate((i - (n - 1) / 2) * s, 0)];
   }
 
@@ -715,22 +749,33 @@ class BoardGame extends FlameGame implements MatchPresenter {
       ..add(
         _Die(b, _diceStart(Side.black))..target = layout.diceCenter(Side.black),
       );
-    await _tumble(_dice, (_cfg.reducedMotion ? 0.3 : 0.6) / _speed);
+    await _tumble(_dice, (_cfg.reducedMotion ? 0.3 : 0.72) / _speed);
+    _keepOpeningDice = true;
     await Future<void>.delayed(Duration(milliseconds: (500 / _speed).round()));
   }
 
   Future<void> _rollDice(Side side, List<int> raw) async {
-    final shown = raw.length == 2 && raw[0] == raw[1]
-        ? [raw[0], raw[0], raw[0], raw[0]]
-        : raw;
-    final slots = _diceSlots(side, shown.length);
-    _dice
-      ..clear()
-      ..addAll([
-        for (var i = 0; i < shown.length; i++)
-          _Die(shown[i], _diceStart(side))..target = slots[i],
-      ]);
-    await _tumble(_dice, (_cfg.reducedMotion ? 0.25 : 0.55) / _speed);
+    // Always exactly the thrown dice (two, or one/three for some cards); a
+    // double only becomes four after both have landed.
+    final st = controller.state;
+    final isDouble = raw.length == 2 && raw[0] == raw[1];
+    final four = isDouble && st.dice.length + st.movesThisRoll.length == 4;
+    final slots = _diceSlots(side, raw.length);
+    _diceAnimating = true;
+    try {
+      _dice
+        ..clear()
+        ..addAll([
+          for (var i = 0; i < raw.length; i++)
+            _Die(raw[i], _diceStart(side))..target = slots[i],
+        ]);
+      await _tumble(_dice, (_cfg.reducedMotion ? 0.3 : 0.72) / _speed);
+      if (four && isMounted) await _cloneDouble(side);
+    } finally {
+      _diceAnimating = false;
+    }
+    final shown = _shown;
+    if (shown != null) _syncDice(shown);
     if (dieStyle.effect == DiceEffect.sparks) {
       for (final d in _dice) {
         fx.burst(d.pos, color: const Color(0xFFFF9E3D), count: 12, speed: 160);
@@ -747,6 +792,69 @@ class BoardGame extends FlameGame implements MatchPresenter {
           life: 1.4,
         );
       }
+    }
+  }
+
+  /// A beat after a double lands, two twins split out of the landed dice.
+  Future<void> _cloneDouble(Side side) async {
+    await Future<void>.delayed(
+      Duration(
+        milliseconds: ((_cfg.reducedMotion ? 120 : 260) / _speed).round(),
+      ),
+    );
+    if (!isMounted || _dice.length != 2) return;
+    final slots = _diceSlots(side, 4);
+    final a = _dice[0];
+    final b = _dice[1];
+    final twinA = _Die(a.value, a.pos)
+      ..start = a.pos
+      ..target = slots[0]
+      ..tilt = -a.tilt
+      ..angle = a.tilt
+      ..scale = 0.4;
+    final twinB = _Die(b.value, b.pos)
+      ..start = b.pos
+      ..target = slots[3]
+      ..tilt = -b.tilt
+      ..angle = b.tilt
+      ..scale = 0.4;
+    _dice
+      ..clear()
+      ..addAll([twinA, a, b, twinB]);
+    Sfx.instance
+      ..play('pop')
+      ..play('magic', volume: 0.6)
+      ..haptic(HapticKind.medium);
+    final mid = Offset.lerp(a.pos, b.pos, 0.5)!;
+    fx
+      ..ring(mid, const Color(0xFFFFE9A8), size: layout.dieSize * 2.4)
+      ..popup(
+        _cfg.persianDigits ? 'جفت!' : 'Doubles!',
+        mid.translate(0, -layout.dieSize * 1.3),
+        size: 26,
+      );
+    for (final d in [a, b]) {
+      fx.burst(d.pos, count: 14, speed: 150, size: 2.4, life: 0.45);
+    }
+    const dur = 0.24;
+    final steps = math.max(1, (dur / _speed * 60).round());
+    for (var i = 0; i < steps; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 16));
+      if (!isMounted) return;
+      final t = (i + 1) / steps;
+      final e = 1 - math.pow(1 - t, 3).toDouble();
+      for (final d in [twinA, twinB]) {
+        d
+          ..pos = Offset.lerp(d.start, d.target, e)!
+          ..scale = 0.4 + 0.6 * e
+          ..angle = d.tilt + (1 - e) * 1.2;
+      }
+    }
+    for (final d in [twinA, twinB]) {
+      d
+        ..pos = d.target
+        ..scale = 1
+        ..angle = d.tilt;
     }
   }
 
@@ -773,6 +881,7 @@ class BoardGame extends FlameGame implements MatchPresenter {
   }
 
   void _syncDice(GameState s) {
+    if (_diceAnimating) return;
     if (s.phase != Phase.moving) {
       if (s.phase == Phase.chooseDice && _dice.length != s.choiceDice.length) {
         final slots = _diceSlots(s.current, s.choiceDice.length);
@@ -786,25 +895,58 @@ class BoardGame extends FlameGame implements MatchPresenter {
       return;
     }
     final values = [for (final m in s.movesThisRoll) m.die, ...s.dice];
-    final usedCount = s.movesThisRoll.length;
     if (values.isEmpty) return;
-    final slots = _diceSlots(s.current, values.length);
     if (_dice.length != values.length) {
+      // A different set of dice (resume, replay, a new roll seen without its
+      // animation): lay it out once, in roll order.
+      final slots = _diceSlots(s.current, values.length);
+      final order = [...s.dice];
+      for (final m in s.movesThisRoll) {
+        order.insert(0, m.die);
+      }
       _dice
         ..clear()
         ..addAll([
-          for (var i = 0; i < values.length; i++)
-            _Die(values[i], slots[i])..target = slots[i],
+          for (var i = 0; i < order.length; i++)
+            _Die(order[i], slots[i])..target = slots[i],
         ]);
+    } else {
+      // Same dice: faces, positions and order stay put. Only a deliberate
+      // edit (Lucky Charm, Fate's Edit) changes the edited die's face.
+      final remaining = List.of(values);
+      final unmatched = <_Die>[];
+      for (final d in _dice) {
+        if (!remaining.remove(d.value)) unmatched.add(d);
+      }
+      for (var i = 0; i < unmatched.length && i < remaining.length; i++) {
+        unmatched[i].value = remaining[i];
+      }
     }
-    for (var i = 0; i < values.length; i++) {
-      _dice[i]
-        ..value = values[i]
-        ..used = i < usedCount
-        ..target = slots[i];
-      if (_dice[i].t >= 1) _dice[i].pos = slots[i];
+    // Used dice dim in place: match each played move to a die by value.
+    for (final d in _dice) {
+      d.used = false;
+    }
+    for (final m in s.movesThisRoll) {
+      for (final d in _dice) {
+        if (!d.used && d.value == m.die) {
+          d.used = true;
+          break;
+        }
+      }
     }
   }
+
+  /// Test hook: dice as drawn, in order.
+  @visibleForTesting
+  List<({int value, Offset pos, bool used, bool landed})> debugDice() => [
+    for (final d in _dice)
+      (
+        value: d.value,
+        pos: d.pos,
+        used: d.used,
+        landed: d.t >= 1 && d.scale >= 1,
+      ),
+  ];
 
   // ---------------------------------------------------------------------------
   // Frame loop.
@@ -1402,13 +1544,14 @@ class BoardGame extends FlameGame implements MatchPresenter {
       paintDie(
         c,
         d.pos,
-        sz,
+        sz * d.scale,
         d.value,
         dieStyle,
-        angle: d.angle * (d.t < 1 ? 1 : 0.15),
+        angle: d.angle,
         used: d.used,
         time: _time,
         lift: d.t < 1 ? 10 : 0,
+        blur: d.blur,
       );
     }
     if (s == null || !controller.waitingForHuman) return;

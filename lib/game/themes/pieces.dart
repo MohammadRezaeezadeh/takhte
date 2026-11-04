@@ -499,11 +499,14 @@ void paintDie(
   bool used = false,
   double time = 0,
   double lift = 0,
+  double blur = 0,
 }) {
   canvas.save();
   canvas.translate(c.dx, c.dy);
   canvas.rotate(angle);
   final s = size;
+  // While tumbling the face is a spin blur: no readable pips until it lands.
+  final pipsHidden = blur >= 0.99;
   final rect = Rect.fromCenter(center: Offset.zero, width: s, height: s);
   final rr = RRect.fromRectAndRadius(rect, Radius.circular(s * 0.2));
   // Shadow.
@@ -562,7 +565,33 @@ void paintDie(
   final pipR = s * 0.085;
   final g = s * 0.26;
   final pipPaint = Paint()..color = pipColor;
-  if (seven) {
+  if (blur > 0) {
+    final streak = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = pipR * 1.6
+      ..color = pipColor.withValues(alpha: 0.35 * blur);
+    for (final (r, a0) in [(g * 0.55, 0.0), (g * 1.05, 2.1), (g * 1.4, 4.2)]) {
+      canvas.drawArc(
+        Rect.fromCircle(center: Offset.zero, radius: r),
+        a0 - angle * 0.5,
+        1.3,
+        false,
+        streak,
+      );
+    }
+  }
+  if (pipsHidden) {
+    // Spin blur only.
+  } else if (blur > 0) {
+    canvas.saveLayer(
+      rect,
+      Paint()..color = Color.fromRGBO(0, 0, 0, (1 - blur).clamp(0.0, 1.0)),
+    );
+  }
+  if (pipsHidden) {
+    // Nothing readable while tumbling.
+  } else if (seven) {
     // Seven pips: a flower of six around one, glowing.
     final glow = Paint()
       ..color = const Color(0xFFFFD36B)
@@ -605,6 +634,7 @@ void paintDie(
       );
     }
   }
+  if (!pipsHidden && blur > 0) canvas.restore();
   if (used) {
     canvas.drawRRect(rr, Paint()..color = const Color(0x99000000));
   }
