@@ -583,7 +583,7 @@ const List<CardDef> kCards = [
     rarity: Rarity.common,
     category: CardCategory.dice,
     nameEn: 'Ward of Low Rolls',
-    nameFa: 'دفع یک',
+    nameFa: 'دفع تاس کم',
     descEn: 'Next turn, any die that shows 1 or 2 is rerolled once.',
     descFa: 'نوبت بعد، هر تاسی که ۱ یا ۲ بیاید یک بار دوباره ریخته می‌شود.',
     glyph: 38,
