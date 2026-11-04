@@ -250,6 +250,14 @@ class BoardGame extends FlameGame implements MatchPresenter {
   Set<int> targetable = {};
   List<int> targetChosen = [];
 
+  /// Card preview while choosing a 7–7 card: points it could affect and a
+  /// ghost badge on the affected side's dice area.
+  Set<int> previewPoints = {};
+  ({Side side, String label, Color color})? previewDice;
+
+  /// Test hook: is a card preview currently drawn?
+  bool get debugPreviewing => previewPoints.isNotEmpty || previewDice != null;
+
   SceneConfig get config => _cfg;
   double get _speed => _cfg.animSpeed.clamp(0.5, 2.0);
 
@@ -936,6 +944,59 @@ class BoardGame extends FlameGame implements MatchPresenter {
     }
   }
 
+  void _renderDicePreview(
+    Canvas c,
+    ({Side side, String label, Color color}) pd,
+    double pulse,
+  ) {
+    final center = layout.diceCenter(pd.side);
+    final sz = layout.dieSize;
+    // Two ghost dice where the affected player's dice will land.
+    for (final dx in [-0.56, 0.56]) {
+      final r = RRect.fromRectAndRadius(
+        Rect.fromCenter(
+          center: center.translate(dx * sz * 1.12, 0),
+          width: sz,
+          height: sz,
+        ),
+        Radius.circular(sz * 0.2),
+      );
+      c
+        ..drawRRect(
+          r,
+          Paint()..color = pd.color.withValues(alpha: 0.12 + 0.1 * pulse),
+        )
+        ..drawRRect(
+          r,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2
+            ..color = pd.color.withValues(alpha: 0.5 + 0.4 * pulse),
+        );
+    }
+    final para = _text.get('preview|${pd.label}|${sz.round()}', () {
+      final pb =
+          ui.ParagraphBuilder(
+              ui.ParagraphStyle(textAlign: TextAlign.center, maxLines: 2),
+            )
+            ..pushStyle(
+              ui.TextStyle(
+                color: const Color(0xFFFFF4D6),
+                fontSize: sz * 0.36,
+                fontWeight: FontWeight.w700,
+                shadows: const [ui.Shadow(blurRadius: 4)],
+              ),
+            )
+            ..addText(pd.label);
+      return pb.build()..layout(ui.ParagraphConstraints(width: sz * 5));
+    });
+    final above = pd.side != controller.localSide;
+    c.drawParagraph(
+      para,
+      center.translate(-sz * 2.5, above ? sz * 0.75 : -sz * 0.75 - para.height),
+    );
+  }
+
   /// Test hook: dice as drawn, in order.
   @visibleForTesting
   List<({int value, Offset pos, bool used, bool landed})> debugDice() => [
@@ -1285,6 +1346,31 @@ class BoardGame extends FlameGame implements MatchPresenter {
     final s = _shown;
     if (s == null) return;
     final pulse = 0.55 + 0.35 * math.sin(_time * 5);
+    // Dim the board so only valid targets / previewed points stand out.
+    if (targetable.isNotEmpty || previewPoints.isNotEmpty) {
+      c.drawRect(layout.field, Paint()..color = const Color(0x66000000));
+    }
+    if (previewPoints.isNotEmpty) {
+      for (final abs in previewPoints) {
+        final r = abs == 0 ? layout.bar : layout.pointHitRect(abs);
+        c
+          ..drawRect(
+            r,
+            Paint()
+              ..color = const Color(0xFF7FE3F0)
+                  .withValues(alpha: 0.12 + 0.12 * pulse),
+          )
+          ..drawRect(
+            r.deflate(1),
+            Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 2
+              ..color = const Color(0xFF7FE3F0).withValues(alpha: pulse),
+          );
+      }
+    }
+    final pd = previewDice;
+    if (pd != null) _renderDicePreview(c, pd, pulse);
     // Targeting.
     if (targetable.isNotEmpty) {
       for (final abs in targetable) {

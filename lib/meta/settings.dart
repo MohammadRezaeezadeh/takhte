@@ -14,6 +14,7 @@ class Settings {
     this.autoMove = true,
     this.showPips = true,
     this.tutorialDone = false,
+    this.sevenGuideDone = false,
     this.sevenTutorialDone = false,
     this.showFps = false,
   });
@@ -32,6 +33,7 @@ class Settings {
     autoMove: j['autoMove'] as bool? ?? true,
     showPips: j['showPips'] as bool? ?? true,
     tutorialDone: j['tutorialDone'] as bool? ?? false,
+    sevenGuideDone: j['sevenGuideDone'] as bool? ?? false,
     sevenTutorialDone: j['sevenTutorialDone'] as bool? ?? false,
     showFps: j['showFps'] as bool? ?? false,
   );
@@ -54,6 +56,9 @@ class Settings {
   final bool autoMove;
   final bool showPips;
   final bool tutorialDone;
+
+  /// The first-7–7 walkthrough of the card choice was shown.
+  final bool sevenGuideDone;
   final bool sevenTutorialDone;
 
   /// Hidden developer overlay with frame timings.
@@ -73,6 +78,7 @@ class Settings {
     bool? autoMove,
     bool? showPips,
     bool? tutorialDone,
+    bool? sevenGuideDone,
     bool? sevenTutorialDone,
     bool? showFps,
   }) => Settings(
@@ -89,6 +95,7 @@ class Settings {
     autoMove: autoMove ?? this.autoMove,
     showPips: showPips ?? this.showPips,
     tutorialDone: tutorialDone ?? this.tutorialDone,
+    sevenGuideDone: sevenGuideDone ?? this.sevenGuideDone,
     sevenTutorialDone: sevenTutorialDone ?? this.sevenTutorialDone,
     showFps: showFps ?? this.showFps,
   );
@@ -107,6 +114,7 @@ class Settings {
     'autoMove': autoMove,
     'showPips': showPips,
     'tutorialDone': tutorialDone,
+    'sevenGuideDone': sevenGuideDone,
     'sevenTutorialDone': sevenTutorialDone,
     'showFps': showFps,
   };

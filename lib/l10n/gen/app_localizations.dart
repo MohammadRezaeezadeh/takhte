@@ -1639,6 +1639,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Copied'**
   String get copiedReport;
+
+  /// No description provided for @tagOpponent.
+  ///
+  /// In en, this message translates to:
+  /// **'Opponent'**
+  String get tagOpponent;
+
+  /// No description provided for @tagSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get tagSelf;
+
+  /// No description provided for @tagBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Board'**
+  String get tagBoard;
+
+  /// No description provided for @durTurns.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} turns'**
+  String durTurns(String n);
+
+  /// No description provided for @durNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next turn'**
+  String get durNext;
+
+  /// No description provided for @durSeven.
+  ///
+  /// In en, this message translates to:
+  /// **'Until next 7–7'**
+  String get durSeven;
+
+  /// No description provided for @durInstant.
+  ///
+  /// In en, this message translates to:
+  /// **'Instant'**
+  String get durInstant;
+
+  /// No description provided for @pickCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose'**
+  String get pickCard;
+
+  /// No description provided for @cardHoldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a card to see it on the board · hold for details'**
+  String get cardHoldHint;
+
+  /// No description provided for @targetProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done}/{total}'**
+  String targetProgress(String done, String total);
+
+  /// No description provided for @undoTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undoTarget;
+
+  /// No description provided for @confirmTargets.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirmTargets;
+
+  /// No description provided for @pendingNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Opponent\'s next turn'**
+  String get pendingNext;
+
+  /// No description provided for @pendingMine.
+  ///
+  /// In en, this message translates to:
+  /// **'Your next turn'**
+  String get pendingMine;
+
+  /// No description provided for @resultDone.
+  ///
+  /// In en, this message translates to:
+  /// **'✓ {name}: {effect}'**
+  String resultDone(String name, String effect);
+
+  /// No description provided for @guide1.
+  ///
+  /// In en, this message translates to:
+  /// **'A 7–7! You get to pick one power card.'**
+  String get guide1;
+
+  /// No description provided for @guide2.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a card: the board shows exactly what it will affect.'**
+  String get guide2;
+
+  /// No description provided for @guide3.
+  ///
+  /// In en, this message translates to:
+  /// **'Happy with it? Tap Choose. Hold a card for all the details.'**
+  String get guide3;
+
+  /// No description provided for @guideNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get guideNext;
 }
 
 class _AppLocalizationsDelegate

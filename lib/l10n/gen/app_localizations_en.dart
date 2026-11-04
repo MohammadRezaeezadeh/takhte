@@ -953,4 +953,70 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get copiedReport => 'Copied';
+
+  @override
+  String get tagOpponent => 'Opponent';
+
+  @override
+  String get tagSelf => 'You';
+
+  @override
+  String get tagBoard => 'Board';
+
+  @override
+  String durTurns(String n) {
+    return '$n turns';
+  }
+
+  @override
+  String get durNext => 'Next turn';
+
+  @override
+  String get durSeven => 'Until next 7–7';
+
+  @override
+  String get durInstant => 'Instant';
+
+  @override
+  String get pickCard => 'Choose';
+
+  @override
+  String get cardHoldHint =>
+      'Tap a card to see it on the board · hold for details';
+
+  @override
+  String targetProgress(String done, String total) {
+    return '$done/$total';
+  }
+
+  @override
+  String get undoTarget => 'Undo';
+
+  @override
+  String get confirmTargets => 'Confirm';
+
+  @override
+  String get pendingNext => 'Opponent\'s next turn';
+
+  @override
+  String get pendingMine => 'Your next turn';
+
+  @override
+  String resultDone(String name, String effect) {
+    return '✓ $name: $effect';
+  }
+
+  @override
+  String get guide1 => 'A 7–7! You get to pick one power card.';
+
+  @override
+  String get guide2 =>
+      'Tap a card: the board shows exactly what it will affect.';
+
+  @override
+  String get guide3 =>
+      'Happy with it? Tap Choose. Hold a card for all the details.';
+
+  @override
+  String get guideNext => 'Got it';
 }

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:haftnard/core/effects/cards.dart';
 import 'package:haftnard/game/audio.dart';
 import 'package:haftnard/ui/app.dart';
+import 'package:haftnard/ui/game/card_tags.dart';
+import 'package:haftnard/ui/game/overlays.dart';
 import 'package:haftnard/ui/theme.dart';
 import 'package:haftnard/ui/widgets/card_art.dart';
 import 'package:haftnard/ui/widgets/jewel.dart';
@@ -19,6 +21,9 @@ class SevenOverlay extends StatefulWidget {
     required this.onPick,
     required this.backId,
     required this.frameId,
+    this.onPreview,
+    this.showGuide = false,
+    this.onGuideDone,
     super.key,
   });
 
@@ -27,6 +32,13 @@ class SevenOverlay extends StatefulWidget {
   final void Function(int index) onPick;
   final String backId;
   final String frameId;
+
+  /// Live board preview of the selected card (null clears it).
+  final void Function(String? cardId)? onPreview;
+
+  /// First 7–7 in this profile: walk the player through the screen.
+  final bool showGuide;
+  final VoidCallback? onGuideDone;
 
   /// Device tilt parallax (disabled in tests / headless runs).
   static bool useSensors = true;
@@ -114,16 +126,42 @@ class _SevenOverlayState extends State<SevenOverlay>
       _confirm();
       return;
     }
-    Sfx.instance.play('ui_tick');
+    Sfx.instance.play('card_flip');
     Sfx.instance.haptic(HapticKind.light);
     setState(() => _selected = i);
+    widget.onPreview?.call(widget.offer[i]);
+  }
+
+  int _guideStep = 0;
+
+  void _details(CardDef card) {
+    Sfx.instance.play('ui_tick');
+    unawaited(
+      showPanelDialog<void>(
+        context,
+        (ctx) => ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 360),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CardFace(card: card, lang: context.lang, frameId: widget.frameId),
+              const SizedBox(height: 10),
+              _CardDetail(card: card, lang: context.lang, full: true),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _confirm() {
     final i = _selected;
     if (i == null || _picked) return;
     setState(() => _picked = true);
-    Sfx.instance.haptic(HapticKind.medium);
+    Sfx.instance
+      ..play('card_pick')
+      ..haptic(HapticKind.medium);
+    widget.onPreview?.call(null);
     widget.onPick(i);
   }
 
@@ -133,9 +171,13 @@ class _SevenOverlayState extends State<SevenOverlay>
     final lang = context.lang;
     final size = MediaQuery.sizeOf(context);
     final n = widget.offer.length;
-    final cardW = math
+    final previewing = _selected != null;
+    final full = math
         .min<double>((size.width - 40) / n - 10, 170)
         .clamp(90.0, 170.0);
+    // While previewing, the cards shrink to a bottom row so the board above
+    // stays visible and shows what the selected card will affect.
+    final cardW = previewing ? full * 0.72 : full;
     final reduce = MediaQuery.of(context).disableAnimations;
     return AnimatedBuilder(
       animation: Listenable.merge([_intro, _idle]),
@@ -146,14 +188,29 @@ class _SevenOverlayState extends State<SevenOverlay>
         return Stack(
           children: [
             Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    radius: 1,
-                    colors: [
-                      Color.fromRGBO(80, 50, 10, 0.75 * dim),
-                      Color.fromRGBO(5, 5, 15, 0.9 * dim),
-                    ],
+              child: IgnorePointer(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 260),
+                  decoration: BoxDecoration(
+                    gradient: previewing
+                        ? LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            stops: const [0, 0.5, 0.62, 1],
+                            colors: [
+                              Colors.transparent,
+                              Colors.transparent,
+                              Color.fromRGBO(5, 5, 15, 0.75 * dim),
+                              Color.fromRGBO(5, 5, 15, 0.94 * dim),
+                            ],
+                          )
+                        : RadialGradient(
+                            radius: 1,
+                            colors: [
+                              Color.fromRGBO(80, 50, 10, 0.75 * dim),
+                              Color.fromRGBO(5, 5, 15, 0.9 * dim),
+                            ],
+                          ),
                   ),
                 ),
               ),
@@ -161,50 +218,52 @@ class _SevenOverlayState extends State<SevenOverlay>
             SafeArea(
               child: Column(
                 children: [
-                  const Spacer(),
-                  Transform.scale(
-                    scale: 0.4 + 0.6 * titleT,
-                    child: Opacity(
-                      opacity: titleT.clamp(0, 1),
-                      child: Column(
-                        children: [
-                          Text(
-                            l.sevenTitle,
-                            style: TextStyle(
-                              fontFamily: AppFonts.display,
-                              fontSize: 44,
-                              color: AppColors.goldLight,
-                              shadows: [
-                                Shadow(
-                                  blurRadius:
-                                      24 +
-                                      8 *
-                                          math.sin(
-                                            _idle.value * 2 * math.pi * 3,
-                                          ),
-                                  color: const Color(0xFFFFB347),
-                                ),
-                                const Shadow(
-                                  blurRadius: 2,
-                                  offset: Offset(0, 3),
-                                ),
-                              ],
+                  if (!previewing) const Spacer(),
+                  if (previewing) const Expanded(child: SizedBox()),
+                  if (!previewing)
+                    Transform.scale(
+                      scale: 0.4 + 0.6 * titleT,
+                      child: Opacity(
+                        opacity: titleT.clamp(0, 1),
+                        child: Column(
+                          children: [
+                            Text(
+                              l.sevenTitle,
+                              style: TextStyle(
+                                fontFamily: AppFonts.display,
+                                fontSize: 44,
+                                color: AppColors.goldLight,
+                                shadows: [
+                                  Shadow(
+                                    blurRadius:
+                                        24 +
+                                        8 *
+                                            math.sin(
+                                              _idle.value * 2 * math.pi * 3,
+                                            ),
+                                    color: const Color(0xFFFFB347),
+                                  ),
+                                  const Shadow(
+                                    blurRadius: 2,
+                                    offset: Offset(0, 3),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          Text(
-                            widget.picksLeft > 1
-                                ? l.chooseTwo(widget.picksLeft)
-                                : l.choosePower,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              color: AppColors.ivory,
+                            Text(
+                              widget.picksLeft > 1
+                                  ? l.chooseTwo(widget.picksLeft)
+                                  : l.choosePower,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                color: AppColors.ivory,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: previewing ? 4 : 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -213,6 +272,7 @@ class _SevenOverlayState extends State<SevenOverlay>
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 5),
                           child: _DealtCard(
+                            key: ValueKey('offer-$i'),
                             card: cardById(widget.offer[i]),
                             lang: lang,
                             width: cardW,
@@ -230,45 +290,106 @@ class _SevenOverlayState extends State<SevenOverlay>
                             backId: widget.backId,
                             frameId: widget.frameId,
                             onTap: () => _tap(i),
+                            onLongPress: () =>
+                                _details(cardById(widget.offer[i])),
                           ),
                         ),
                     ],
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 12),
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 200),
                     child: _selected == null
-                        ? const SizedBox(height: 64)
+                        ? Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Text(
+                              l.cardHoldHint,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.muted,
+                              ),
+                            ),
+                          )
                         : Padding(
                             key: ValueKey(_selected),
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: SizedBox(
-                              height: 64,
-                              child: _CardDetail(
-                                card: cardById(widget.offer[_selected!]),
-                                lang: lang,
-                              ),
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: _CardDetail(
+                              card: cardById(widget.offer[_selected!]),
+                              lang: lang,
                             ),
                           ),
                   ),
+                  const SizedBox(height: 10),
                   AnimatedOpacity(
                     duration: const Duration(milliseconds: 200),
                     opacity: _selected == null ? 0 : 1,
                     child: JewelButton(
-                      label: l.confirm,
+                      key: const ValueKey('pick-card'),
+                      label: l.pickCard,
                       icon: Icons.check,
                       color: AppColors.emerald,
                       expand: false,
                       onPressed: _selected == null ? null : _confirm,
                     ),
                   ),
-                  const Spacer(),
+                  if (previewing) const SizedBox(height: 12),
+                  if (!previewing) const Spacer(),
                 ],
               ),
             ),
+            if (widget.showGuide && _guideStep < 3 && t >= 0.95)
+              _Guide(
+                step: _guideStep,
+                onNext: () {
+                  setState(() => _guideStep++);
+                  if (_guideStep >= 3) widget.onGuideDone?.call();
+                },
+              ),
           ],
         );
       },
+    );
+  }
+}
+
+/// First-time walkthrough of the card choice (three short coach marks).
+class _Guide extends StatelessWidget {
+  const _Guide({required this.step, required this.onNext});
+  final int step;
+  final VoidCallback onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final text = [l.guide1, l.guide2, l.guide3][step];
+    return Positioned(
+      left: 16,
+      right: 16,
+      top: step == 0 ? 80 : null,
+      bottom: step == 0 ? null : 24,
+      child: Panel(
+        key: const ValueKey('seven-guide'),
+        glow: AppColors.goldLight,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              text,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 15, height: 1.5),
+            ),
+            const SizedBox(height: 8),
+            JewelButton(
+              label: '${l.guideNext} (${step + 1}/3)',
+              expand: false,
+              height: 40,
+              fontSize: 14,
+              onPressed: onNext,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -288,6 +409,8 @@ class _DealtCard extends StatefulWidget {
     required this.backId,
     required this.frameId,
     required this.onTap,
+    required this.onLongPress,
+    super.key,
   });
 
   final CardDef card;
@@ -303,6 +426,7 @@ class _DealtCard extends StatefulWidget {
   final String backId;
   final String frameId;
   final VoidCallback onTap;
+  final VoidCallback onLongPress;
 
   @override
   State<_DealtCard> createState() => _DealtCardState();
@@ -344,6 +468,7 @@ class _DealtCardState extends State<_DealtCard> {
             '${widget.card.name(widget.lang)}. ${widget.card.desc(widget.lang)}',
         child: GestureDetector(
           onTap: widget.onTap,
+          onLongPress: widget.onLongPress,
           onPanUpdate: (e) => setState(() {
             _tilt = Offset(
               (_tilt.dx + e.delta.dx / 120).clamp(-1, 1),
@@ -376,17 +501,33 @@ class _DealtCardState extends State<_DealtCard> {
 }
 
 class _CardDetail extends StatelessWidget {
-  const _CardDetail({required this.card, required this.lang});
+  const _CardDetail({
+    required this.card,
+    required this.lang,
+    this.full = false,
+  });
   final CardDef card;
   final String lang;
+
+  /// Long-press view: name and no line limits.
+  final bool full;
   @override
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
     children: [
       Text(
+        card.name(lang),
+        style: const TextStyle(
+          fontFamily: AppFonts.display,
+          fontSize: 20,
+          color: AppColors.goldLight,
+        ),
+      ),
+      const SizedBox(height: 2),
+      Text(
         card.desc(lang),
         textAlign: TextAlign.center,
-        maxLines: 2,
+        maxLines: full ? null : 2,
         style: const TextStyle(
           fontSize: 15,
           color: AppColors.ivory,
@@ -397,9 +538,11 @@ class _CardDetail extends StatelessWidget {
         Text(
           card.drawback(lang)!,
           textAlign: TextAlign.center,
-          maxLines: 1,
+          maxLines: full ? null : 1,
           style: const TextStyle(fontSize: 13, color: Color(0xFFFF8A8A)),
         ),
+      const SizedBox(height: 6),
+      CardTags(card: card),
     ],
   );
 }

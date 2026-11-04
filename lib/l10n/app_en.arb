@@ -483,5 +483,51 @@
   "reportProblem": "Report a problem",
   "reportProblemHint": "Copy this text and send it to the developer. It holds the last few minutes of errors and slowdowns, plus device facts, and no personal data.",
   "copyReport": "Copy",
-  "copiedReport": "Copied"
+  "copiedReport": "Copied",
+  "tagOpponent": "Opponent",
+  "tagSelf": "You",
+  "tagBoard": "Board",
+  "durTurns": "{n} turns",
+  "durNext": "Next turn",
+  "durSeven": "Until next 7–7",
+  "durInstant": "Instant",
+  "pickCard": "Choose",
+  "cardHoldHint": "Tap a card to see it on the board · hold for details",
+  "targetProgress": "{done}/{total}",
+  "undoTarget": "Undo",
+  "confirmTargets": "Confirm",
+  "pendingNext": "Opponent's next turn",
+  "pendingMine": "Your next turn",
+  "resultDone": "✓ {name}: {effect}",
+  "guide1": "A 7–7! You get to pick one power card.",
+  "guide2": "Tap a card: the board shows exactly what it will affect.",
+  "guide3": "Happy with it? Tap Choose. Hold a card for all the details.",
+  "guideNext": "Got it",
+  "@durTurns": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@targetProgress": {
+    "placeholders": {
+      "done": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "@resultDone": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "effect": {
+        "type": "String"
+      }
+    }
+  }
 }

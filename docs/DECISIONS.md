@@ -85,3 +85,13 @@ One line per decision: **decision** — reason.
 - **Balance under the new 7–7 frequency: the full forced-pick run (docs/balance/report.md) plus a 1,200-game re-measure of the top cards keeps every card within +8% per pick (top: Shackle +7.7%, Rallying Cry +7.6%), so no card was retuned.** Details in docs/balance/sevens.md.
 - **Settings → «گزارش مشکل» (Report a problem) shows a copyable rolling log of the last 10 minutes: uncaught Flutter/platform errors (top of stack), audio-manager errors and resets, and slow frames (>50 ms, aggregated every 5 s). It adds version, OS, CPU count, locale, screen size and audio/scene counters.** It never includes names, profile data or player input. `FlutterError.onError` and `PlatformDispatcher.onError` route every uncaught error into it instead of failing silently. Share is copy-to-clipboard: no share plugin is available offline, and pasting works in any messenger.
 - **Card copy rewritten for all 80 cards (fa and en): one plain sentence, WHO + WHAT + HOW LONG with concrete numbers, ≤90 characters, in the informal register of the playtest examples.** Drawbacks were rewritten the same way. `lib/core/effects/card_meta.dart` records each card's target (opponent / self / board) and duration (N turns, next turn, until the next 7–7, or instant) for the card-face tags. A test per card checks the length and that the stated duration matches the metadata in both languages.
+- **New 7–7 choice flow:**
+  - Tapping a card lifts it and moves the cards into a bottom row, so the board stays visible above.
+  - The board dims and previews the card: points it can affect are highlighted, and a ghost badge on the affected player's dice area shows the card name and duration.
+  - «انتخاب» confirms; tapping another card switches the preview; a long press shows full details (name, sentence, drawback, rarity, duration and target tags).
+  - Targeted cards show a banner with progress (۰/۲), plus Undo and Confirm before anything is applied (no more auto-submit on the last tap).
+  - Every card the player takes shows a ✓ result banner.
+  - The AI's pick fills the centre for ~1.5 s with its effect, then shrinks down onto the board.
+  - HUD chips (both players) explain themselves on tap; delayed effects show as dashed "pending" chips with «نوبت بعد حریف»/«نوبت بعد خودت».
+  - The first 7–7 in a profile runs a three-step guide (`Settings.sevenGuideDone`).
+  - Not done: the pending chip doesn't literally fly to its target when it fires. The firing is covered by the on-board visuals (section B).

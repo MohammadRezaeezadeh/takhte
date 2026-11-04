@@ -95,8 +95,8 @@ void main() {
     await tester.tap(find.text('Time Stop').first);
     await tester.pump(const Duration(milliseconds: 300));
     expect(picked, isNull);
-    expect(find.textContaining('extra full turn'), findsWidgets);
-    await tester.tap(find.text('Confirm'));
+    expect(find.textContaining('one more full turn'), findsWidgets);
+    await tester.tap(find.text('Choose'));
     await tester.pump(const Duration(milliseconds: 300));
     expect(picked, 1);
   });

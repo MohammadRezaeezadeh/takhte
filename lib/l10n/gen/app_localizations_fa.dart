@@ -956,4 +956,70 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get copiedReport => 'کپی شد';
+
+  @override
+  String get tagOpponent => 'حریف';
+
+  @override
+  String get tagSelf => 'خودت';
+
+  @override
+  String get tagBoard => 'تخته';
+
+  @override
+  String durTurns(String n) {
+    return '$n نوبت';
+  }
+
+  @override
+  String get durNext => 'نوبت بعد';
+
+  @override
+  String get durSeven => 'تا هفت‌هفت بعدی';
+
+  @override
+  String get durInstant => 'فوری';
+
+  @override
+  String get pickCard => 'انتخاب';
+
+  @override
+  String get cardHoldHint =>
+      'روی کارت بزن تا اثرش رو روی تخته ببینی · نگه دار برای جزئیات';
+
+  @override
+  String targetProgress(String done, String total) {
+    return '$done/$total';
+  }
+
+  @override
+  String get undoTarget => 'برگردان';
+
+  @override
+  String get confirmTargets => 'تأیید';
+
+  @override
+  String get pendingNext => 'نوبت بعد حریف';
+
+  @override
+  String get pendingMine => 'نوبت بعد خودت';
+
+  @override
+  String resultDone(String name, String effect) {
+    return '✓ $name: $effect';
+  }
+
+  @override
+  String get guide1 => 'هفت‌هفت آوردی! یکی از این کارت‌های قدرت مال توئه.';
+
+  @override
+  String get guide2 =>
+      'روی یه کارت بزن: تخته دقیقاً نشون می‌ده روی چی اثر می‌ذاره.';
+
+  @override
+  String get guide3 =>
+      'پسندیدی؟ «انتخاب» رو بزن. برای جزئیات کامل، کارت رو نگه دار.';
+
+  @override
+  String get guideNext => 'فهمیدم';
 }

@@ -59,11 +59,15 @@ class EffectChip extends StatelessWidget {
     super.key,
     this.turns,
     this.count,
+    this.pending,
   });
   final String cardId;
   final bool buff;
   final int? turns;
   final int? count;
+
+  /// Not active yet: fires on "Opponent's next turn" / "Your next turn".
+  final String? pending;
 
   @override
   Widget build(BuildContext context) {
@@ -73,9 +77,12 @@ class EffectChip extends StatelessWidget {
     final label =
         '${def.name(lang)}${turns != null ? ' · ${context.l10n.turnsLeft(turns!)}' : ''}';
     return Tooltip(
-      triggerMode: TooltipTriggerMode.longPress,
+      triggerMode: TooltipTriggerMode.tap,
+      showDuration: const Duration(seconds: 4),
       message:
-          '${def.name(lang)}\n${def.desc(lang)}${turns != null ? '\n${context.l10n.turnsLeft(turns!)}' : ''}',
+          '${pending != null ? '⏳ $pending\n' : ''}${def.name(lang)}\n'
+          '${def.desc(lang)}'
+          '${turns != null ? '\n${context.l10n.turnsLeft(turns!)}' : ''}',
       child: Semantics(
         label: label,
         child: Container(
@@ -85,18 +92,34 @@ class EffectChip extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: Colors.black54,
-            border: Border.all(color: color, width: 2),
+            border: Border.all(
+              color: pending != null ? color.withValues(alpha: 0.5) : color,
+              width: 2,
+            ),
           ),
           child: Stack(
             children: [
               Positioned.fill(
-                child: CustomPaint(
-                  painter: CardGlyphPainter(
-                    def.glyph,
-                    AppColors.rarity(def.rarity.index),
+                child: Opacity(
+                  opacity: pending != null ? 0.5 : 1,
+                  child: CustomPaint(
+                    painter: CardGlyphPainter(
+                      def.glyph,
+                      AppColors.rarity(def.rarity.index),
+                    ),
                   ),
                 ),
               ),
+              if (pending != null)
+                const PositionedDirectional(
+                  top: -1,
+                  end: -1,
+                  child: Icon(
+                    Icons.schedule,
+                    size: 13,
+                    color: AppColors.goldLight,
+                  ),
+                ),
               if (turns != null || count != null)
                 PositionedDirectional(
                   bottom: -1,
@@ -308,11 +331,19 @@ class _PlayerPanelState extends State<PlayerPanel>
                     ),
                   for (final e in effects.take(4))
                     EffectChip(
+                      key: ValueKey('effect-${e.id}'),
                       cardId: cardForEffect(e.kind),
                       buff: e.owner == side,
                       turns: _showsCounter(e.kind) && e.turnsLeft < 50
                           ? e.turnsLeft
                           : null,
+                      // Delayed effects fire on the affected player's next
+                      // turn; say whose, from the viewer's point of view.
+                      pending: e.isActive(s.turnNumber)
+                          ? null
+                          : (widget.controller.isHuman(e.affected)
+                                ? context.l10n.pendingMine
+                                : context.l10n.pendingNext),
                     ),
                   if (s.config.cubeEnabled && s.cubeOwner == side)
                     _CubeBadge(value: s.cubeValue),

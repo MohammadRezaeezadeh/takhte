@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:haftnard/core/ai/personality.dart';
 import 'package:haftnard/core/effects/card_logic.dart';
+import 'package:haftnard/core/effects/card_meta.dart';
 import 'package:haftnard/core/effects/cards.dart';
 import 'package:haftnard/core/rules/actions.dart';
 import 'package:haftnard/core/rules/engine.dart';
@@ -21,6 +22,7 @@ import 'package:haftnard/meta/cosmetics.dart';
 import 'package:haftnard/meta/meta_state.dart';
 import 'package:haftnard/ui/app.dart';
 import 'package:haftnard/ui/game/board_help.dart';
+import 'package:haftnard/ui/game/card_tags.dart';
 import 'package:haftnard/ui/game/hud.dart';
 import 'package:haftnard/ui/game/overlays.dart';
 import 'package:haftnard/ui/game/seven_overlay.dart';
@@ -63,6 +65,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   bool _showGameOver = false;
   final List<ToastData> _toasts = [];
   (String, String)? _reveal;
+
+  /// Card the human just played, for the result banner.
+  String? _result;
+  Timer? _resultTimer;
+
+  /// All targets picked; waiting for Confirm (Undo still possible).
+  bool _targetsReady = false;
   Timer? _revealTimer;
   final List<int> _chosen = [];
   int _step = 0;
@@ -178,6 +187,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       t.cancel();
     }
     _revealTimer?.cancel();
+    _resultTimer?.cancel();
     unawaited(Sfx.instance.setAmbient(on: true, track: 'ambient'));
     unawaited(_sub.cancel());
     ctrl
@@ -340,10 +350,17 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             if (!ctrl.isHuman(side)) {
               _revealTimer?.cancel();
               setState(() => _reveal = (_name(side), cardId));
-              _revealTimer = Timer(const Duration(milliseconds: 2800), () {
+              _revealTimer = Timer(const Duration(milliseconds: 1700), () {
                 if (mounted) setState(() => _reveal = null);
               });
             }
+          }
+          if (ctrl.isHuman(side)) {
+            _resultTimer?.cancel();
+            setState(() => _result = cardId);
+            _resultTimer = Timer(const Duration(milliseconds: 2600), () {
+              if (mounted) setState(() => _result = null);
+            });
           }
         default:
           break;
@@ -393,11 +410,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final s = ctrl.state;
     if (s.phase != Phase.cardTarget || !ctrl.waitingForHuman) {
       _chosen.clear();
+      _targetsReady = false;
       game
         ..targetable = {}
         ..targetChosen = [];
       return;
     }
+    if (_targetsReady) return;
     final all = _allTargets();
     final next = <int>{};
     for (final combo in all) {
@@ -416,6 +435,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   void _onTargetTap(int abs) {
+    if (_targetsReady) return;
     _chosen.add(abs);
     final all = _allTargets();
     final complete = all.any(
@@ -423,16 +443,72 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           c.length == _chosen.length && _matches(c, _chosen, prefixOnly: false),
     );
     if (complete) {
-      final pts = List<int>.of(_chosen);
-      _chosen.clear();
+      // Wait for Confirm so the player can still undo a mis-tap.
+      _targetsReady = true;
       game
         ..targetable = {}
-        ..targetChosen = [];
-      unawaited(ctrl.act(ChooseTargets(pts)));
+        ..targetChosen = List.of(_chosen);
     } else {
       _updateTargeting();
-      setState(() {});
     }
+    setState(() {});
+  }
+
+  void _undoTarget() {
+    if (_chosen.isEmpty) return;
+    _chosen.removeLast();
+    _targetsReady = false;
+    _updateTargeting();
+    setState(() {});
+  }
+
+  void _confirmTargets() {
+    if (!_targetsReady) return;
+    final pts = List<int>.of(_chosen);
+    _chosen.clear();
+    _targetsReady = false;
+    game
+      ..targetable = {}
+      ..targetChosen = [];
+    unawaited(ctrl.act(ChooseTargets(pts)));
+  }
+
+  int _targetTotal() {
+    var n = 0;
+    for (final c in _allTargets()) {
+      if (c.length > n) n = c.length;
+    }
+    return n;
+  }
+
+  /// Live board preview of a card while choosing (null clears it).
+  void _preview(String? id) {
+    if (id == null) {
+      game
+        ..previewPoints = {}
+        ..previewDice = null;
+      return;
+    }
+    final s = ctrl.state;
+    final def = cardById(id);
+    final meta = cardMeta(id);
+    final points = <int>{};
+    if (def.target != TargetKind.none) {
+      CardLogic.allTargets(Tx(s), s.current, id).forEach(points.addAll);
+    }
+    final side = meta.who == CardWho.opponent ? s.current.opponent : s.current;
+    final l = context.l10n;
+    game
+      ..previewPoints = points
+      ..previewDice = (
+        side: side,
+        label:
+            '${def.name(context.lang)} · '
+            '${durationLabel(l, context.lang, id)}',
+        color: meta.who == CardWho.opponent
+            ? const Color(0xFFFF8A8A)
+            : const Color(0xFF7FE3F0),
+      );
   }
 
   String _targetPrompt() {
@@ -856,45 +932,134 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         if (s.phase == Phase.cardTarget && waiting)
           Positioned(
             top: 8,
-            left: 60,
-            right: 60,
+            left: 12,
+            right: 12,
             child: Center(
               child: Panel(
+                key: const ValueKey('target-banner'),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
                   vertical: 8,
                 ),
                 glow: AppColors.goldLight,
-                child: Text(
-                  _targetPrompt(),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${_targetPrompt()} '
+                      '(${context.l10n.targetProgress(formatNumber(_chosen.length, context.lang), formatNumber(_targetTotal(), context.lang))})',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    if (_chosen.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            JewelButton(
+                              key: const ValueKey('target-undo'),
+                              label: context.l10n.undoTarget,
+                              icon: Icons.undo,
+                              expand: false,
+                              height: 38,
+                              fontSize: 14,
+                              onPressed: _undoTarget,
+                            ),
+                            if (_targetsReady) ...[
+                              const SizedBox(width: 8),
+                              JewelButton(
+                                key: const ValueKey('target-confirm'),
+                                label: context.l10n.confirmTargets,
+                                icon: Icons.check,
+                                color: AppColors.emerald,
+                                expand: false,
+                                height: 38,
+                                fontSize: 14,
+                                onPressed: _confirmTargets,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ),
           ),
         if (_reveal != null)
-          Positioned(
-            top: 60,
-            left: 12,
-            right: 12,
-            child: Center(
-              child: TweenAnimationBuilder<double>(
-                key: ValueKey(_reveal),
-                tween: Tween(begin: 0, end: 1),
-                duration: const Duration(milliseconds: 280),
-                curve: Curves.easeOutBack,
-                builder: (_, v, child) => Opacity(
-                  opacity: v.clamp(0, 1),
-                  child: Transform.translate(
-                    offset: Offset(0, (1 - v) * -30),
-                    child: child,
+          // The AI's pick: big in the centre for ~1.5 s, then it shrinks and
+          // flies down onto the board.
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Center(
+                child: TweenAnimationBuilder<double>(
+                  key: ValueKey(_reveal),
+                  tween: Tween(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 1700),
+                  builder: (_, v, child) {
+                    final inT = Curves.easeOutBack.transform(
+                      (v / 0.18).clamp(0, 1),
+                    );
+                    final outT = Curves.easeInCubic.transform(
+                      ((v - 0.82) / 0.18).clamp(0, 1),
+                    );
+                    return Opacity(
+                      opacity: (inT * (1 - outT)).clamp(0, 1),
+                      child: Transform.translate(
+                        offset: Offset(0, outT * 120),
+                        child: Transform.scale(
+                          scale: (0.5 + 0.7 * inT) * (1 - 0.6 * outT),
+                          child: child,
+                        ),
+                      ),
+                    );
+                  },
+                  child: CardReveal(
+                    key: const ValueKey('ai-reveal'),
+                    who: _reveal!.$1,
+                    cardId: _reveal!.$2,
+                    frameId: eq[ItemType.cardFrame]!,
                   ),
                 ),
-                child: CardReveal(
-                  who: _reveal!.$1,
-                  cardId: _reveal!.$2,
-                  frameId: eq[ItemType.cardFrame]!,
+              ),
+            ),
+          ),
+        if (_result != null)
+          Positioned(
+            top: 8,
+            left: 40,
+            right: 40,
+            child: IgnorePointer(
+              child: Center(
+                child: TweenAnimationBuilder<double>(
+                  key: ValueKey('result-$_result'),
+                  tween: Tween(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutBack,
+                  builder: (_, v, child) =>
+                      Transform.scale(scale: 0.6 + 0.4 * v, child: child),
+                  child: Panel(
+                    key: const ValueKey('result-banner'),
+                    glow: AppColors.emerald,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    child: Text(
+                      context.l10n.resultDone(
+                        cardById(_result!).name(context.lang),
+                        cardById(_result!).desc(context.lang),
+                      ),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -932,6 +1097,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                     backId: eq[ItemType.cardBack]!,
                     frameId: eq[ItemType.cardFrame]!,
                     onPick: (i) => unawaited(ctrl.act(PickCard(i))),
+                    onPreview: _preview,
+                    showGuide:
+                        widget.tutorial == null &&
+                        !ref.read(metaProvider).settings.sevenGuideDone,
+                    onGuideDone: () => _meta.updateSettings(
+                      ref
+                          .read(metaProvider)
+                          .settings
+                          .copyWith(sevenGuideDone: true),
+                    ),
                   ),
                 ),
             ],
@@ -986,6 +1161,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                     backId: eq[ItemType.cardBack]!,
                     frameId: eq[ItemType.cardFrame]!,
                     onPick: (i) => unawaited(ctrl.act(PickCard(i))),
+                    onPreview: _preview,
+                    showGuide:
+                        widget.tutorial == null &&
+                        !ref.read(metaProvider).settings.sevenGuideDone,
+                    onGuideDone: () => _meta.updateSettings(
+                      ref
+                          .read(metaProvider)
+                          .settings
+                          .copyWith(sevenGuideDone: true),
+                    ),
                   ),
                 ),
               if (s.phase == Phase.chooseDice && waiting)
