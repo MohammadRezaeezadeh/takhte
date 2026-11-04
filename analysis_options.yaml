@@ -1,0 +1,26 @@
+include: package:very_good_analysis/analysis_options.yaml
+
+analyzer:
+  exclude:
+    - lib/l10n/gen/**
+    - build/**
+    - android/**
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  errors:
+    todo: ignore
+
+linter:
+  rules:
+    # Doc comments are written where they add value; not mandated on every member.
+    public_member_api_docs: false
+    # Game code favours readable long expressions (geometry, tables).
+    lines_longer_than_80_chars: false
+    # Flame components commonly override without calling the docs-style getters.
+    avoid_positional_boolean_parameters: false
+    # Riverpod / Flame patterns use cascades and ignore return values deliberately.
+    cascade_invocations: false
+    # Conventional constructor syntax is kept for readability across Dart versions.
+    unnecessary_type_name_in_constructor: false
