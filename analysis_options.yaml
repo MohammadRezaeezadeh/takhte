@@ -26,3 +26,5 @@ linter:
     unnecessary_type_name_in_constructor: false
     # Exhaustive enum switches are used where it matters; defaults elsewhere.
     no_default_cases: false
+    # Navigator.push & co. are fire-and-forget; we keep explicit unawaited().
+    unnecessary_unawaited: false

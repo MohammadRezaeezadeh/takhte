@@ -1,17 +1,28 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:haftnard/game/audio.dart';
+import 'package:haftnard/meta/meta_state.dart';
+import 'package:haftnard/meta/save.dart';
+import 'package:haftnard/ui/app.dart';
 
-void main() {
-  runApp(const HaftNardApp());
-}
-
-class HaftNardApp extends StatelessWidget {
-  const HaftNardApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'HaftNard',
-      home: Scaffold(body: Center(child: Text('HaftNard'))),
-    );
-  }
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  final save = SaveService(FileSaveStore());
+  await save.load();
+  final s = save.data.settings;
+  Sfx.instance
+    ..soundOn = s.sound
+    ..musicOn = s.music
+    ..hapticsOn = s.haptics;
+  unawaited(Sfx.instance.preload());
+  runApp(
+    ProviderScope(
+      overrides: [saveServiceProvider.overrideWithValue(save)],
+      child: const HaftNardApp(),
+    ),
+  );
 }

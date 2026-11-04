@@ -102,9 +102,11 @@ class MatchController extends ChangeNotifier {
     this.autoMove = true,
     this.pacing = const Duration(milliseconds: 420),
     this.useIsolates = true,
+    this.viewOnly = false,
     this.onPersist,
     this.onGameFinished,
-  }) : state = session.match.current.replay() {
+    GameState? initialState,
+  }) : state = initialState ?? session.match.current.replay() {
     for (final side in Side.values) {
       final seat = session.seat(side);
       _opponents[side] = seat.ai
@@ -124,6 +126,9 @@ class MatchController extends ChangeNotifier {
   bool autoMove;
   final Duration pacing;
   final bool useIsolates;
+
+  /// Replays: no input, no AI, no persistence.
+  final bool viewOnly;
 
   /// Called after every state change that should be saved.
   final void Function(MatchController c)? onPersist;
@@ -159,6 +164,7 @@ class MatchController extends ChangeNotifier {
 
   /// The UI may accept input from the acting side now.
   bool get waitingForHuman =>
+      !viewOnly &&
       !_busy &&
       !_disposed &&
       !state.isOver &&
@@ -257,8 +263,33 @@ class MatchController extends ChangeNotifier {
 
   Future<void> _delay(double factor) => Future<void>.delayed(pacing * factor);
 
+  /// Tutorials: replace the position and continue from it.
+  Future<void> reset(GameState s) async {
+    _undo.clear();
+    state = s;
+    presenter?.resync(s);
+    notifyListeners();
+    await _pump();
+  }
+
+  /// Replay support: show [next] (animated from the current state).
+  Future<void> showState(GameState next, List<GameEvent> events) async {
+    final before = state;
+    state = next;
+    notifyListeners();
+    await presenter?.present(before, next, events);
+    if (!_disposed) notifyListeners();
+  }
+
+  /// Replay support: jump to [s] without event animations.
+  void jumpTo(GameState s) {
+    state = s;
+    presenter?.resync(s);
+    notifyListeners();
+  }
+
   Future<void> _pump() async {
-    if (_pumping || _disposed) return;
+    if (_pumping || _disposed || viewOnly) return;
     _pumping = true;
     try {
       while (!state.isOver && !_disposed) {
