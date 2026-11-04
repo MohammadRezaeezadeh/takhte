@@ -181,7 +181,7 @@ class RollPlan {
   /// Odd results are raised to the next even number.
   bool evenUp = false;
 
-  /// A rolled 1 is rerolled once.
+  /// A rolled 1 or 2 is rerolled once.
   bool rerollOnes = false;
 
   /// The second die copies the first (guaranteed doubles).
@@ -496,7 +496,7 @@ abstract final class Engine {
   static void _rollNormal(Tx tx, RollPlan plan) {
     int one() {
       var v = tx.rng.die();
-      if (plan.rerollOnes && v == 1) v = tx.rng.die();
+      if (plan.rerollOnes && v <= 2) v = tx.rng.die();
       v = (v + plan.bonus).clamp(1, 6);
       if (v < plan.minValue) v = plan.minValue;
       if (plan.evenUp && v.isOdd) v = v + 1 > 6 ? 6 : v + 1;

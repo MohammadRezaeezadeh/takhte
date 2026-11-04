@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:haftnard/ui/app.dart';
 import 'package:haftnard/ui/screens/main_menu.dart';
+import 'package:haftnard/ui/theme.dart';
+import 'package:haftnard/ui/tips.dart';
 import 'package:haftnard/ui/widgets/logo.dart';
 import 'package:haftnard/ui/widgets/menu_background.dart';
 
@@ -20,6 +22,8 @@ class _SplashScreenState extends State<SplashScreen>
     duration: const Duration(milliseconds: 1400),
   )..forward();
   Timer? _timer;
+  String? _tipText;
+  String get _tip => _tipText ??= randomTip(context.lang);
 
   @override
   void initState() {
@@ -58,6 +62,19 @@ class _SplashScreenState extends State<SplashScreen>
                   Text(
                     context.l10n.tagline,
                     style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 28),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Text(
+                      '${context.l10n.tip}: $_tip',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.muted,
+                        height: 1.5,
+                      ),
+                    ),
                   ),
                 ],
               ),

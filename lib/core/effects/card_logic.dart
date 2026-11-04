@@ -258,7 +258,7 @@ abstract final class CardLogic {
       case CardId.fog:
         tx.addEffect(EffectKind.fog, owner: side, affected: opp, turns: 1);
       case CardId.curse:
-        tx.addEffect(EffectKind.curse, owner: side, affected: opp, turns: 2);
+        tx.addEffect(EffectKind.curse, owner: side, affected: opp, turns: 3);
       case CardId.mirror:
         tx.addEffect(
           EffectKind.mirrorWatch,
@@ -470,7 +470,7 @@ abstract final class CardLogic {
           EffectKind.curse,
           owner: side,
           affected: opp,
-          turns: 1,
+          turns: 2,
           count: 3,
         );
       case CardId.shackle:

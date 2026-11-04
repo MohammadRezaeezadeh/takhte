@@ -73,6 +73,7 @@ void main(List<String> args) {
   var out = 'docs/balance/report.md';
   var quiet = false;
   var forced = 0;
+  List<String>? onlyCards;
   for (var i = 0; i < args.length; i++) {
     switch (args[i]) {
       case '--games':
@@ -87,6 +88,8 @@ void main(List<String> args) {
         quiet = true;
       case '--forced':
         forced = int.parse(args[++i]);
+      case '--cards':
+        onlyCards = args[++i].split(',');
     }
   }
 
@@ -284,6 +287,7 @@ void main(List<String> args) {
       ..writeln('| --- | --- | --- | --- | --- | --- |');
     final rows = <(String, double, double, double)>[];
     for (final c in kCards) {
+      if (onlyCards != null && !onlyCards.contains(c.id)) continue;
       var wins = 0;
       var picks = 0;
       for (var g = 0; g < forced; g++) {

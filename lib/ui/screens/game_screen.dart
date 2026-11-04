@@ -25,6 +25,7 @@ import 'package:haftnard/ui/game/overlays.dart';
 import 'package:haftnard/ui/game/seven_overlay.dart';
 import 'package:haftnard/ui/screens/replay_screen.dart';
 import 'package:haftnard/ui/theme.dart';
+import 'package:haftnard/ui/tips.dart';
 import 'package:haftnard/ui/tutorial.dart';
 import 'package:haftnard/ui/widgets/jewel.dart';
 import 'package:haftnard/ui/widgets/previews.dart';
@@ -65,6 +66,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   final List<int> _chosen = [];
   int _step = 0;
   bool _stepDone = false;
+  String? _tipText;
+  String get _tip => _tipText ??= randomTip(context.lang);
   final Map<Side, String> _emotes = {};
   final Map<Side, Timer> _emoteTimers = {};
   final math.Random _emoteRng = math.Random();
@@ -809,6 +812,23 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           right: 60,
           child: Center(child: ToastStack(toasts: _toasts)),
         ),
+        if (s.phase == Phase.opening && widget.tutorial == null)
+          Positioned(
+            bottom: 12,
+            left: 60,
+            right: 60,
+            child: IgnorePointer(
+              child: Text(
+                '${context.l10n.tip}: $_tip',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  color: AppColors.muted,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ),
         if (s.phase == Phase.cardTarget && waiting)
           Positioned(
             top: 8,

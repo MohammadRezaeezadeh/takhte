@@ -88,7 +88,7 @@ void _evenUp(RollPlan p) => p.evenUp = true;
 void _wardOnes(RollPlan p) => p.rerollOnes = true;
 void _twin(RollPlan p) {
   p.forceDouble = true;
-  if (p.minValue < 3) p.minValue = 3;
+  if (p.minValue < 4) p.minValue = 4;
 }
 
 void _minThree(RollPlan p) {
