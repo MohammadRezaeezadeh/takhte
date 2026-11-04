@@ -19,6 +19,7 @@ import 'package:haftnard/ui/screens/game_screen.dart';
 void main() {
   setUpAll(() {
     Sfx.instance.available = false;
+    SevenOverlay.useSensors = false;
     kAiUseIsolates = false;
   });
 

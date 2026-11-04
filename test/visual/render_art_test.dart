@@ -5,14 +5,14 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:haftnard/core/effects/cards.dart';
 import 'package:haftnard/core/rules/board.dart';
 import 'package:haftnard/core/rules/types.dart';
 import 'package:haftnard/game/layout.dart';
 import 'package:haftnard/game/themes/board_themes.dart';
 import 'package:haftnard/game/themes/pieces.dart';
-import 'package:haftnard/core/effects/cards.dart';
-import 'package:haftnard/ui/widgets/card_art.dart';
 import 'package:haftnard/ui/theme.dart';
+import 'package:haftnard/ui/widgets/card_art.dart';
 
 const outDir = String.fromEnvironment('ART_OUT');
 

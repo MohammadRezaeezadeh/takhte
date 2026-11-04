@@ -94,6 +94,7 @@ Future<void> settle(WidgetTester tester, {int frames = 30}) async {
 void main() {
   setUpAll(() async {
     Sfx.instance.available = false;
+    SevenOverlay.useSensors = false;
     await loadFonts();
   });
 

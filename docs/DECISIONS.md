@@ -45,3 +45,4 @@ One line per decision: **decision** — reason.
 - **Balance pass 2 (37 cards, forced-pick): Bazaar Bargain +8.8%/pick → opponent also gains a Lucky Charm; Curse and Headwind last 2 opponent turns; Toll Gate 8 turns** — bring outliers inside the ±8% band and lift the weakest commons.
 - **Balance pass 2 (37 cards, forced-pick): Bazaar Bargain +8.8%/pick → opponent also gains a Lucky Charm; Curse and Headwind last 2 opponent turns; Toll Gate 8 turns** — bring outliers inside the ±8% band and lift the weakest commons.
 - **Time Stop cannot chain: unplayable during its extra turn and while the opponent's bonus pick from a previous Time Stop is unspent** — prevents runaway turns with Seven Magnet.
+- **Card tilt uses the accelerometer (sensors_plus, 15 Hz, smoothed) plus drag; disabled under reduced motion and in tests** — spec asks for drag/gyro tilt; accelerometer gives a stable 'gyro-like' parallax without drift.

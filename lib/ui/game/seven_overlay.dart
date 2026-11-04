@@ -8,6 +8,7 @@ import 'package:haftnard/ui/app.dart';
 import 'package:haftnard/ui/theme.dart';
 import 'package:haftnard/ui/widgets/card_art.dart';
 import 'package:haftnard/ui/widgets/jewel.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 
 /// The Double Seven moment: dim, fanfare title, three cards dealt face-down
 /// that flip with a 3D tilt; tap to inspect, tap again (or Choose) to take.
@@ -27,6 +28,9 @@ class SevenOverlay extends StatefulWidget {
   final String backId;
   final String frameId;
 
+  /// Device tilt parallax (disabled in tests / headless runs).
+  static bool useSensors = true;
+
   @override
   State<SevenOverlay> createState() => _SevenOverlayState();
 }
@@ -43,10 +47,15 @@ class _SevenOverlayState extends State<SevenOverlay>
   )..repeat();
   int? _selected;
   bool _picked = false;
+  StreamSubscription<AccelerometerEvent>? _accel;
+
+  /// Smoothed device tilt (-1..1), drives the card parallax.
+  Offset _gyro = Offset.zero;
 
   @override
   void initState() {
     super.initState();
+    _listenToTilt();
     for (var i = 0; i < widget.offer.length; i++) {
       Timer(
         Duration(milliseconds: 600 + i * 140),
@@ -68,8 +77,32 @@ class _SevenOverlayState extends State<SevenOverlay>
     }
   }
 
+  void _listenToTilt() {
+    if (!SevenOverlay.useSensors) return;
+    try {
+      _accel =
+          accelerometerEventStream(
+            samplingPeriod: SensorInterval.uiInterval,
+          ).listen(
+            (e) {
+              if (!mounted || MediaQuery.of(context).disableAnimations) return;
+              final target = Offset(
+                (-e.x / 6).clamp(-1, 1),
+                ((e.y - 6.5) / 6).clamp(-1, 1),
+              );
+              setState(() => _gyro = Offset.lerp(_gyro, target, 0.3)!);
+            },
+            onError: (Object _) => _accel?.cancel(),
+            cancelOnError: true,
+          );
+    } on Object {
+      _accel = null;
+    }
+  }
+
   @override
   void dispose() {
+    unawaited(_accel?.cancel());
     _intro.dispose();
     _idle.dispose();
     super.dispose();
@@ -190,6 +223,7 @@ class _SevenOverlayState extends State<SevenOverlay>
                                 ? 1
                                 : ((t - 0.55 - i * 0.08) / 0.3).clamp(0, 1),
                             idle: _idle.value,
+                            gyro: _gyro,
                             index: i,
                             selected: _selected == i,
                             dimmed: _selected != null && _selected != i,
@@ -247,6 +281,7 @@ class _DealtCard extends StatefulWidget {
     required this.deal,
     required this.flip,
     required this.idle,
+    required this.gyro,
     required this.index,
     required this.selected,
     required this.dimmed,
@@ -261,6 +296,7 @@ class _DealtCard extends StatefulWidget {
   final double deal;
   final double flip;
   final double idle;
+  final Offset gyro;
   final int index;
   final bool selected;
   final bool dimmed;
@@ -282,9 +318,10 @@ class _DealtCardState extends State<_DealtCard> {
     final angleY = math.pi * (1 - f);
     final showFront = angleY < math.pi / 2;
     final sway = math.sin(widget.idle * 2 * math.pi + widget.index * 1.3);
-    final tiltX = _tilt.dy * 0.25 + sway * 0.03;
+    final tiltX = _tilt.dy * 0.25 + sway * 0.03 + widget.gyro.dy * 0.18;
     final tiltY =
         _tilt.dx * 0.25 +
+        widget.gyro.dx * 0.22 +
         math.cos(widget.idle * 2 * math.pi + widget.index) * 0.04;
     final lift = widget.selected ? -26.0 : 0.0;
     final m = Matrix4.identity()

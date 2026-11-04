@@ -17,6 +17,7 @@ dependencies:
   intl: ^0.20.3
   meta: ^1.19.0
   path_provider: ^2.1.6
+  sensors_plus: ^7.1.1
 
 dev_dependencies:
   flutter_test:
