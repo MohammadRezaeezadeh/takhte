@@ -237,6 +237,11 @@ enum EffectKind {
   truce,
   tailwind,
   headwind,
+  evenUp,
+  wardOnes,
+  twinDice,
+  minThree,
+  offerMalus,
 }
 
 /// An effect living on the board or on a side.

@@ -72,8 +72,23 @@ class _Curse extends EffectHandler {
   const _Curse();
   @override
   void onBeforeRoll(Tx tx, ActiveEffect e, RollPlan plan) {
-    if (plan.cap > 4) plan.cap = 4;
+    final cap = e.count > 0 ? e.count : 4;
+    if (plan.cap > cap) plan.cap = cap;
   }
+}
+
+class _PlanFlag extends EffectHandler {
+  const _PlanFlag(this.apply);
+  final void Function(RollPlan plan) apply;
+  @override
+  void onBeforeRoll(Tx tx, ActiveEffect e, RollPlan plan) => apply(plan);
+}
+
+void _evenUp(RollPlan p) => p.evenUp = true;
+void _wardOnes(RollPlan p) => p.rerollOnes = true;
+void _twin(RollPlan p) => p.forceDouble = true;
+void _minThree(RollPlan p) {
+  if (p.minValue < 3) p.minValue = 3;
 }
 
 class _SevenMagnet extends EffectHandler {
@@ -258,6 +273,11 @@ abstract final class EffectSystem {
     EffectKind.truce: _Truce(),
     EffectKind.tailwind: _Wind(1),
     EffectKind.headwind: _Wind(-1),
+    EffectKind.evenUp: _PlanFlag(_evenUp),
+    EffectKind.wardOnes: _PlanFlag(_wardOnes),
+    EffectKind.twinDice: _PlanFlag(_twin),
+    EffectKind.minThree: _PlanFlag(_minThree),
+    EffectKind.offerMalus: _Noop(),
   };
 
   static EffectHandler handler(EffectKind k) => _handlers[k]!;

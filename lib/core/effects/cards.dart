@@ -45,6 +45,18 @@ enum TargetKind {
 
   /// Two distinct points that are empty or hold enemy checkers.
   enemyOrEmpty2,
+
+  /// One enemy checker on the board.
+  enemyChecker,
+
+  /// One enemy lone checker on the board.
+  enemyBlot,
+
+  /// Two of your occupied points (one if only one exists).
+  ownPoint2,
+
+  /// One of your checkers that can move exactly 4 pips forward.
+  sprint,
 }
 
 /// Target kinds whose points may be chosen in any order.
@@ -52,7 +64,8 @@ bool isUnorderedTarget(TargetKind k) =>
     k == TargetKind.enemyCheckers2 ||
     k == TargetKind.ownBlot2 ||
     k == TargetKind.emptyPoint2 ||
-    k == TargetKind.enemyOrEmpty2;
+    k == TargetKind.enemyOrEmpty2 ||
+    k == TargetKind.ownPoint2;
 
 /// Static card data.
 class CardDef {

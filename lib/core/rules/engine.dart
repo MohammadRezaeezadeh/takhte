@@ -178,6 +178,18 @@ class RollPlan {
   /// Forces the first die to this value.
   int? forceFirst;
 
+  /// Odd results are raised to the next even number.
+  bool evenUp = false;
+
+  /// A rolled 1 is rerolled once.
+  bool rerollOnes = false;
+
+  /// The second die copies the first (guaranteed doubles).
+  bool forceDouble = false;
+
+  /// Minimum die value.
+  int minValue = 1;
+
   bool doublesCount;
   int cap;
   double p7Multiplier;
@@ -482,13 +494,20 @@ abstract final class Engine {
   }
 
   static void _rollNormal(Tx tx, RollPlan plan) {
-    final values = [
-      for (var i = 0; i < plan.count; i++)
-        (tx.rng.die() + plan.bonus).clamp(1, 6).clamp(1, plan.cap),
-    ];
+    int one() {
+      var v = tx.rng.die();
+      if (plan.rerollOnes && v == 1) v = tx.rng.die();
+      v = (v + plan.bonus).clamp(1, 6);
+      if (v < plan.minValue) v = plan.minValue;
+      if (plan.evenUp && v.isOdd) v = v + 1 > 6 ? 6 : v + 1;
+      return v.clamp(1, plan.cap);
+    }
+
+    final values = [for (var i = 0; i < plan.count; i++) one()];
     if (plan.forceFirst != null && values.isNotEmpty) {
       values[0] = plan.forceFirst!.clamp(1, plan.cap);
     }
+    if (plan.forceDouble && values.length == 2) values[1] = values[0];
     tx.movesThisRoll = [];
     if (values.length == 3) {
       tx.choiceDice = values;
