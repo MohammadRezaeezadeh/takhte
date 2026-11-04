@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:haftnard/core/effects/cards.dart';
 import 'package:haftnard/meta/journey.dart';
@@ -85,10 +86,56 @@ void main() {
   });
 
   test('talisman catalogue is consistent', () {
+    expect(kTalismans.length, greaterThanOrEqualTo(60));
     expect(kTalismans.map((t) => t.id).toSet().length, kTalismans.length);
     for (final t in kTalismans) {
       expect(t.descFa, isNotEmpty);
+      expect(t.nameFa, isNotEmpty);
       expect(t.price, greaterThan(0));
     }
+  });
+
+  test('every talisman hook in the code has a catalogue entry', () {
+    final src = File('lib/meta/journey.dart').readAsStringSync();
+    final ids = {
+      for (final m in RegExp(r"has\('([a-z_]+)'\)").allMatches(src)) m[1]!,
+    };
+    final defined = kTalismans.map((t) => t.id).toSet();
+    expect(ids.difference(defined), isEmpty);
+  });
+
+  test('start-card relics deal untargeted cards that open the match', () {
+    for (final t in kTalismans) {
+      final run = JourneyRun(seed: 3)..talismans.add(t.id);
+      for (final c in run.playerMods(null).startCards) {
+        expect(cardById(c).target, TargetKind.none, reason: t.id);
+      }
+    }
+    final run = JourneyRun(seed: 3)..talismans.add('serpent_eye');
+    expect(run.playerMods(null).startCards, [CardId.curse]);
+  });
+
+  test('new talisman hooks', () {
+    JourneyRun with_(String id) => JourneyRun(seed: 5)..talismans.add(id);
+    final base = JourneyRun(seed: 5);
+    expect(
+      with_('clover').playerMods(null).p7Multiplier,
+      closeTo(base.playerMods(null).p7Multiplier * 1.25, 1e-9),
+    );
+    final lens = with_('mosaic_lens').playerMods(null);
+    expect(lens.offerBonus, base.playerMods(null).offerBonus + 1);
+    expect(lens.p7Multiplier, lessThan(base.playerMods(null).p7Multiplier));
+    expect(
+      with_('witch_knot').opponentMods(null).offerBonus,
+      base.opponentMods(null).offerBonus - 1,
+    );
+    final ring = with_('sultan_ring').playerMods(null);
+    expect(ring.startLucky, 1);
+    expect(ring.startRerolls, 1);
+    final miser = with_('miser_chest')..coins = 100;
+    final plain = JourneyRun(seed: 5)..coins = 100;
+    expect(miser.keptCoins - plain.keptCoins, 20);
+    final map = with_('treasure_map')..coins = 100;
+    expect(map.keptCoins - plain.keptCoins, 60);
   });
 }

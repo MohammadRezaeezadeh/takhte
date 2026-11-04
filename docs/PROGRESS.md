@@ -15,7 +15,7 @@ All work lives on branch `claude/vibrant-newton-gzwmx2`.
 | M4 7–7 system, effect hooks, per-card tests, simulator, balance passes | done |
 | M5 UI shell, settings, fa/en + RTL, tutorials, save/resume | done |
 | M6 9 boards, 7 environments, 9 checkers, 7 dice, backs/frames, victory FX, emotes, store, locker, economy | done |
-| M7 Journey: map, 10 bosses, 40 talismans, run shop, daily seed | done |
+| M7 Journey: map, 15 bosses, 60 talismans, run shop, daily seed | done |
 | M8 progression, achievements, stats, icon, splash, release build | done |
 
 ## Content counts
