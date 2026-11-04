@@ -113,8 +113,9 @@ GameState advance(
     if (until(st)) return st;
     st = autoStep(st);
   }
-  if (!until(st))
+  if (!until(st)) {
     throw StateError('condition never reached (phase ${st.phase})');
+  }
   return st;
 }
 

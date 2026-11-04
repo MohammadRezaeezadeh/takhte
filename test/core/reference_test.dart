@@ -3,6 +3,7 @@
 import 'dart:math';
 
 import 'package:haftnard/core/rules/board.dart';
+import 'package:haftnard/core/rules/move_gen.dart';
 import 'package:haftnard/core/rules/types.dart';
 import 'package:test/test.dart';
 
@@ -203,5 +204,50 @@ void main() {
     }
     expect(compared, 2500);
     expect(nonEmpty, greaterThan(1500));
+  });
+
+  test('every allPlays sequence is legal step by step', () {
+    final r = Random(99);
+    for (var i = 0; i < 600; i++) {
+      final board = randomBoard(r);
+      final side = r.nextBool() ? Side.white : Side.black;
+      final a = 1 + r.nextInt(6);
+      final b = 1 + r.nextInt(6);
+      final dice = a == b ? [a, a, a, a] : [a, b];
+      final sim = TurnSim.fromBoard(board, side);
+      final plays = MoveGen.allPlays(sim, dice);
+      final firsts = {
+        for (final p in plays)
+          if (p.moves.isNotEmpty) p.moves.first,
+      };
+      expect(MoveGen.legalMoves(sim, dice).toSet().containsAll(firsts), isTrue);
+      // Every final position reachable via legal single steps must be present.
+      final finals = <String>{};
+      final seen = <String>{};
+      void walk(TurnSim t, List<int> rem) {
+        if (!seen.add('${t.key}#${(List.of(rem)..sort()).join()}')) return;
+        final legal = MoveGen.legalMoves(t, rem);
+        if (legal.isEmpty) {
+          finals.add(t.key);
+          return;
+        }
+        for (final m in legal) {
+          walk(t.copy()..apply(m), List.of(rem)..remove(m.die));
+        }
+      }
+
+      walk(sim.copy(), dice);
+      expect({for (final p in plays) p.result.key}, finals);
+      for (final p in plays) {
+        final s = sim.copy();
+        final remaining = List.of(dice);
+        for (final m in p.moves) {
+          expect(MoveGen.legalMoves(s, remaining), contains(m));
+          s.apply(m);
+          remaining.remove(m.die);
+        }
+        expect(MoveGen.legalMoves(s, remaining), isEmpty);
+      }
+    }
   });
 }

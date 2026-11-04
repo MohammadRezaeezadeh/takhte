@@ -320,6 +320,14 @@ void main() {
     });
   });
 
+  test('allPlays keeps the larger die when both reach the same position', () {
+    // Last checker on 2 with 5-2: only one die is playable; it must be the 5.
+    final b = Board.fromMaps(white: const {2: 1});
+    final plays = MoveGen.allPlays(TurnSim.fromBoard(b, Side.white), [2, 5]);
+    expect(plays.single.moves.single.die, 5);
+    expect(moveStrings(legal(b, [2, 5])), {'2/0(5)'});
+  });
+
   test('allPlays agrees with legalMoves first moves', () {
     final b = Board.initial();
     for (final dice in [

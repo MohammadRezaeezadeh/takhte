@@ -43,7 +43,7 @@ void main() {
 
   group('seven event', () {
     test('7-7 never wastes a turn: after picking, a normal roll follows', () {
-      final cfg = const GameConfig(p7: 1);
+      const cfg = GameConfig(p7: 1);
       var s = preRollState(Board.initial(), config: cfg);
       s = roll(s);
       expect(s.phase, Phase.sevenPick);
@@ -57,7 +57,7 @@ void main() {
     });
 
     test('classic mode never rolls 7-7', () {
-      final cfg = const GameConfig(mode: GameMode.classic, p7: 1);
+      const cfg = GameConfig(mode: GameMode.classic, p7: 1);
       final s = roll(preRollState(Board.initial(), config: cfg));
       expect(s.phase, Phase.moving);
     });
@@ -97,7 +97,7 @@ void main() {
     });
 
     test('card pool restriction is honoured', () {
-      final cfg = const GameConfig(
+      const cfg = GameConfig(
         p7: 1,
         cardPool: [CardId.fog, CardId.curse, CardId.brokenDie],
       );
@@ -191,7 +191,7 @@ void main() {
     });
 
     test('Seven Magnet doubles p7 from the next turn', () {
-      final cfg = const GameConfig(p7: 0.5);
+      const cfg = GameConfig(p7: 0.5);
       var s = pickOnly(
         sevenState(Board.initial(), [CardId.sevenMagnet], config: cfg),
       );

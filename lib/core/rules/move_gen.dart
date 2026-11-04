@@ -316,7 +316,10 @@ abstract final class MoveGen {
           maxLen = len;
           results.clear();
         }
-        results.putIfAbsent(s.key, () => TurnPlay(path, s));
+        // Single-die plays are keyed by die too so the larger-die rule below
+        // can still choose between dice reaching the same position.
+        final k = len == 1 ? '${s.key}#${path.first.die}' : s.key;
+        results.putIfAbsent(k, () => TurnPlay(path, s));
       }
     }
 
@@ -330,6 +333,13 @@ abstract final class MoveGen {
       if (big.isNotEmpty) plays = big;
     }
     if (plays.isEmpty) return [TurnPlay(const [], sim.copy())];
+    if (maxLen == 1) {
+      final seen = <String>{};
+      plays = [
+        for (final p in plays)
+          if (seen.add(p.result.key)) p,
+      ];
+    }
     return plays;
   }
 
