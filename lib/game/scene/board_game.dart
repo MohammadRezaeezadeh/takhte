@@ -173,6 +173,11 @@ class BoardGame extends FlameGame implements MatchPresenter {
   GameState? _legalFor;
   List<Move> _legalCache = const [];
 
+  /// The opponent's most recent moves (absolute from/to, 0 = bar, -1 = off),
+  /// shown as faint ghosts so the player can follow what happened.
+  final List<(int, int)> _lastMoves = [];
+  Side? _lastMover;
+
   /// Legal moves for [s], memoised per state instance (rendering asks every
   /// frame; move generation is a DFS).
   List<Move> _legal(GameState s) {
@@ -423,6 +428,16 @@ class BoardGame extends FlameGame implements MatchPresenter {
         case SevenRolled():
           await _rollSeven(e.side);
         case MovePlayed(:final side, :final move):
+          if (_lastMover != side) {
+            _lastMoves.clear();
+            _lastMover = side;
+          }
+          if (!controller.isHuman(side) || controller.session.isPassAndPlay) {
+            _lastMoves.add((
+              move.from == Pos.bar ? 0 : toAbsolute(side, move.from),
+              move.to == Pos.off ? -1 : toAbsolute(side, move.to),
+            ));
+          }
           final from = _slotFor(side, move.from);
           final to = _slotFor(side, move.to);
           final c = _takeTop(from, side: side);
@@ -823,6 +838,7 @@ class BoardGame extends FlameGame implements MatchPresenter {
     c.drawPicture(_topPic);
     if (theme.pattern == BoardPattern.neon) _neonPulse(c);
     _renderMarkers(c);
+    _renderLastMoves(c);
     _renderHighlights(c);
     _renderCheckers(c);
     _renderDice(c);
@@ -1012,6 +1028,44 @@ class BoardGame extends FlameGame implements MatchPresenter {
       r * 0.18,
       Paint()..color = Color.fromRGBO(255, 60, 60, blink),
     );
+  }
+
+  void _renderLastMoves(Canvas c) {
+    final s = _shown;
+    if (_lastMoves.isEmpty || s == null || _lastMover == null) return;
+    // Hide once the mover's opponent starts acting.
+    if (s.current != _lastMover && s.movesThisRoll.isNotEmpty) return;
+    final r = layout.checkerR;
+    final ghost = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6
+      ..color = const Color(0x88FFFFFF);
+    final line = Paint()
+      ..strokeWidth = 1.4
+      ..color = const Color(0x55FFFFFF);
+    for (final (from, to) in _lastMoves) {
+      final a = from == 0
+          ? layout.bar.center
+          : layout.checkerCenter(
+              PointSlot(from),
+              s.board.atAbsolute(from).$2,
+              s.board.atAbsolute(from).$2 + 1,
+            );
+      final b = to == -1
+          ? (_lastMover == Side.white
+                ? layout.whiteTray.center
+                : layout.blackTray.center)
+          : layout.pointRect(to).center;
+      c.drawCircle(a, r * 0.8, ghost);
+      // Dashed connector.
+      final d = b - a;
+      final len = d.distance;
+      if (len < 1) continue;
+      final dir = d / len;
+      for (var t = r; t < len - r; t += 10) {
+        c.drawLine(a + dir * t, a + dir * math.min(t + 5, len - r), line);
+      }
+    }
   }
 
   Color get _hi => _cfg.colorblind ? const Color(0xFF3DA5FF) : theme.highlight;
