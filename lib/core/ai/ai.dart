@@ -355,7 +355,7 @@ class AiBrain {
       case CardId.timeStop:
         v = 0.9;
       case CardId.bloodPact:
-        v = b.allHome(side) ? 0.95 : -0.6 + _p.riskLove * 0.3;
+        v = 0.95;
       case CardId.gamblersCoin:
         v = 0.05 + _p.riskLove * 0.45;
       case CardId.greed:

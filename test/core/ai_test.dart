@@ -91,13 +91,11 @@ void main() {
     expect(play.any((m) => m.hit), isTrue);
   });
 
-  test('AI picks Blood Pact only when home', () {
+  test('AI takes Blood Pact when home', () {
     final home = Board.fromMaps(white: const {6: 5, 5: 5, 4: 5});
     final brain = AiBrain(const AiConfig());
     final s1 = sevenState(home, ['blood_pact', 'fog', 'greed']);
     expect(brain.pickCard(s1), 0);
-    final s2 = sevenState(Board.initial(), ['blood_pact', 'fog', 'greed']);
-    expect(brain.pickCard(s2), isNot(0));
   });
 
   test('decideAsync runs on an isolate', () async {

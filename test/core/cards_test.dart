@@ -505,12 +505,17 @@ void main() {
       expect(s.board.count(Side.white, 6), 3);
     });
 
-    test('Blood Pact sends a checker to the bar otherwise', () {
-      final s = pickOnly(
+    test('Blood Pact is only playable when all checkers are home', () {
+      final out = Tx(
         sevenState(Board.initial(), [CardId.bloodPact], config: noSeven),
       );
-      expect(s.board.onBar(Side.white), 1);
-      expect(s.board.count(Side.white, 6), 4);
+      expect(CardLogic.isPlayable(out, Side.white, CardId.bloodPact), isFalse);
+      final home = Tx(
+        sevenState(Board.fromMaps(white: const {6: 5, 5: 5, 1: 5}), [
+          CardId.bloodPact,
+        ], config: noSeven),
+      );
+      expect(CardLogic.isPlayable(home, Side.white, CardId.bloodPact), isTrue);
     });
 
     test('Blood Pact can win the game', () {

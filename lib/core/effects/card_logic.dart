@@ -41,6 +41,7 @@ abstract final class CardLogic {
                       e.kind == EffectKind.ironGate)),
         );
       case CardId.homecoming:
+      case CardId.bloodPact:
         return tx.board.allHome(side) && tx.board.borneOff(side) < Pos.checkers;
       case CardId.reentry:
         return tx.board.onBar(side) > 0;
@@ -712,18 +713,7 @@ abstract final class CardLogic {
       if (tx.board.borneOff(side) == Pos.checkers) {
         Engine.endGame(tx, side, null);
       }
-      return;
     }
-    for (var p = 1; p <= 24; p++) {
-      if (mine[p] > 0) {
-        mine[p]--;
-        mine[Pos.bar]++;
-        tx.events.add(CheckerHit(side, toAbsolute(side, p)));
-        break;
-      }
-    }
-    tx.board = tx.board.withSide(side, mine);
-    EffectSystem.cleanup(tx);
   }
 
   /// Deals a 7–7 offer for [side] into `tx.offer`.
