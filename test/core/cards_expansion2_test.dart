@@ -254,11 +254,94 @@ void main() {
     expect(none.white.rerolls, 1);
   });
 
-  test('catalogue reaches 60 unique cards with unique art', () {
-    expect(kCards.length, 60);
-    expect(kCards.map((c) => c.glyph).toSet().length, 60);
+  test('catalogue reaches 70 unique cards with unique art', () {
+    expect(kCards.length, 70);
+    expect(kCards.map((c) => c.glyph).toSet().length, kCards.length);
     for (final c in kCards) {
       expect(c.descFa, isNotEmpty);
     }
+  });
+
+  group('expansion 3', () {
+    /// Picks [card] as White, ends White's turn and returns Black's next roll
+    /// for many seeds.
+    List<GameState> oppRolls(String card) {
+      var s = pickOnly(sevenState(Board.initial(), [card], config: noSeven));
+      s = finishCurrentTurn(roll(s));
+      expect(s.current, Side.black);
+      return [
+        for (var seed = 0; seed < 120; seed++)
+          roll(s.copyWith(rng: Rng.seeded(seed).state)),
+      ];
+    }
+
+    test('Sandstorm: opponent dice max 4, doubles play as two', () {
+      for (final r in oppRolls(CardId.sandstorm)) {
+        expect(r.rolled.every((d) => d <= 4), isTrue);
+        expect(r.dice.length, 2);
+      }
+    });
+
+    test('Mountain Pass: opponent rolls one die, minus one', () {
+      for (final r in oppRolls(CardId.mountainPass)) {
+        expect(r.rolled.length, 1);
+        expect(r.rolled.single, lessThanOrEqualTo(5));
+      }
+    });
+
+    test('Mirage: opponent roll halved', () {
+      for (final r in oppRolls(CardId.mirage)) {
+        expect(r.rolled.every((d) => d <= 3), isTrue);
+      }
+    });
+
+    test('Hailstorm: opponent dice minus one, no doubles', () {
+      for (final r in oppRolls(CardId.hailstorm)) {
+        expect(r.rolled.every((d) => d <= 5), isTrue);
+        expect(r.dice.length, 2);
+      }
+    });
+
+    test('Saffron Thread: next own roll is all even', () {
+      for (final r in nextOwnRolls(CardId.saffron)) {
+        expect(r.rolled.every((d) => d.isEven), isTrue);
+      }
+    });
+
+    test('charge cards fill the inventory', () {
+      final c = pickOnly(
+        sevenState(Board.initial(), [CardId.caravan], config: noSeven),
+      );
+      expect(c.white.rerolls, 1);
+      expect(c.white.lucky, 1);
+      final w = pickOnly(
+        sevenState(Board.initial(), [CardId.spiritWard], config: noSeven),
+      );
+      expect(w.white.phoenix, 1);
+      expect(w.white.ghost, 1);
+      final t = pickOnly(
+        sevenState(Board.initial(), [CardId.treasury], config: noSeven),
+      );
+      expect(t.white.rerolls, 2);
+      expect(t.white.phoenix, 1);
+    });
+
+    test('Star Reader: next offer is bigger and takes two', () {
+      final s = pickOnly(
+        sevenState(Board.initial(), [CardId.starReader], config: noSeven),
+      );
+      final tx = Tx(s);
+      CardLogic.dealOffer(tx, Side.white);
+      expect(tx.picksLeft, 2);
+      expect(tx.offer.length, greaterThanOrEqualTo(4));
+    });
+
+    test('Sevenfold: magnet for me, hex on them', () {
+      final s = pickOnly(
+        sevenState(Board.initial(), [CardId.sevenfold], config: noSeven),
+      );
+      expect(s.effectsOf(EffectKind.sevenMagnet).single.affected, Side.white);
+      expect(s.effectsOf(EffectKind.offerMalus).single.affected, Side.black);
+    });
   });
 }

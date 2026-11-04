@@ -164,6 +164,16 @@ abstract final class CardId {
   static const exile = 'exile';
   static const oasis = 'oasis';
   static const doubleAgent = 'double_agent';
+  static const sandstorm = 'sandstorm';
+  static const caravan = 'caravan';
+  static const spiritWard = 'spirit_ward';
+  static const mirage = 'mirage';
+  static const mountainPass = 'mountain_pass';
+  static const saffron = 'saffron';
+  static const treasury = 'treasury';
+  static const starReader = 'star_reader';
+  static const sevenfold = 'sevenfold';
+  static const hailstorm = 'hailstorm';
 }
 
 /// The full card catalogue.
@@ -816,6 +826,106 @@ const List<CardDef> kCards = [
     descEn: 'Copy the last card your opponent took (if it needs no target). Otherwise gain a reroll token.',
     descFa: 'آخرین کارتی را که حریف برداشته (اگر هدف نخواهد) برای خودت تکرار کن؛ وگرنه یک ژتون تاس دوباره بگیر.',
     glyph: 59,
+  ),
+  CardDef(
+    id: CardId.sandstorm,
+    rarity: Rarity.common,
+    category: CardCategory.sabotage,
+    nameEn: 'Sandstorm',
+    nameFa: 'طوفان شن',
+    descEn: "Your opponent's next turn: dice max 4 and doubles do not count.",
+    descFa: 'نوبت بعد حریف: تاس حداکثر ۴ و جفت حساب نمی‌شود.',
+    glyph: 60,
+  ),
+  CardDef(
+    id: CardId.caravan,
+    rarity: Rarity.common,
+    category: CardCategory.tempo,
+    nameEn: 'Caravan',
+    nameFa: 'کاروان',
+    descEn: 'Gain a reroll token and a Lucky Charm.',
+    descFa: 'یک ژتون تاس دوباره و یک «طلسم بخت» بگیر.',
+    glyph: 61,
+  ),
+  CardDef(
+    id: CardId.spiritWard,
+    rarity: Rarity.rare,
+    category: CardCategory.checker,
+    nameEn: 'Spirit Ward',
+    nameFa: 'حرز روح',
+    descEn: 'Gain a Phoenix and a Ghost Step.',
+    descFa: 'یک «ققنوس» و یک «گام شبح» بگیر.',
+    glyph: 62,
+  ),
+  CardDef(
+    id: CardId.mirage,
+    rarity: Rarity.rare,
+    category: CardCategory.sabotage,
+    nameEn: 'Mirage',
+    nameFa: 'سراب',
+    descEn: "Your opponent's next roll is halved (doubles do not count), and they cannot roll 7–7 for 2 turns.",
+    descFa: 'تاس بعدی حریف نصف می‌شود (جفت حساب نمی‌شود) و تا دو نوبت هفت‌هفت نمی‌آورد.',
+    glyph: 63,
+  ),
+  CardDef(
+    id: CardId.mountainPass,
+    rarity: Rarity.rare,
+    category: CardCategory.sabotage,
+    nameEn: 'Mountain Pass',
+    nameFa: 'گردنه',
+    descEn: 'Next turn your opponent rolls a single die, and it counts 1 less.',
+    descFa: 'نوبت بعد حریف فقط یک تاس می‌ریزد و یکی هم از آن کم می‌شود.',
+    glyph: 64,
+  ),
+  CardDef(
+    id: CardId.saffron,
+    rarity: Rarity.rare,
+    category: CardCategory.dice,
+    nameEn: 'Saffron Thread',
+    nameFa: 'رشتهٔ زعفران',
+    descEn: 'Next turn, dice showing 1 or 2 are rerolled once and odd dice rise to the next even number.',
+    descFa: 'نوبت بعد تاس‌های ۱ و ۲ یک بار دوباره ریخته می‌شوند و تاس‌های فرد یکی بالا می‌روند.',
+    glyph: 65,
+  ),
+  CardDef(
+    id: CardId.treasury,
+    rarity: Rarity.rare,
+    category: CardCategory.tempo,
+    nameEn: 'Royal Treasury',
+    nameFa: 'خزانهٔ شاهی',
+    descEn: 'Gain two reroll tokens and a Phoenix.',
+    descFa: 'دو ژتون تاس دوباره و یک «ققنوس» بگیر.',
+    glyph: 69,
+  ),
+  CardDef(
+    id: CardId.starReader,
+    rarity: Rarity.epic,
+    category: CardCategory.tempo,
+    nameEn: 'Star Reader',
+    nameFa: 'ستاره‌خوان',
+    descEn: 'Your next 7–7 offers two extra cards, and you take two of them.',
+    descFa: 'هفت‌هفت بعدی‌ات دو کارت اضافه نشان می‌دهد و دو تا برمی‌داری.',
+    glyph: 66,
+  ),
+  CardDef(
+    id: CardId.sevenfold,
+    rarity: Rarity.epic,
+    category: CardCategory.tempo,
+    nameEn: 'Sevenfold',
+    nameFa: 'هفت‌گانه',
+    descEn: 'Seven Magnet for you, and Hex of Sevens on your opponent.',
+    descFa: '«آهنربای هفت» برای تو و «طلسم هفت‌ها» روی حریف.',
+    glyph: 67,
+  ),
+  CardDef(
+    id: CardId.hailstorm,
+    rarity: Rarity.epic,
+    category: CardCategory.sabotage,
+    nameEn: 'Hailstorm',
+    nameFa: 'تگرگ',
+    descEn: "For 2 turns your opponent's dice count 1 less and their doubles do not count.",
+    descFa: 'تا دو نوبت از تاس‌های حریف یکی کم می‌شود و جفت‌هایش حساب نمی‌شود.',
+    glyph: 68,
   ),
 ];
 

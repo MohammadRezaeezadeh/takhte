@@ -174,6 +174,16 @@ const Map<String, int> kCardUnlockLevel = {
   CardId.shieldWall: 12,
   CardId.highStakes: 13,
   CardId.twinDice: 14,
+  CardId.sandstorm: 3,
+  CardId.caravan: 2,
+  CardId.spiritWard: 6,
+  CardId.mirage: 7,
+  CardId.mountainPass: 8,
+  CardId.saffron: 5,
+  CardId.treasury: 9,
+  CardId.starReader: 11,
+  CardId.sevenfold: 12,
+  CardId.hailstorm: 13,
 };
 
 /// The player's persistent profile.

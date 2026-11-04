@@ -1201,6 +1201,188 @@ class CardGlyphPainter extends CustomPainter {
             Paint()..color = dx < 0 ? Colors.black : Colors.white,
           );
         }
+      case 60: // Sandstorm: swirling sand arcs
+        for (var i = 0; i < 4; i++) {
+          canvas.drawArc(
+            Rect.fromCircle(center: c, radius: r * (0.3 + i * 0.22)),
+            i * 1.3 + time,
+            math.pi * 1.1,
+            false,
+            Paint()
+              ..color = Color.lerp(
+                const Color(0xFFE8C07A),
+                const Color(0xFF9C6B30),
+                i / 3,
+              )!
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = r * 0.11
+              ..strokeCap = StrokeCap.round,
+          );
+        }
+      case 61: // Caravan: camel silhouette
+        final camel = Paint()..color = const Color(0xFFC89B5A);
+        canvas
+          ..drawOval(
+            Rect.fromCenter(
+              center: c.translate(-r * 0.1, 0),
+              width: r * 1.2,
+              height: r * 0.6,
+            ),
+            camel,
+          )
+          ..drawCircle(c.translate(-r * 0.15, -r * 0.3), r * 0.28, camel)
+          ..drawLine(
+            c.translate(r * 0.4, -r * 0.05),
+            c.translate(r * 0.65, -r * 0.6),
+            camel..strokeWidth = r * 0.16,
+          )
+          ..drawCircle(c.translate(r * 0.72, -r * 0.62), r * 0.13, camel);
+        for (final dx in [-0.5, -0.25, 0.1, 0.3]) {
+          canvas.drawLine(
+            c.translate(dx * r, r * 0.2),
+            c.translate(dx * r, r * 0.85),
+            camel..strokeWidth = r * 0.09,
+          );
+        }
+      case 62: // Spirit Ward: ward with an eye
+        canvas
+          ..drawCircle(c, r * 0.85, Paint()..color = const Color(0xFF2B5DAA))
+          ..drawCircle(c, r * 0.6, Paint()..color = const Color(0xFFEFF4FF))
+          ..drawCircle(c, r * 0.32, Paint()..color = const Color(0xFF4F8FE8))
+          ..drawCircle(c, r * 0.14, Paint()..color = Colors.black);
+      case 63: // Mirage: shimmering heat lines
+        for (var i = 0; i < 4; i++) {
+          final y = c.dy - r * 0.6 + i * r * 0.4;
+          final path = Path()..moveTo(c.dx - r * 0.9, y);
+          for (var k = 0; k < 6; k++) {
+            path.relativeQuadraticBezierTo(
+              r * 0.15,
+              (k.isEven ? -1 : 1) * r * 0.15 * math.sin(time * 2 + i),
+              r * 0.3,
+              0,
+            );
+          }
+          canvas.drawPath(
+            path,
+            Paint()
+              ..color = const Color(0xFF7FD6E0)
+                  .withValues(alpha: 0.4 + i * 0.15)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = r * 0.08,
+          );
+        }
+      case 64: // Mountain Pass: two peaks with a gap
+        for (final dx in [-0.45, 0.45]) {
+          canvas.drawPath(
+            Path()
+              ..moveTo(c.dx + dx * r - r * 0.55, c.dy + r * 0.8)
+              ..lineTo(c.dx + dx * r, c.dy - r * 0.7)
+              ..lineTo(c.dx + dx * r + r * 0.4, c.dy + r * 0.8)
+              ..close(),
+            Paint()..color = const Color(0xFF6F7B8C),
+          );
+          canvas.drawPath(
+            Path()
+              ..moveTo(c.dx + dx * r - r * 0.17, c.dy - r * 0.25)
+              ..lineTo(c.dx + dx * r, c.dy - r * 0.7)
+              ..lineTo(c.dx + dx * r + r * 0.13, c.dy - r * 0.3)
+              ..close(),
+            Paint()..color = Colors.white,
+          );
+        }
+      case 65: // Saffron Thread: crocus flower
+        for (var i = 0; i < 6; i++) {
+          final a = i * math.pi / 3 + time * 0.3;
+          canvas.drawOval(
+            Rect.fromCenter(
+              center: c + Offset(math.cos(a), math.sin(a)) * r * 0.45,
+              width: r * 0.55,
+              height: r * 0.35,
+            ),
+            Paint()..color = const Color(0xFF9B6BD6),
+          );
+        }
+        for (var i = 0; i < 3; i++) {
+          final a = -math.pi / 2 + (i - 1) * 0.5;
+          canvas.drawLine(
+            c,
+            c + Offset(math.cos(a), math.sin(a)) * r * 0.55,
+            Paint()
+              ..color = const Color(0xFFE0461E)
+              ..strokeWidth = r * 0.08
+              ..strokeCap = StrokeCap.round,
+          );
+        }
+      case 66: // Star Reader: seven-pointed star
+        final star = Path();
+        for (var i = 0; i < 14; i++) {
+          final a = -math.pi / 2 + i * math.pi / 7;
+          final rr = i.isEven ? r * 0.9 : r * 0.42;
+          final pt = c + Offset(math.cos(a), math.sin(a)) * rr;
+          i == 0 ? star.moveTo(pt.dx, pt.dy) : star.lineTo(pt.dx, pt.dy);
+        }
+        canvas.drawPath(
+          star..close(),
+          Paint()..color = const Color(0xFFF2C94C),
+        );
+      case 67: // Sevenfold: seven orbs in a ring
+        for (var i = 0; i < 7; i++) {
+          final a = -math.pi / 2 + i * 2 * math.pi / 7 + time * 0.4;
+          canvas.drawCircle(
+            c + Offset(math.cos(a), math.sin(a)) * r * 0.65,
+            r * 0.16,
+            Paint()..color = i.isEven ? color : const Color(0xFFF2C94C),
+          );
+        }
+        canvas.drawCircle(c, r * 0.22, Paint()..color = color);
+      case 68: // Hailstorm: cloud with hailstones
+        final cloud = Paint()..color = const Color(0xFF8E9AAF);
+        canvas
+          ..drawCircle(c.translate(-r * 0.35, -r * 0.25), r * 0.35, cloud)
+          ..drawCircle(c.translate(r * 0.1, -r * 0.4), r * 0.42, cloud)
+          ..drawCircle(c.translate(r * 0.5, -r * 0.2), r * 0.3, cloud);
+        for (var i = 0; i < 5; i++) {
+          final dy = ((time * 0.8 + i * 0.37) % 1) * r * 0.6;
+          canvas.drawCircle(
+            c.translate((i - 2) * r * 0.3, r * 0.25 + dy),
+            r * 0.09,
+            Paint()..color = Colors.white,
+          );
+        }
+      case 69: // Royal Treasury: treasure chest
+        canvas
+          ..drawRect(
+            Rect.fromCenter(
+              center: c.translate(0, r * 0.25),
+              width: r * 1.5,
+              height: r * 0.8,
+            ),
+            Paint()..color = const Color(0xFF7A4A22),
+          )
+          ..drawArc(
+            Rect.fromCenter(
+              center: c.translate(0, -r * 0.15),
+              width: r * 1.5,
+              height: r * 0.8,
+            ),
+            math.pi,
+            math.pi,
+            true,
+            Paint()..color = const Color(0xFF9A6234),
+          )
+          ..drawRect(
+            Rect.fromCenter(
+              center: c.translate(0, r * 0.05),
+              width: r * 1.5,
+              height: r * 0.12,
+            ),
+            Paint()..color = const Color(0xFFF2C94C),
+          )
+          ..drawCircle(
+            c.translate(0, r * 0.2),
+            r * 0.12,
+            Paint()..color = const Color(0xFFF2C94C),
+          );
       default: // Greed: coin sack
         final sack = Path()
           ..moveTo(c.dx - r * 0.3, c.dy - r * 0.55)

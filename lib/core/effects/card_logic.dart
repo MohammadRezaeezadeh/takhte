@@ -621,6 +621,99 @@ abstract final class CardLogic {
           affected: side,
           turns: 9999,
         );
+      case CardId.sandstorm:
+        tx
+          ..addEffect(
+            EffectKind.curse,
+            owner: side,
+            affected: opp,
+            turns: 1,
+            count: 4,
+          )
+          ..addEffect(EffectKind.fog, owner: side, affected: opp, turns: 1);
+      case CardId.caravan:
+        tx.setInv(
+          side,
+          inv().copyWith(rerolls: inv().rerolls + 1, lucky: inv().lucky + 1),
+        );
+      case CardId.spiritWard:
+        tx.setInv(
+          side,
+          inv().copyWith(phoenix: inv().phoenix + 1, ghost: inv().ghost + 1),
+        );
+      case CardId.mirage:
+        tx
+          ..addEffect(
+            EffectKind.halveDice,
+            owner: side,
+            affected: opp,
+            turns: 1,
+          )
+          ..addEffect(
+            EffectKind.sevenBlock,
+            owner: side,
+            affected: opp,
+            turns: 2,
+          );
+      case CardId.mountainPass:
+        tx
+          ..addEffect(
+            EffectKind.brokenDie,
+            owner: side,
+            affected: opp,
+            turns: 1,
+          )
+          ..addEffect(
+            EffectKind.headwind,
+            owner: side,
+            affected: opp,
+            turns: 1,
+          );
+      case CardId.saffron:
+        _nextTurn(tx, side, EffectKind.wardOnes);
+        _nextTurn(tx, side, EffectKind.evenUp);
+      case CardId.treasury:
+        tx.setInv(
+          side,
+          inv().copyWith(
+            rerolls: inv().rerolls + 2,
+            phoenix: inv().phoenix + 1,
+          ),
+        );
+      case CardId.starReader:
+        for (var i = 0; i < 2; i++) {
+          tx.addEffect(
+            EffectKind.bonusOffer,
+            owner: side,
+            affected: side,
+            turns: 9999,
+          );
+        }
+        tx.addEffect(
+          EffectKind.bonusPick,
+          owner: side,
+          affected: side,
+          turns: 9999,
+        );
+      case CardId.sevenfold:
+        tx
+          ..addEffect(
+            EffectKind.sevenMagnet,
+            owner: side,
+            affected: side,
+            turns: 5,
+            immediate: false,
+          )
+          ..addEffect(
+            EffectKind.offerMalus,
+            owner: side,
+            affected: opp,
+            turns: 9999,
+          );
+      case CardId.hailstorm:
+        tx
+          ..addEffect(EffectKind.headwind, owner: side, affected: opp, turns: 2)
+          ..addEffect(EffectKind.fog, owner: side, affected: opp, turns: 2);
       case CardId.highStakes:
         tx.cubeValue = (tx.cubeValue * 2).clamp(1, 64);
       case CardId.exile:

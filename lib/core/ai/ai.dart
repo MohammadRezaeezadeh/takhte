@@ -394,6 +394,27 @@ class AiBrain {
         v = 0.2;
       case CardId.twinDice:
         v = 0.6;
+      case CardId.sandstorm:
+        v = 0.4;
+      case CardId.caravan:
+        v = 0.35;
+      case CardId.spiritWard:
+        v = contact ? 0.45 : 0.15;
+      case CardId.mirage:
+        v = 0.45;
+      case CardId.mountainPass:
+        v = 0.5;
+      case CardId.saffron:
+        v = 0.35;
+      case CardId.treasury:
+        v = 0.45;
+      case CardId.starReader:
+        v = 0.45;
+      case CardId.sevenfold:
+        v = 0.4;
+      case CardId.hailstorm:
+        v = 0.55;
+
       case CardId.royalRoll:
         v = 0.4;
       case CardId.silkPurse:
