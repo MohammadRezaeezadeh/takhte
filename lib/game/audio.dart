@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/services.dart';
+import 'package:haftnard/game/audio/audio_manager.dart';
+import 'package:haftnard/game/audio/audioplayers_backend.dart';
 
-/// Sound effects, ambient loop and haptics with graceful failure (e.g. tests).
+/// Game-facing audio and haptics. A thin facade over [AudioManager] so call
+/// sites stay simple; everything is best-effort and never throws.
 class Sfx {
   Sfx._();
   static final Sfx instance = Sfx._();
@@ -13,82 +15,42 @@ class Sfx {
   bool musicOn = true;
   bool hapticsOn = true;
 
+  /// Effect and music volumes (0–1). Music sits below effects by default.
+  double sfxVolume = 1;
+  double musicVolume = 0.35;
+
   /// Disabled entirely in tests / headless runs.
   bool available = true;
-  bool _loaded = false;
-  bool _ambient = false;
-  String _track = 'ambient';
-  final Map<String, AudioPool> _pools = {};
 
-  /// High-frequency effects are pooled to avoid creating players per play.
-  static const _pooled = [
-    'clack_0',
-    'clack_1',
-    'clack_2',
-    'ui_tick',
-    'slide',
-    'dice_land',
-  ];
+  /// Diagnostic sink, wired to the problem log at startup.
+  void Function(String message)? onLog;
+
+  AudioManager? _manager;
+  String _track = 'ambient';
+  bool _ambientWanted = false;
   final _rng = math.Random();
 
-  static const files = [
-    'dice_roll',
-    'dice_land',
-    'clack_0',
-    'clack_1',
-    'clack_2',
-    'slide',
-    'hit',
-    'bear_off',
-    'seven_fanfare',
-    'card_whoosh',
-    'card_flip',
-    'card_pick',
-    'ui_tick',
-    'ui_confirm',
-    'ui_back',
-    'coin',
-    'win',
-    'lose',
-    'mine',
-    'magic',
-    'pop',
-  ];
+  /// The manager, created on first use (null when audio is unavailable).
+  AudioManager? get manager {
+    if (!available) return null;
+    return _manager ??= AudioManager(
+      AudioplayersBackend(),
+      onLog: (m) => onLog?.call(m),
+    );
+  }
+
+  /// Replaces the manager (tests inject a fake backend).
+  set manager(AudioManager? m) => _manager = m;
 
   Future<void> preload() async {
-    if (!available || _loaded) return;
-    try {
-      FlameAudio.audioCache.prefix = 'assets/audio/';
-      await FlameAudio.audioCache.loadAll([for (final f in files) '$f.ogg']);
-      for (final f in _pooled) {
-        _pools[f] = await FlameAudio.createPool('$f.ogg', maxPlayers: 3);
-      }
-      _loaded = true;
-    } on Object {
-      available = false;
-    }
+    final m = manager;
+    if (m == null) return;
+    await m.init();
   }
 
   void play(String name, {double volume = 1, double rate = 1}) {
-    if (!available || !soundOn) return;
-    final pool = _pools[name];
-    if (pool != null) {
-      try {
-        unawaited(pool.start(volume: volume));
-      } on Object {
-        // Audio is best-effort.
-      }
-      return;
-    }
-    try {
-      unawaited(
-        FlameAudio.play('$name.ogg', volume: volume).then((p) async {
-          if (rate != 1) await p.setPlaybackRate(rate);
-        }),
-      );
-    } on Object {
-      // Audio is best-effort.
-    }
+    if (!soundOn) return;
+    manager?.play(name, volume: volume * sfxVolume, rate: rate);
   }
 
   void clack({double rate = 1}) => play(
@@ -96,25 +58,33 @@ class Sfx {
     rate: rate * (0.95 + _rng.nextDouble() * 0.1),
   );
 
+  /// Music on/off; [track] switches tracks.
   Future<void> setAmbient({required bool on, String? track}) async {
-    if (!available) return;
-    try {
-      if (on && musicOn && _ambient && track != null && track != _track) {
-        await FlameAudio.bgm.stop();
-        _ambient = false;
-      }
-      if (track != null) _track = track;
-      if (on && musicOn && !_ambient) {
-        await FlameAudio.bgm.initialize();
-        await FlameAudio.bgm.play('$_track.ogg', volume: 0.35);
-        _ambient = true;
-      } else if ((!on || !musicOn) && _ambient) {
-        await FlameAudio.bgm.stop();
-        _ambient = false;
-      }
-    } on Object {
-      available = false;
+    final m = manager;
+    if (track != null) _track = track;
+    _ambientWanted = on;
+    if (m == null) return;
+    if (on && musicOn) {
+      await m.playMusic(_track, volume: musicVolume);
+    } else {
+      await m.stopMusic();
     }
+  }
+
+  Future<void> setMusicVolume(double v) async {
+    musicVolume = v.clamp(0.0, 1.0);
+    await manager?.setMusicVolume(musicVolume);
+  }
+
+  /// Re-applies the music state after a settings change.
+  Future<void> refreshMusic() => setAmbient(on: _ambientWanted);
+
+  Future<void> onPause() async {
+    await _manager?.onPause();
+  }
+
+  Future<void> onResume() async {
+    await _manager?.onResume();
   }
 
   void haptic(HapticKind k) {

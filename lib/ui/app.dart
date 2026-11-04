@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:haftnard/game/audio.dart';
 import 'package:haftnard/l10n/gen/app_localizations.dart';
 import 'package:haftnard/meta/meta_state.dart';
 import 'package:haftnard/ui/screens/splash_screen.dart';
@@ -35,9 +36,19 @@ class _HaftNardAppState extends ConsumerState<HaftNardApp>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached) {
-      unawaited(ref.read(saveServiceProvider).flush());
+    switch (state) {
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        unawaited(ref.read(saveServiceProvider).flush());
+        unawaited(Sfx.instance.onPause());
+      case AppLifecycleState.hidden:
+        unawaited(Sfx.instance.onPause());
+      case AppLifecycleState.resumed:
+        // Android may have released the players while in the background (a
+        // call, screen off): rebuild them all.
+        unawaited(Sfx.instance.onResume());
+      case AppLifecycleState.inactive:
+        break;
     }
   }
 
