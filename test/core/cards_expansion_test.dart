@@ -36,6 +36,7 @@ void main() {
     );
     expect(s.white.rerolls, 1);
     expect(s.white.lucky, 1);
+    expect(s.black.lucky, 1, reason: 'the bargain cuts both ways');
   });
 
   test('Hourglass Sand: capped and no doubles next opponent turn', () {

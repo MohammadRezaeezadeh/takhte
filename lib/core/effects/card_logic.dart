@@ -207,7 +207,7 @@ abstract final class CardLogic {
       case CardId.fog:
         tx.addEffect(EffectKind.fog, owner: side, affected: opp, turns: 1);
       case CardId.curse:
-        tx.addEffect(EffectKind.curse, owner: side, affected: opp, turns: 1);
+        tx.addEffect(EffectKind.curse, owner: side, affected: opp, turns: 2);
       case CardId.mirror:
         tx.addEffect(
           EffectKind.mirrorWatch,
@@ -281,7 +281,7 @@ abstract final class CardLogic {
           EffectKind.toll,
           owner: side,
           affected: opp,
-          turns: 5,
+          turns: 8,
           point: targets.first,
         );
       case CardId.timeStop:
@@ -327,6 +327,8 @@ abstract final class CardLogic {
           side,
           inv().copyWith(rerolls: inv().rerolls + 1, lucky: inv().lucky + 1),
         );
+        final o = tx.inv(opp);
+        tx.setInv(opp, o.copyWith(lucky: o.lucky + 1));
       case CardId.hourglassSand:
         tx
           ..addEffect(EffectKind.fog, owner: side, affected: opp, turns: 1)
@@ -401,7 +403,7 @@ abstract final class CardLogic {
           immediate: false,
         );
       case CardId.headwind:
-        tx.addEffect(EffectKind.headwind, owner: side, affected: opp, turns: 1);
+        tx.addEffect(EffectKind.headwind, owner: side, affected: opp, turns: 2);
       default:
         throw ArgumentError('No logic for card $card');
     }

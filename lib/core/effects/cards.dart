@@ -231,8 +231,8 @@ const List<CardDef> kCards = [
     category: CardCategory.sabotage,
     nameEn: 'Curse of Small Numbers',
     nameFa: 'نفرین کوچکی',
-    descEn: "Your opponent's dice are capped at 4 next turn.",
-    descFa: 'تاس‌های حریف در نوبت بعدی‌اش حداکثر ۴ می‌آیند.',
+    descEn: "Your opponent's dice are capped at 4 for their next 2 turns.",
+    descFa: 'تاس‌های حریف تا دو نوبت بعدی‌اش حداکثر ۴ می‌آیند.',
     glyph: 9,
   ),
   CardDef(
@@ -339,8 +339,8 @@ const List<CardDef> kCards = [
     category: CardCategory.trap,
     nameEn: 'Toll Gate',
     nameFa: 'عوارضی',
-    descEn: 'Mark a point. For 5 turns your opponent spends 1 extra pip to pass over it.',
-    descFa: 'خانه‌ای را علامت بزن؛ تا پنج نوبت، حریف برای عبور از آن یک خانه بیشتر خرج می‌کند.',
+    descEn: 'Mark a point. For 8 turns your opponent spends 1 extra pip to pass over it.',
+    descFa: 'خانه‌ای را علامت بزن؛ تا هشت نوبت، حریف برای عبور از آن یک خانه بیشتر خرج می‌کند.',
     target: TargetKind.enemyOrEmpty,
     glyph: 19,
   ),
@@ -413,6 +413,9 @@ const List<CardDef> kCards = [
     nameFa: 'چانه‌زنی بازار',
     descEn: 'Gain a reroll token and a Lucky Charm.',
     descFa: 'یک ژتون تاس دوباره و یک طلسم بخت بگیر.',
+    drawbackEn:
+        'A bargain cuts both ways: your opponent gains a Lucky Charm too.',
+    drawbackFa: 'معامله دوطرفه است: حریف هم یک طلسم بخت می‌گیرد.',
     glyph: 25,
   ),
   CardDef(
@@ -523,9 +526,8 @@ const List<CardDef> kCards = [
     category: CardCategory.sabotage,
     nameEn: 'Headwind',
     nameFa: 'باد مخالف',
-    descEn:
-        "Next turn, subtract 1 from each of your opponent's dice (down to 1).",
-    descFa: 'نوبت بعد، از هر تاس حریف یکی کم می‌شود (تا ۱).',
+    descEn: "For their next 2 turns, subtract 1 from each of your opponent's dice (down to 1).",
+    descFa: 'تا دو نوبت بعدی حریف، از هر تاسش یکی کم می‌شود (تا ۱).',
     glyph: 36,
   ),
 ];
