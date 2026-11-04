@@ -1501,6 +1501,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap two of your points'**
   String get targetOwn2;
+
+  /// No description provided for @welcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to HaftNard'**
+  String get welcomeTitle;
+
+  /// No description provided for @welcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic Persian backgammon — with a twist: roll the glowing Double Seven and claim a power card. New to the board? A two-minute interactive lesson will get you playing.'**
+  String get welcomeBody;
+
+  /// No description provided for @welcomeSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'I know how to play'**
+  String get welcomeSkip;
 }
 
 class _AppLocalizationsDelegate

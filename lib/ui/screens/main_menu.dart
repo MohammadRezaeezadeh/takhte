@@ -32,6 +32,72 @@ class _MainMenuScreenState extends ConsumerState<MainMenuScreen> {
   void initState() {
     super.initState();
     unawaited(Sfx.instance.setAmbient(on: true));
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => unawaited(_onboarding()),
+    );
+  }
+
+  /// First launch: offer the interactive tutorial once.
+  Future<void> _onboarding() async {
+    final meta = ref.read(metaProvider);
+    if (meta.settings.tutorialDone ||
+        meta.profile.stats.games > 0 ||
+        !mounted) {
+      return;
+    }
+    final l = context.l10n;
+    final learn = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Panel(
+          glow: AppColors.goldLight,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const HaftNardLogo(size: 0.6),
+              const SizedBox(height: 8),
+              Text(
+                l.welcomeTitle,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontFamily: AppFonts.display,
+                  fontSize: 24,
+                  color: AppColors.goldLight,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                l.welcomeBody,
+                textAlign: TextAlign.center,
+                style: const TextStyle(height: 1.5),
+              ),
+              const SizedBox(height: 14),
+              JewelButton(
+                label: l.tutorial,
+                icon: Icons.school,
+                color: AppColors.emerald,
+                onPressed: () => Navigator.pop(ctx, true),
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l.welcomeSkip),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (!mounted) return;
+    final n = ref.read(metaProvider.notifier);
+    if (learn ?? false) {
+      await _go(const TutorialScreen());
+    } else {
+      n.updateSettings(
+        ref.read(metaProvider).settings.copyWith(tutorialDone: true),
+      );
+    }
   }
 
   Future<void> _go(Widget w) async {

@@ -863,4 +863,14 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get targetOwn2 => 'دو خانهٔ خودت را انتخاب کن';
+
+  @override
+  String get welcomeTitle => 'به هفت‌نرد خوش آمدی';
+
+  @override
+  String get welcomeBody =>
+      'تخته‌نرد کلاسیک ایرانی، با یک پیچش: جفت هفتِ درخشان بیاور و یک کارت قدرت بردار. تازه‌کاری؟ یک آموزش تعاملی دو دقیقه‌ای راهت می‌اندازد.';
+
+  @override
+  String get welcomeSkip => 'بازی را بلدم';
 }

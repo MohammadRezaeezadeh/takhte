@@ -860,4 +860,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get targetOwn2 => 'Tap two of your points';
+
+  @override
+  String get welcomeTitle => 'Welcome to HaftNard';
+
+  @override
+  String get welcomeBody =>
+      'Classic Persian backgammon — with a twist: roll the glowing Double Seven and claim a power card. New to the board? A two-minute interactive lesson will get you playing.';
+
+  @override
+  String get welcomeSkip => 'I know how to play';
 }
