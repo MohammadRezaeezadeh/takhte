@@ -45,8 +45,9 @@ class BoardLayout {
   BoardLayout(this.size, {this.homeOnRight = true}) {
     final w = size.width;
     final h = size.height;
-    // Board aspect ~1.2 (w/h) incl. trays; fit inside size.
-    const aspect = 1.18;
+    // Board aspect (w/h) incl. trays: classic ~1.18, taller in portrait so
+    // stacks and touch columns get more room.
+    final aspect = (w / h).clamp(0.92, 1.18);
     var bw = w;
     var bh = bw / aspect;
     if (bh > h) {

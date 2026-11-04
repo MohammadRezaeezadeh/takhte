@@ -200,7 +200,23 @@ class _SevenOverlayState extends State<SevenOverlay>
                         ),
                     ],
                   ),
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 18),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: _selected == null
+                        ? const SizedBox(height: 64)
+                        : Padding(
+                            key: ValueKey(_selected),
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: SizedBox(
+                              height: 64,
+                              child: _CardDetail(
+                                card: cardById(widget.offer[_selected!]),
+                                lang: lang,
+                              ),
+                            ),
+                          ),
+                  ),
                   AnimatedOpacity(
                     duration: const Duration(milliseconds: 200),
                     opacity: _selected == null ? 0 : 1,
@@ -320,6 +336,35 @@ class _DealtCardState extends State<_DealtCard> {
       ),
     );
   }
+}
+
+class _CardDetail extends StatelessWidget {
+  const _CardDetail({required this.card, required this.lang});
+  final CardDef card;
+  final String lang;
+  @override
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(
+        card.desc(lang),
+        textAlign: TextAlign.center,
+        maxLines: 2,
+        style: const TextStyle(
+          fontSize: 15,
+          color: AppColors.ivory,
+          height: 1.35,
+        ),
+      ),
+      if (card.drawback(lang) != null)
+        Text(
+          card.drawback(lang)!,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          style: const TextStyle(fontSize: 13, color: Color(0xFFFF8A8A)),
+        ),
+    ],
+  );
 }
 
 /// Shows which card the AI took.

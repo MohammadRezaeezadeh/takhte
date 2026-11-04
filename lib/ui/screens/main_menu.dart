@@ -111,7 +111,7 @@ class _MainMenuScreenState extends ConsumerState<MainMenuScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: JewelButton(
-              label: l.howToPlay,
+              label: l.tutorial,
               icon: Icons.school,
               color: const Color(0xFF1E4A66),
               fontSize: 20,

@@ -148,7 +148,16 @@ class MetaNotifier extends Notifier<MetaState> {
   List<CosmeticItem> dailyShop(DateTime now) {
     final key = now.year * 10000 + now.month * 100 + now.day;
     final rng = Rng.seeded(key);
-    final pool = kItems.where((i) => !i.isFree && i.coins > 0).toList();
+    final level = profile.level;
+    final pool = kItems
+        .where(
+          (i) =>
+              !i.isFree &&
+              i.coins > 0 &&
+              i.unlockLevel <= level &&
+              !profile.owned.contains(i.id),
+        )
+        .toList();
     rng.shuffle(pool);
     return pool.take(4).toList();
   }
