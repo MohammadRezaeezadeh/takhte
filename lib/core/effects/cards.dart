@@ -594,8 +594,8 @@ const List<CardDef> kCards = [
     category: CardCategory.dice,
     nameEn: 'Twin Dice',
     nameFa: 'تاس‌های همزاد',
-    descEn: 'Next turn, your dice are guaranteed doubles.',
-    descFa: 'نوبت بعد، تاس‌هایت حتماً جفت می‌آیند.',
+    descEn: 'Next turn, your dice are guaranteed doubles of 3 or higher.',
+    descFa: 'نوبت بعد، تاس‌هایت حتماً جفتِ ۳ یا بالاتر می‌آیند.',
     glyph: 39,
   ),
   CardDef(

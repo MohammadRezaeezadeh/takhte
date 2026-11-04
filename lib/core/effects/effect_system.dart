@@ -86,7 +86,11 @@ class _PlanFlag extends EffectHandler {
 
 void _evenUp(RollPlan p) => p.evenUp = true;
 void _wardOnes(RollPlan p) => p.rerollOnes = true;
-void _twin(RollPlan p) => p.forceDouble = true;
+void _twin(RollPlan p) {
+  p.forceDouble = true;
+  if (p.minValue < 3) p.minValue = 3;
+}
+
 void _minThree(RollPlan p) {
   if (p.minValue < 3) p.minValue = 3;
 }

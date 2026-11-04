@@ -42,9 +42,10 @@ void main() {
     expect(ones, lessThan(30));
   });
 
-  test('Twin Dice guarantees doubles', () {
+  test('Twin Dice guarantees doubles of 3+', () {
     for (final r in nextOwnRolls(CardId.twinDice)) {
       expect(r.dice.length, 4);
+      expect(r.dice.first, greaterThanOrEqualTo(3));
     }
   });
 

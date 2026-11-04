@@ -249,6 +249,9 @@ void main(List<String> args) {
   if (forced > 0) {
     // Intrinsic power: White can only ever be offered card c; Black never
     // rolls 7–7. Lift per pick = (win rate - baseline) / picks per game.
+    // Baseline: White is only ever offered Greed, which has no effect on the
+    // board here (Black never rolls 7–7), so RNG consumption matches the card
+    // runs exactly. (A no-sevens baseline was biased by ~6 points.)
     var baseWins = 0;
     for (var g = 0; g < forced; g++) {
       final st = playOne(
@@ -256,7 +259,7 @@ void main(List<String> args) {
           seed: 50000 + g,
           p7: p7,
           black: const SideMods(p7Multiplier: 0),
-          white: const SideMods(p7Multiplier: 0),
+          white: const SideMods(cardPool: [CardId.greed]),
         ),
         AiConfig(difficulty: difficulty, seed: g),
         AiConfig(difficulty: difficulty, seed: g + 99),
@@ -270,8 +273,9 @@ void main(List<String> args) {
       ..writeln()
       ..writeln(
         'White may only be offered one card (p7=$p7), Black never rolls 7–7, '
-        '$forced games per card. Baseline (no cards either side): ${pct(base)}. '
-        'Target: lift per pick ≤ +8%.',
+        '$forced games per card. Baseline (White only offered the inert '
+        'Greed): ${pct(base)}. Target: lift per pick ≤ +8%. Cards with 0 '
+        'picks/game need enemy effects to be playable.',
       )
       ..writeln()
       ..writeln(
