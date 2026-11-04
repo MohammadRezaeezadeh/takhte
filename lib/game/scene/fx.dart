@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'dart:ui';
 
 import 'package:flame/components.dart';
@@ -51,6 +52,35 @@ class FxLayer extends Component {
   final _rng = math.Random(7);
   double flash = 0;
   Color flashColor = const Color(0xFFFFFFFF);
+
+  /// Soft white glow sprite, tinted per particle. Far cheaper than a blur
+  /// mask filter per particle per frame.
+  static final ui.Image _glow = () {
+    const s = 64.0;
+    final rec = ui.PictureRecorder();
+    Canvas(rec).drawCircle(
+      const Offset(s / 2, s / 2),
+      s / 2,
+      Paint()
+        ..shader = ui.Gradient.radial(
+          const Offset(s / 2, s / 2),
+          s / 2,
+          const [Color(0xFFFFFFFF), Color(0x66FFFFFF), Color(0x00FFFFFF)],
+          const [0, 0.35, 1],
+        ),
+    );
+    return rec.endRecording().toImageSync(s.toInt(), s.toInt());
+  }();
+  static const Rect _glowSrc = Rect.fromLTWH(0, 0, 64, 64);
+
+  void _soft(Canvas canvas, Offset at, double radius, Color color) {
+    canvas.drawImageRect(
+      _glow,
+      _glowSrc,
+      Rect.fromCircle(center: at, radius: radius),
+      Paint()..colorFilter = ColorFilter.mode(color, BlendMode.modulate),
+    );
+  }
 
   double _r() => _rng.nextDouble();
 
@@ -233,28 +263,20 @@ class FxLayer extends Component {
         case ParticleKind.spark:
         case ParticleKind.star:
           canvas.drawCircle(p.pos, p.size * (1 - t * 0.5), paint);
-          canvas.drawCircle(
+          _soft(
+            canvas,
             p.pos,
-            p.size * 2.2,
-            Paint()
-              ..color = p.color.withValues(alpha: alpha * 0.25)
-              ..maskFilter = MaskFilter.blur(BlurStyle.normal, p.size),
+            p.size * 2.6,
+            p.color.withValues(alpha: alpha * 0.5),
           );
         case ParticleKind.ember:
-          canvas.drawCircle(
-            p.pos,
-            p.size,
-            Paint()
-              ..color = p.color.withValues(alpha: alpha)
-              ..maskFilter = MaskFilter.blur(BlurStyle.normal, p.size * 0.6),
-          );
+          _soft(canvas, p.pos, p.size * 1.6, p.color.withValues(alpha: alpha));
         case ParticleKind.smoke:
-          canvas.drawCircle(
+          _soft(
+            canvas,
             p.pos,
-            p.size * (1 + t * 2),
-            Paint()
-              ..color = p.color.withValues(alpha: alpha * 0.35)
-              ..maskFilter = MaskFilter.blur(BlurStyle.normal, p.size),
+            p.size * (1.5 + t * 3),
+            p.color.withValues(alpha: alpha * 0.4),
           );
         case ParticleKind.petal:
           canvas.save();

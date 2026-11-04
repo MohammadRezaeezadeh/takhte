@@ -107,10 +107,14 @@ class _MenuPainter extends CustomPainter {
     final glow = 0.15 + 0.05 * math.sin(t * 0.8);
     canvas.drawCircle(
       c,
-      r * 0.6,
+      r * 0.9,
       Paint()
-        ..color = AppColors.goldLight.withValues(alpha: glow)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 80),
+        ..shader = RadialGradient(
+          colors: [
+            AppColors.goldLight.withValues(alpha: glow),
+            AppColors.goldLight.withValues(alpha: 0),
+          ],
+        ).createShader(Rect.fromCircle(center: c, radius: r * 0.9)),
     );
     // Drifting motes.
     final rng = ArtRng(77);

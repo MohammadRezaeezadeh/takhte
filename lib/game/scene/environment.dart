@@ -274,12 +274,16 @@ class EnvironmentLayer extends Component {
           ..strokeWidth = 1.5,
       );
       final glow = 0.55 + 0.15 * math.sin(time * 3 + i) + flare * 0.6;
+      final gc = end + const Offset(0, 14);
+      final gr = 70 + flare * 40;
       c.drawCircle(
-        end + const Offset(0, 14),
-        46 + flare * 30,
+        gc,
+        gr,
         Paint()
-          ..color = Color.fromRGBO(255, 170, 80, 0.22 * glow)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 30),
+          ..shader = ui.Gradient.radial(gc, gr, [
+            Color.fromRGBO(255, 170, 80, (0.3 * glow).clamp(0, 1)),
+            const Color(0x00FFAA50),
+          ]),
       );
       final body = Rect.fromCenter(
         center: end + const Offset(0, 14),
