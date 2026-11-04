@@ -17,6 +17,7 @@ class RefPos {
 
   RefPos clone() => RefPos(List.of(pts), List.of(bar), List.of(off));
 
+  // Kept static to mirror the production API shape under test.
   // ignore: prefer_constructors_over_static_methods
   static RefPos fromBoard(Board b) {
     final pts = List<int>.filled(26, 0);
