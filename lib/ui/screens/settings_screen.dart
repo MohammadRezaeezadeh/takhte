@@ -7,6 +7,7 @@ import 'package:haftnard/meta/meta_state.dart';
 import 'package:haftnard/meta/settings.dart';
 import 'package:haftnard/ui/app.dart';
 import 'package:haftnard/ui/game/overlays.dart';
+import 'package:haftnard/ui/screens/problem_report_screen.dart';
 import 'package:haftnard/ui/theme.dart';
 import 'package:haftnard/ui/widgets/fps_overlay.dart';
 import 'package:haftnard/ui/widgets/jewel.dart';
@@ -195,6 +196,23 @@ class SettingsScreen extends ConsumerWidget {
                                 ),
                               ),
                               const SizedBox(height: 12),
+                              JewelButton(
+                                key: const ValueKey('report-problem'),
+                                label: l.reportProblem,
+                                icon: Icons.bug_report,
+                                color: AppColors.violet,
+                                height: 50,
+                                fontSize: 17,
+                                onPressed: () => unawaited(
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (_) =>
+                                          const ProblemReportScreen(),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
                               JewelButton(
                                 label: l.resetProgress,
                                 icon: Icons.delete_forever,

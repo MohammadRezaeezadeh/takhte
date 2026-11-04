@@ -1615,6 +1615,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Emotes (bottom corner): send a quick reaction.'**
   String get helpEmotes;
+
+  /// No description provided for @reportProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a problem'**
+  String get reportProblem;
+
+  /// No description provided for @reportProblemHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy this text and send it to the developer. It holds the last few minutes of errors and slowdowns, plus device facts, and no personal data.'**
+  String get reportProblemHint;
+
+  /// No description provided for @copyReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get copyReport;
+
+  /// No description provided for @copiedReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get copiedReport;
 }
 
 class _AppLocalizationsDelegate

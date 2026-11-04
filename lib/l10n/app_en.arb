@@ -479,5 +479,9 @@
         "type": "int"
       }
     }
-  }
+  },
+  "reportProblem": "Report a problem",
+  "reportProblemHint": "Copy this text and send it to the developer. It holds the last few minutes of errors and slowdowns, plus device facts, and no personal data.",
+  "copyReport": "Copy",
+  "copiedReport": "Copied"
 }

@@ -943,4 +943,17 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get helpEmotes => 'شکلک‌ها (گوشهٔ پایین): یک واکنش سریع بفرست.';
+
+  @override
+  String get reportProblem => 'گزارش مشکل';
+
+  @override
+  String get reportProblemHint =>
+      'این متن را کپی کن و برای سازنده بفرست. شامل خطاها و کندی‌های چند دقیقهٔ اخیر و مشخصات دستگاه است و هیچ اطلاعات شخصی ندارد.';
+
+  @override
+  String get copyReport => 'کپی';
+
+  @override
+  String get copiedReport => 'کپی شد';
 }

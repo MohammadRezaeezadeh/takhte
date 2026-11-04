@@ -940,4 +940,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpEmotes => 'Emotes (bottom corner): send a quick reaction.';
+
+  @override
+  String get reportProblem => 'Report a problem';
+
+  @override
+  String get reportProblemHint =>
+      'Copy this text and send it to the developer. It holds the last few minutes of errors and slowdowns, plus device facts, and no personal data.';
+
+  @override
+  String get copyReport => 'Copy';
+
+  @override
+  String get copiedReport => 'Copied';
 }
