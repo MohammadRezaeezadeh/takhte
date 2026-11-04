@@ -22,6 +22,8 @@ class Stats {
     this.classicWins = 0,
     this.passPlayGames = 0,
     this.legendaries = 0,
+    this.bossesBeaten = 0,
+    this.dailyJourneys = 0,
     Map<String, int>? cardCounts,
     Map<String, int>? winsByDifficulty,
   }) : cardCounts = cardCounts ?? {},
@@ -49,6 +51,8 @@ class Stats {
       classicWins: j['classicWins'] as int? ?? 0,
       passPlayGames: j['passPlay'] as int? ?? 0,
       legendaries: j['legendaries'] as int? ?? 0,
+      bossesBeaten: j['bosses'] as int? ?? 0,
+      dailyJourneys: j['dailies'] as int? ?? 0,
       cardCounts: mi(j['cards']),
       winsByDifficulty: mi(j['winsByDiff']),
     );
@@ -70,6 +74,8 @@ class Stats {
   int classicWins;
   int passPlayGames;
   int legendaries;
+  int bossesBeaten;
+  int dailyJourneys;
   final Map<String, int> cardCounts;
   final Map<String, int> winsByDifficulty;
 
@@ -95,6 +101,8 @@ class Stats {
     'classicWins': classicWins,
     'passPlay': passPlayGames,
     'legendaries': legendaries,
+    'bosses': bossesBeaten,
+    'dailies': dailyJourneys,
     'cards': cardCounts,
     'winsByDiff': winsByDifficulty,
   };

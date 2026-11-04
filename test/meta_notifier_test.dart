@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:haftnard/core/rules/board.dart';
 import 'package:haftnard/core/rules/state.dart';
 import 'package:haftnard/core/rules/types.dart';
+import 'package:haftnard/meta/achievements.dart';
 import 'package:haftnard/meta/cosmetics.dart';
 import 'package:haftnard/meta/meta_state.dart';
 import 'package:haftnard/meta/profile.dart';
@@ -55,7 +56,10 @@ void main() {
     expect(n.buy(itemById('board_cosmic')!), isTrue);
     expect(p.owned, contains('board_cosmic'));
     // 100 - 60, plus gems from level achievements unlocked on the way.
-    expect(p.gems, 40 + 10 + 25);
+    final achievementGems = kAchievements
+        .where((a) => p.achievements.contains(a.id))
+        .fold<int>(0, (a, b) => a + b.gems);
+    expect(p.gems, 40 + achievementGems);
     expect(n.buyBundle(kBundles.first), isTrue);
     expect(p.owned.containsAll(kBundles.first.items), isTrue);
     expect(n.buyBundle(kBundles.first), isFalse);
@@ -151,7 +155,14 @@ void main() {
       ),
     );
     n
-      ..recordJourney(stage: 3, won: false, keptCoins: 50)
+      ..recordJourney(stage: 3, won: false, keptCoins: 50, bossBeaten: true)
+      ..recordJourney(
+        stage: 8,
+        won: true,
+        keptCoins: 50,
+        bossBeaten: true,
+        daily: true,
+      )
       ..noteEvent(mine: true, phoenix: true, coinWin: true)
       ..updateSettings(const Settings(language: 'fa'))
       ..saveActiveMatch({'x': 1})
@@ -159,7 +170,9 @@ void main() {
       ..saveJourney({'z': 3})
       ..addCoins(10)
       ..randomizeLoadout();
-    expect(n.profile.stats.bestJourneyStage, 3);
+    expect(n.profile.stats.bestJourneyStage, 8);
+    expect(n.profile.stats.bossesBeaten, 2);
+    expect(n.profile.achievements, contains('daily_1'));
     expect(n.profile.stats.minesTriggered, 1);
     expect(svc.data.settings.language, 'fa');
     expect(svc.data.activeMatch, {'x': 1});

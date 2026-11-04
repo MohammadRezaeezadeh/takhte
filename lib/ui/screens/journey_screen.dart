@@ -146,14 +146,22 @@ class _JourneyScreenState extends ConsumerState<JourneyScreen> {
     final before = run.stage;
     run.recordMatch(won: won, coinsEarned: coins);
     if (!won && !run.over) _retry++;
+    final bossBeaten = won && stage.boss != null;
     if (run.over) {
       _meta.recordJourney(
         stage: run.stage,
         won: run.won,
         keptCoins: run.keptCoins,
+        bossBeaten: bossBeaten,
+        daily: run.daily,
       );
     } else if (run.stage > before) {
-      _meta.recordJourney(stage: run.stage, won: false, keptCoins: 0);
+      _meta.recordJourney(
+        stage: run.stage,
+        won: false,
+        keptCoins: 0,
+        bossBeaten: bossBeaten,
+      );
     }
     _save();
     setState(() {});

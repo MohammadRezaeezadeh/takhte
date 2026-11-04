@@ -285,10 +285,14 @@ class MetaNotifier extends Notifier<MetaState> {
     required int stage,
     required bool won,
     required int keptCoins,
+    bool bossBeaten = false,
+    bool daily = false,
   }) {
     final st = profile.stats;
     st.bestJourneyStage = math.max(st.bestJourneyStage, stage);
+    if (bossBeaten) st.bossesBeaten++;
     if (won) st.journeysWon++;
+    if (won && daily) st.dailyJourneys++;
     profile.coins += keptCoins;
     _checkAchievements(Rewards());
     _commit();
