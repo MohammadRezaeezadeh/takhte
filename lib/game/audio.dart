@@ -17,6 +17,7 @@ class Sfx {
   bool available = true;
   bool _loaded = false;
   bool _ambient = false;
+  String _track = 'ambient';
   final Map<String, AudioPool> _pools = {};
 
   /// High-frequency effects are pooled to avoid creating players per play.
@@ -95,12 +96,17 @@ class Sfx {
     rate: rate * (0.95 + _rng.nextDouble() * 0.1),
   );
 
-  Future<void> setAmbient({required bool on}) async {
+  Future<void> setAmbient({required bool on, String? track}) async {
     if (!available) return;
     try {
+      if (on && musicOn && _ambient && track != null && track != _track) {
+        await FlameAudio.bgm.stop();
+        _ambient = false;
+      }
+      if (track != null) _track = track;
       if (on && musicOn && !_ambient) {
         await FlameAudio.bgm.initialize();
-        await FlameAudio.bgm.play('ambient.wav', volume: 0.35);
+        await FlameAudio.bgm.play('$_track.wav', volume: 0.35);
         _ambient = true;
       } else if ((!on || !musicOn) && _ambient) {
         await FlameAudio.bgm.stop();

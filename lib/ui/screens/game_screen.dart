@@ -123,6 +123,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => unawaited(ctrl.begin()),
     );
+    unawaited(Sfx.instance.setAmbient(on: true, track: 'ambient_game'));
     if (ctrl.state.isOver) _showGameOver = true;
   }
 
@@ -176,6 +177,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       t.cancel();
     }
     _revealTimer?.cancel();
+    unawaited(Sfx.instance.setAmbient(on: true, track: 'ambient'));
     unawaited(_sub.cancel());
     ctrl
       ..removeListener(_onCtrl)
