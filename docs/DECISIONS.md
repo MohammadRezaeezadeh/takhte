@@ -41,3 +41,4 @@ One line per decision: **decision** — reason.
 - **All audio synthesized by `tool/gen_sfx.dart` (22 kHz mono WAV, ~1 MB total)** — no downloads, deterministic.
 - **Music: an 8-second synthesized drone + santur-like plucks loop** — ambient without assets.
 - **`dart fix --apply` is not used blindly** — it mangled `unawaited()` calls once (see commit history).
+- **Balance pass 1 (forced-pick sim): all 24 starter cards ≤ +8% lift/pick; Toll Gate 4→5 turns (weakest common)** — see docs/balance/report.md.

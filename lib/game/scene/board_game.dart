@@ -170,6 +170,19 @@ class BoardGame extends FlameGame implements MatchPresenter {
   Offset _dragOffset = Offset.zero;
   int? _dragFrom;
 
+  GameState? _legalFor;
+  List<Move> _legalCache = const [];
+
+  /// Legal moves for [s], memoised per state instance (rendering asks every
+  /// frame; move generation is a DFS).
+  List<Move> _legal(GameState s) {
+    if (!identical(s, _legalFor)) {
+      _legalFor = s;
+      _legalCache = Engine.legalMoves(s);
+    }
+    return _legalCache;
+  }
+
   /// Valid targets while a card is being targeted (absolute; 0 = bar).
   Set<int> targetable = {};
   List<int> targetChosen = [];
@@ -1033,7 +1046,7 @@ class BoardGame extends FlameGame implements MatchPresenter {
       return;
     }
     if (!controller.waitingForHuman || s.phase != Phase.moving) return;
-    final legal = Engine.legalMoves(s);
+    final legal = _legal(controller.state);
     if (legal.isEmpty) return;
     final side = s.current;
     if (selectedFrom == null && _dragChk == null) {
@@ -1299,7 +1312,7 @@ class BoardGame extends FlameGame implements MatchPresenter {
       return;
     }
     if (s.phase != Phase.moving) return;
-    final legal = Engine.legalMoves(s);
+    final legal = _legal(s);
     final side = s.current;
     final hit = layout.hitTest(p);
     if (hit == null) {
@@ -1350,7 +1363,7 @@ class BoardGame extends FlameGame implements MatchPresenter {
     if (hit == null || hit < 0) return;
     final side = s.current;
     final rel = hit == 0 ? Pos.bar : toRelative(side, hit);
-    if (!Engine.legalMoves(s).any((m) => m.from == rel)) return;
+    if (!_legal(s).any((m) => m.from == rel)) return;
     final list = _stacks[_slotFor(side, rel)];
     if (list == null || list.isEmpty) return;
     final c = list.last;
@@ -1379,7 +1392,7 @@ class BoardGame extends FlameGame implements MatchPresenter {
     final side = s.current;
     final hit = layout.hitTest(c.pos);
     Move? chosen;
-    final legal = Engine.legalMoves(s).where((m) => m.from == from);
+    final legal = _legal(s).where((m) => m.from == from);
     if (hit == -1) {
       chosen = legal.where((m) => m.to == Pos.off).firstOrNull;
     } else if (hit != null && hit > 0) {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +27,7 @@ import 'package:haftnard/ui/screens/replay_screen.dart';
 import 'package:haftnard/ui/theme.dart';
 import 'package:haftnard/ui/tutorial.dart';
 import 'package:haftnard/ui/widgets/jewel.dart';
+import 'package:haftnard/ui/widgets/previews.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({
@@ -63,6 +65,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   final List<int> _chosen = [];
   int _step = 0;
   bool _stepDone = false;
+  final Map<Side, String> _emotes = {};
+  final Map<Side, Timer> _emoteTimers = {};
+  final math.Random _emoteRng = math.Random();
 
   MetaNotifier get _meta => ref.read(metaProvider.notifier);
   MatchSession get session => widget.session;
@@ -109,8 +114,55 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     if (ctrl.state.isOver) _showGameOver = true;
   }
 
+  void _emote(Side side, String itemId) {
+    final item = itemById(itemId);
+    if (item == null) return;
+    _emoteTimers[side]?.cancel();
+    setState(() => _emotes[side] = item.name(context.lang));
+    Sfx.instance.play('pop', volume: 0.6);
+    _emoteTimers[side] = Timer(const Duration(milliseconds: 2200), () {
+      if (mounted) setState(() => _emotes.remove(side));
+    });
+  }
+
+  /// AI personalities occasionally react to big moments.
+  void _aiReact(Side ai, String itemId, {double chance = 0.55}) {
+    if (ctrl.isHuman(ai) || session.origin == 'tutorial') return;
+    if (_emoteRng.nextDouble() > chance) return;
+    Timer(Duration(milliseconds: 500 + _emoteRng.nextInt(500)), () {
+      if (mounted) _emote(ai, itemId);
+    });
+  }
+
+  Future<void> _pickEmote() async {
+    final p = ref.read(metaProvider).profile;
+    final owned = itemsOfType(ItemType.emote)
+        .where((i) => p.owned.contains(i.id))
+        .toList();
+    final side = session.isPassAndPlay ? ctrl.state.current : ctrl.localSide;
+    final id = await showPanelDialog<String>(
+      context,
+      (ctx) => Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final e in owned)
+            GestureDetector(
+              onTap: () => Navigator.pop(ctx, e.id),
+              child: EmoteBubble(text: e.name(context.lang)),
+            ),
+        ],
+      ),
+    );
+    if (id != null && mounted) _emote(side, id);
+  }
+
   @override
   void dispose() {
+    for (final t in _emoteTimers.values) {
+      t.cancel();
+    }
     _revealTimer?.cancel();
     unawaited(_sub.cancel());
     ctrl
@@ -260,6 +312,14 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           }
         case QuicksandGripped():
           _toast(l.gripped, icon: Icons.waves, color: const Color(0xFF8C6A48));
+        case SevenRolled(:final side):
+          _aiReact(side, 'emo_seven', chance: 0.7);
+          _aiReact(side.opponent, 'emo_wow', chance: 0.4);
+        case CheckerHit(:final victim):
+          _aiReact(victim, 'emo_oops', chance: 0.35);
+          _aiReact(victim.opponent, 'emo_bravo', chance: 0.25);
+        case GameEnded(:final winner):
+          _aiReact(winner.opponent, 'emo_wellplayed', chance: 0.8);
         case CardPicked(:final side, :final cardId):
           if (!ctrl.isHuman(side) || session.isPassAndPlay) {
             if (!ctrl.isHuman(side)) {
@@ -665,6 +725,30 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             onPressed: () => unawaited(_pause()),
           ),
         ),
+        if (widget.tutorial == null)
+          PositionedDirectional(
+            bottom: 6,
+            end: 6,
+            child: JewelIconButton(
+              icon: Icons.chat_bubble_outline,
+              tooltip: context.l10n.emoteTitle,
+              onPressed: () => unawaited(_pickEmote()),
+            ),
+          ),
+        for (final e in _emotes.entries)
+          Positioned(
+            top: e.key == local ? null : 8,
+            bottom: e.key == local ? 60 : null,
+            left: 16,
+            child: TweenAnimationBuilder<double>(
+              key: ValueKey('${e.key}${e.value}'),
+              tween: Tween(begin: 0.6, end: 1),
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOutBack,
+              builder: (_, v, child) => Transform.scale(scale: v, child: child),
+              child: EmoteBubble(text: e.value),
+            ),
+          ),
         Positioned(
           top: 8,
           left: 60,

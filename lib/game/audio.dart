@@ -17,6 +17,17 @@ class Sfx {
   bool available = true;
   bool _loaded = false;
   bool _ambient = false;
+  final Map<String, AudioPool> _pools = {};
+
+  /// High-frequency effects are pooled to avoid creating players per play.
+  static const _pooled = [
+    'clack_0',
+    'clack_1',
+    'clack_2',
+    'ui_tick',
+    'slide',
+    'dice_land',
+  ];
   final _rng = math.Random();
 
   static const files = [
@@ -48,6 +59,9 @@ class Sfx {
     try {
       FlameAudio.audioCache.prefix = 'assets/audio/';
       await FlameAudio.audioCache.loadAll([for (final f in files) '$f.wav']);
+      for (final f in _pooled) {
+        _pools[f] = await FlameAudio.createPool('$f.wav', maxPlayers: 3);
+      }
       _loaded = true;
     } on Object {
       available = false;
@@ -56,6 +70,15 @@ class Sfx {
 
   void play(String name, {double volume = 1, double rate = 1}) {
     if (!available || !soundOn) return;
+    final pool = _pools[name];
+    if (pool != null) {
+      try {
+        unawaited(pool.start(volume: volume));
+      } on Object {
+        // Audio is best-effort.
+      }
+      return;
+    }
     try {
       unawaited(
         FlameAudio.play('$name.wav', volume: volume).then((p) async {

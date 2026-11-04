@@ -281,7 +281,7 @@ abstract final class CardLogic {
           EffectKind.toll,
           owner: side,
           affected: opp,
-          turns: 4,
+          turns: 5,
           point: targets.first,
         );
       case CardId.timeStop:
