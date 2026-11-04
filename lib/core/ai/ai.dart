@@ -1,6 +1,9 @@
 import 'dart:isolate';
 
 import 'package:haftnard/core/ai/eval.dart';
+import 'package:haftnard/core/ai/nn_eval.dart';
+import 'package:haftnard/core/ai/nn_weights.dart';
+import 'package:haftnard/core/ai/opening_book.dart';
 import 'package:haftnard/core/ai/personality.dart';
 import 'package:haftnard/core/effects/card_logic.dart';
 import 'package:haftnard/core/effects/cards.dart';
@@ -18,11 +21,21 @@ class AiConfig {
     this.difficulty = Difficulty.medium,
     this.personalityId = 'sage',
     this.seed = 0,
+    this.noise,
+    this.plies,
+    this.net,
   });
 
   final Difficulty difficulty;
   final String personalityId;
   final int seed;
+
+  /// Tooling overrides (calibration); null = the difficulty's default.
+  final double? noise;
+  final int? plies;
+
+  /// Use the self-play value network instead of the hand-tuned evaluator.
+  final bool? net;
 
   AiPersonality get personality => personalityById(personalityId);
 }
@@ -36,6 +49,22 @@ class AiBrain {
   final AiPersonality _p;
 
   EvalWeights get _w => _p.weights;
+
+  /// The shared value network (built lazily once per isolate).
+  static NnEval network = NnEval.fromFlat(kNnWeights, kNnHidden);
+
+  /// Whether `difficulty` uses the network by default.
+  static bool defaultNet(Difficulty d) => d == Difficulty.master;
+
+  late final bool _useNet = config.net ?? defaultNet(config.difficulty);
+
+  /// Equity-like score in (-1, 1) for `mine`, who has just moved.
+  double _value(List<int> mine, List<int> theirs) {
+    if (!_useNet || mine[0] == 15 || theirs[0] == 15) {
+      return Evaluator.evaluate(mine, theirs, _w);
+    }
+    return 2 * network.winProb(mine, theirs) - 1;
+  }
 
   /// Runs [decide] on a background isolate.
   static Future<List<GameAction>> decideAsync(GameState s, AiConfig cfg) =>
@@ -89,7 +118,7 @@ class AiBrain {
     return TurnSim.fromBoard(s.board, side, ctx);
   }
 
-  double _eval1(TurnSim t) => Evaluator.evaluate(t.mine, t.theirs, _w);
+  double _eval1(TurnSim t) => _value(t.mine, t.theirs);
 
   /// Best complete play for the current dice.
   List<Move> bestPlay(GameState s, {bool revealTraps = false}) {
@@ -99,15 +128,14 @@ class AiBrain {
     if (plays.length == 1) return plays.first.moves;
     final rng = _rngFor(s);
     final d = config.difficulty;
+    if (d.index >= Difficulty.hard.index) {
+      final book = OpeningBook.lookup(s);
+      if (book != null) return book;
+    }
     if (d == Difficulty.beginner && rng.nextInt(10) < 4) {
       return plays[rng.nextInt(plays.length)].moves;
     }
-    final noise = switch (d) {
-      Difficulty.beginner => 0.3,
-      Difficulty.easy => 0.12,
-      Difficulty.medium => 0.025,
-      _ => 0.0,
-    };
+    final noise = config.noise ?? defaultNoise(d);
     final scored = [
       for (final p in plays)
         (
@@ -115,9 +143,10 @@ class AiBrain {
           _eval1(p.result) + (noise > 0 ? (rng.nextDouble() - 0.5) * noise : 0),
         ),
     ]..sort((a, b) => b.$2.compareTo(a.$2));
-    if (d.index < Difficulty.hard.index) return scored.first.$1.moves;
+    final plies = config.plies ?? (d.index >= Difficulty.master.index ? 2 : 1);
+    if (plies < 2) return scored.first.$1.moves;
 
-    final k = d == Difficulty.master ? 9 : 5;
+    final k = d == Difficulty.master ? 5 : 4;
     var best = scored.first.$1;
     var bestV = -9.0;
     for (final (p, _) in scored.take(k)) {
@@ -129,6 +158,16 @@ class AiBrain {
     }
     return best.moves;
   }
+
+  /// Play-quality noise per tier (uniform, in equity units). Calibrated with
+  /// `tool/ai_tourney.dart`; see docs/balance/ai-tiers.md.
+  static double defaultNoise(Difficulty d) => switch (d) {
+    Difficulty.beginner => 0.5,
+    Difficulty.easy => 0.3,
+    Difficulty.medium => 0.15,
+    Difficulty.hard => 0.0,
+    Difficulty.master => 0.0,
+  };
 
   /// Expected value after the opponent's best 1-ply reply, averaged over all
   /// rolls. Star1-style cutoff: stop once the upper bound falls below [alpha].
@@ -145,7 +184,7 @@ class AiBrain {
       );
       var oppBest = -9.0;
       for (final p in MoveGen.allPlays(opp, dice)) {
-        final v = Evaluator.evaluate(p.result.mine, p.result.theirs);
+        final v = _value(p.result.mine, p.result.theirs);
         if (v > oppBest) oppBest = v;
         if (oppBest >= 1.0) break;
       }

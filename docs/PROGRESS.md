@@ -4,11 +4,12 @@ _Resume here: read this file and `DECISIONS.md` first._
 
 ## Status
 Milestones M0–M8 are complete; the endless-improvement loop is running.
-All work lives on branch `claude/vibrant-newton-gzwmx2`.
+All work lives on branch `claude/vibrant-newton-gzwmx2`; `main` mirrors it.
+Every green push publishes a GitHub Release (see `RELEASE.md`).
 
 | Milestone | State |
 | --- | --- |
-| M0 scaffold, lints, CI (APK + split APKs + AAB, release on tags), docs | done |
+| M0 scaffold, lints, CI (APK + split APKs + AAB, auto release), docs | done |
 | M1 pure rules engine, seeded RNG, replay log, exhaustive tests | done |
 | M2 playable Flame board, human vs human, juice | done |
 | M3 AI (5 tiers, 5 personalities) in an isolate | done |
@@ -19,7 +20,7 @@ All work lives on branch `claude/vibrant-newton-gzwmx2`.
 | M8 progression, achievements, stats, icon, splash, release build | done |
 
 ## Content counts
-* Cards: **60** (target 60+) · Talismans: **40** (target 40+) · Bosses: 14 + final.
+* Cards: **80** · Talismans: **60** · Bosses: 14 + final.
 * Boards 9 · Environments 7 · Checkers 9 · Dice 7 · Card backs 4 · Frames 3 ·
   Victory effects 4 · Emotes 8 · Bundles 3 · Achievements 33 · Tips 14 ·
   Music loops 2 · SFX 21.
@@ -27,13 +28,14 @@ All work lives on branch `claude/vibrant-newton-gzwmx2`.
 
 ## Verification
 * `tool/check.sh` mirrors CI: format gate, `flutter analyze --fatal-infos`, tests.
-* `flutter test` — 179 tests (rules, reference movegen, fuzz, every card, AI,
-  controller, meta, journey, UI flows, full AI-vs-AI match through the real UI).
+* `flutter test` — 203 tests (rules, reference movegen, fuzz, every card, AI,
+  controller, meta, journey, save fuzzing, UI flows, full AI-vs-AI match through
+  the real UI).
 * Coverage: rules 95%, core 97%, overall ≈74%.
-* Local `flutter build apk --release` succeeds (universal APK ≈55 MB; CI also
-  produces per-ABI APKs ≈20 MB).
+* CI release builds are obfuscated: arm64 APK ≈18.5 MB, universal ≈51 MB.
 * Balance: `docs/balance/report.md` (forced-pick methodology with an inert-card
-  baseline; every measurable card ≤ +5% win rate per pick, target ≤ +8%).
+  baseline; every card ≤ +8% win rate per pick). Newer cards:
+  `dice-redesign.md`, `expansion3.md`, `expansion4.md`.
 * Screenshots: `flutter test test/visual/screens_test.dart --dart-define=SHOT_OUT=dir`.
 
 ## Known issues / environment notes

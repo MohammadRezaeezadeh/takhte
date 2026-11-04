@@ -1,8 +1,8 @@
 # Backlog (prioritized)
 
-1. AI: self-play value network for Hard/Master (training in progress), then tier calibration to ≥65% / ≥62% over 2,000 games.
+1. AI: train a larger network (80 hidden units, 1M games) and add gammon outputs; use it for cube decisions too.
 2. AI: one-sided bear-off database for exact race endgames.
-3. AI: 2-ply search is move-generation bound (~44 ms/move on the server); cache opponent replies or prune candidates.
+3. AI: 2-ply search is move-generation bound; cache opponent replies to speed up Master on slow phones.
 4. AI: card-aware lookahead for untargeted board cards (simulate one ply after apply).
 5. On-device profiling pass (frame timing during AI thinking, particle budgets).
 6. Golden tests for key screens (screenshots exist; pin as goldens once stable).
