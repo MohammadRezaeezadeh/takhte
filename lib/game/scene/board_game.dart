@@ -33,6 +33,7 @@ class SceneConfig {
     this.reducedMotion = false,
     this.colorblind = false,
     this.highContrast = false,
+    this.persianDigits = false,
   });
 
   final String boardId;
@@ -45,6 +46,7 @@ class SceneConfig {
   final bool reducedMotion;
   final bool colorblind;
   final bool highContrast;
+  final bool persianDigits;
 }
 
 double _ease(double t) =>
@@ -253,7 +255,7 @@ class BoardGame extends FlameGame implements MatchPresenter {
 
   void _rebuild() {
     env.size = size.toSize();
-    final art = BoardArt(theme, layout);
+    final art = BoardArt(theme, layout, persianDigits: _cfg.persianDigits);
     ui.Picture rec(void Function(Canvas) f) {
       final r = ui.PictureRecorder();
       f(Canvas(r));
@@ -1285,7 +1287,7 @@ class BoardGame extends FlameGame implements MatchPresenter {
                 fontWeight: FontWeight.w700,
               ),
             )
-            ..addText('$n');
+            ..addText(boardDigits(n, persian: _cfg.persianDigits));
       final para = pb.build()
         ..layout(ui.ParagraphConstraints(width: layout.checkerR * 2));
       c.drawParagraph(para, p.translate(-layout.checkerR, -para.height / 2));

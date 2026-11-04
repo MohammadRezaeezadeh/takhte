@@ -245,10 +245,20 @@ class ArtRng {
 }
 
 /// Paints the static parts of a board. Animated layers are drawn elsewhere.
+/// Renders digits with Persian numerals when [persian].
+String boardDigits(int n, {required bool persian}) {
+  if (!persian) return '$n';
+  const fa = '۰۱۲۳۴۵۶۷۸۹';
+  return '$n'.split('').map((d) => fa[int.parse(d)]).join();
+}
+
 class BoardArt {
-  BoardArt(this.t, this.l);
+  BoardArt(this.t, this.l, {this.persianDigits = false});
   final BoardThemeData t;
   final BoardLayout l;
+
+  /// Point labels in Persian numerals.
+  final bool persianDigits;
 
   Paint _lin(
     Rect r,
@@ -806,7 +816,7 @@ class BoardArt {
                 fontSize: fs,
               ),
             )
-            ..addText('$abs');
+            ..addText(boardDigits(abs, persian: persianDigits));
       final para = pb.build()..layout(ui.ParagraphConstraints(width: r.width));
       final y = top
           ? l.outer.top + (l.frame - para.height) / 2

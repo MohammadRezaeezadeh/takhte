@@ -104,6 +104,15 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             reducedMotion: st.reducedMotion,
             colorblind: st.colorblind,
             highContrast: st.highContrast,
+            persianDigits:
+                st.language == 'fa' ||
+                (st.language == 'system' &&
+                    WidgetsBinding
+                            .instance
+                            .platformDispatcher
+                            .locale
+                            .languageCode ==
+                        'fa'),
           ),
       onTargetTap: _onTargetTap,
     );
