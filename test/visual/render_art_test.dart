@@ -13,7 +13,12 @@ import 'package:haftnard/game/themes/pieces.dart';
 
 const outDir = String.fromEnvironment('ART_OUT');
 
-Future<void> savePng(String name, int w, int h, void Function(Canvas) paint) async {
+Future<void> savePng(
+  String name,
+  int w,
+  int h,
+  void Function(Canvas) paint,
+) async {
   final rec = ui.PictureRecorder();
   final c = Canvas(rec);
   paint(c);
@@ -23,7 +28,12 @@ Future<void> savePng(String name, int w, int h, void Function(Canvas) paint) asy
   File('$outDir/$name.png').writeAsBytesSync(data!.buffer.asUint8List());
 }
 
-void paintBoardWithCheckers(Canvas c, Size size, String themeId, String checkerId) {
+void paintBoardWithCheckers(
+  Canvas c,
+  Size size,
+  String themeId,
+  String checkerId,
+) {
   c.drawRect(Offset.zero & size, Paint()..color = const Color(0xFF0B0F1F));
   final l = BoardLayout(size);
   BoardArt(boardTheme(themeId), l).paint(c);
@@ -33,7 +43,13 @@ void paintBoardWithCheckers(Canvas c, Size size, String themeId, String checkerI
     final (side, n) = b.atAbsolute(abs);
     if (side == null) continue;
     for (var i = 0; i < n; i++) {
-      paintChecker(c, l.checkerCenter(PointSlot(abs), i, n), l.checkerR, side, st);
+      paintChecker(
+        c,
+        l.checkerCenter(PointSlot(abs), i, n),
+        l.checkerR,
+        side,
+        st,
+      );
     }
   }
   final ds = diceStyle('dice_bone');
@@ -49,7 +65,17 @@ void main() {
       final checkers = kCheckerStyles.keys.toList();
       var i = 0;
       for (final id in kBoardThemes.keys) {
-        await savePng('board_$id', 780, 680, (c) => paintBoardWithCheckers(c, size, id, checkers[i++ % checkers.length]));
+        await savePng(
+          'board_$id',
+          780,
+          680,
+          (c) => paintBoardWithCheckers(
+            c,
+            size,
+            id,
+            checkers[i++ % checkers.length],
+          ),
+        );
       }
     });
   });
@@ -57,7 +83,10 @@ void main() {
   testWidgets('render pieces sheet', (tester) async {
     await tester.runAsync(() async {
       await savePng('pieces', 900, 420, (c) {
-        c.drawRect(const Rect.fromLTWH(0, 0, 900, 420), Paint()..color = const Color(0xFF3A0E15));
+        c.drawRect(
+          const Rect.fromLTWH(0, 0, 900, 420),
+          Paint()..color = const Color(0xFF3A0E15),
+        );
         var x = 50.0;
         for (final st in kCheckerStyles.values) {
           paintChecker(c, Offset(x, 60), 36, Side.white, st);
@@ -71,7 +100,14 @@ void main() {
           }
           x += 110;
         }
-        paintDie(c, const Offset(820, 300), 70, 7, kDiceStyles.values.first, time: 1);
+        paintDie(
+          c,
+          const Offset(820, 300),
+          70,
+          7,
+          kDiceStyles.values.first,
+          time: 1,
+        );
       });
     });
   });

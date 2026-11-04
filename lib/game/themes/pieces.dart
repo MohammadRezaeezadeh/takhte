@@ -315,12 +315,16 @@ void paintChecker(
             Offset.zero,
             r * 0.9,
             Paint()
-              ..shader = ui.Gradient.sweep(Offset.zero, const [
-                Color(0x22FF9AD5),
-                Color(0x229AD5FF),
-                Color(0x22B5FF9A),
-                Color(0x22FF9AD5),
-              ], const [0, 0.33, 0.66, 1]),
+              ..shader = ui.Gradient.sweep(
+                Offset.zero,
+                const [
+                  Color(0x22FF9AD5),
+                  Color(0x229AD5FF),
+                  Color(0x22B5FF9A),
+                  Color(0x22FF9AD5),
+                ],
+                const [0, 0.33, 0.66, 1],
+              ),
           );
           BoardArt.star(
             canvas,

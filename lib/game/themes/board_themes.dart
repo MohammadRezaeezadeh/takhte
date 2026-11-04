@@ -263,7 +263,15 @@ class BoardArt {
       stops,
     );
 
+  /// Everything in one go (previews, store cards).
   void paint(Canvas c) {
+    paintBase(c);
+    paintFelt(c);
+    paintTop(c);
+  }
+
+  /// Shadow, frame and decorative band.
+  void paintBase(Canvas c) {
     final o = l.outer;
     final radius = Radius.circular(l.frame * 1.2);
     // Drop shadow.
@@ -284,7 +292,10 @@ class BoardArt {
       ..strokeWidth = math.max(1, l.frame * 0.12);
     c.drawRRect(frameRR.deflate(l.frame * 0.22), inlay);
     _patternBand(c);
-    // Field halves.
+  }
+
+  /// The playing surface of both halves.
+  void paintFelt(Canvas c) {
     final left = Rect.fromLTRB(
       l.field.left,
       l.field.top,
@@ -313,6 +324,10 @@ class BoardArt {
           ..maskFilter = MaskFilter.blur(BlurStyle.normal, l.frame * 0.3),
       );
     }
+  }
+
+  /// Points, bar, trays and labels.
+  void paintTop(Canvas c) {
     // Points.
     for (var abs = 1; abs <= 24; abs++) {
       _point(c, abs);
