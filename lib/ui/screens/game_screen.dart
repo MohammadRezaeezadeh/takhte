@@ -434,6 +434,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       TargetKind.ownBlot2 => l.targetOwnBlot2,
       TargetKind.emptyPoint2 => l.targetEmpty2,
       TargetKind.enemyOrEmpty2 => l.targetPoint2,
+      TargetKind.enemyChecker => l.targetEnemy1,
+      TargetKind.enemyBlot => l.targetEnemyBlot,
+      TargetKind.ownPoint2 => l.targetOwn2,
+      TargetKind.sprint => l.targetOwn,
       TargetKind.none => '',
     };
   }

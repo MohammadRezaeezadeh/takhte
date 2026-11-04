@@ -435,5 +435,8 @@
   "targetOwnBlot2": "Tap two of your lone checkers",
   "targetEmpty2": "Tap two empty points",
   "targetPoint2": "Tap two points",
-  "bar": "Bar"
+  "bar": "Bar",
+  "targetEnemy1": "Tap an enemy checker",
+  "targetEnemyBlot": "Tap an enemy lone checker",
+  "targetOwn2": "Tap two of your points"
 }

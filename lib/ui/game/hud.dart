@@ -38,6 +38,11 @@ String cardForEffect(EffectKind k) => switch (k) {
   EffectKind.truce => CardId.truce,
   EffectKind.tailwind => CardId.tailwind,
   EffectKind.headwind => CardId.headwind,
+  EffectKind.evenUp => CardId.evenOdds,
+  EffectKind.wardOnes => CardId.wardOnes,
+  EffectKind.twinDice => CardId.twinDice,
+  EffectKind.minThree => CardId.royalRoll,
+  EffectKind.offerMalus => CardId.hexSevens,
 };
 
 /// Effects whose turn counter is meaningful to show.

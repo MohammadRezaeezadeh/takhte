@@ -851,4 +851,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bar => 'Bar';
+
+  @override
+  String get targetEnemy1 => 'Tap an enemy checker';
+
+  @override
+  String get targetEnemyBlot => 'Tap an enemy lone checker';
+
+  @override
+  String get targetOwn2 => 'Tap two of your points';
 }

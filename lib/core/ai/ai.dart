@@ -388,6 +388,53 @@ class AiBrain {
         v = 0.35;
       case CardId.headwind:
         v = 0.35;
+      case CardId.evenOdds:
+        v = 0.25;
+      case CardId.wardOnes:
+        v = 0.2;
+      case CardId.twinDice:
+        v = 0.6;
+      case CardId.royalRoll:
+        v = 0.4;
+      case CardId.silkPurse:
+        v = 0.45;
+      case CardId.leadenDice:
+        v = 0.45;
+      case CardId.shackle:
+        v = contact ? 0.35 : 0.15;
+      case CardId.pickpocket:
+        v = s.inv(opp).rerolls > 0 ? 0.3 + 0.15 * s.inv(opp).rerolls : 0.2;
+      case CardId.hexSevens:
+        v = 0.12;
+      case CardId.sprint:
+        v = 0.35;
+      case CardId.shieldWall:
+        v = contact ? 0.45 : 0.02;
+      case CardId.homecoming:
+        v = 0.6;
+      case CardId.reentry:
+        v = 0.3 + 0.2 * b.onBar(side);
+      case CardId.stoneSkin:
+        v = contact ? 0.4 : 0.02;
+      case CardId.caltrops:
+        v = contact ? 0.25 : 0.3;
+      case CardId.bait:
+        v = contact ? 0.35 : 0.02;
+      case CardId.rally:
+        v = b.pips(side) - b.pips(opp) >= 20 ? 0.65 : 0.3;
+      case CardId.fortuneTeller:
+        v = 0.15;
+      case CardId.destiny:
+        v = 0.3;
+      case CardId.highStakes:
+        final lead = b.pips(opp) - b.pips(side);
+        v = lead > 25 ? 0.5 : (lead < -10 ? -0.4 : 0.0) + _p.riskLove * 0.2;
+      case CardId.exile:
+        v = contact ? 0.65 : 0.2;
+      case CardId.oasis:
+        v = 0.4;
+      case CardId.doubleAgent:
+        v = 0.3;
       default:
         v = 0.2;
     }
@@ -432,6 +479,8 @@ class AiBrain {
       case CardId.holyShield:
       case CardId.ironGate:
       case CardId.twinAnchors:
+      case CardId.stoneSkin:
+      case CardId.bait:
         var sc = 0.0;
         for (final abs in t) {
           final rel = toRelative(side, abs);
@@ -443,7 +492,17 @@ class AiBrain {
           sc += shots / 36 * (1 + (25 - rel) / 25) * 3;
         }
         return sc;
+      case CardId.exile:
+        final rel = toRelative(opp, t.first);
+        return rel / 24 * 3;
+      case CardId.sprint:
+        final tx = Tx(s);
+        CardLogic.apply(tx, side, card, t);
+        return (Evaluator.evaluate(tx.board.of(side), tx.board.of(opp), _w) -
+                Evaluator.evaluate(mine, theirs, _w)) *
+            6;
       case CardId.chains:
+      case CardId.shackle:
         var sc = 0.0;
         for (final abs in t) {
           final rel = toRelative(opp, abs);

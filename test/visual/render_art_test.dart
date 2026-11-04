@@ -10,6 +10,9 @@ import 'package:haftnard/core/rules/types.dart';
 import 'package:haftnard/game/layout.dart';
 import 'package:haftnard/game/themes/board_themes.dart';
 import 'package:haftnard/game/themes/pieces.dart';
+import 'package:haftnard/core/effects/cards.dart';
+import 'package:haftnard/ui/widgets/card_art.dart';
+import 'package:haftnard/ui/theme.dart';
 
 const outDir = String.fromEnvironment('ART_OUT');
 
@@ -108,6 +111,32 @@ void main() {
           kDiceStyles.values.first,
           time: 1,
         );
+      });
+    });
+  });
+
+  testWidgets('render card glyph sheet', (tester) async {
+    await tester.runAsync(() async {
+      const cols = 10;
+      const cell = 90.0;
+      final rows = (kCards.length / cols).ceil();
+      await savePng('glyphs', (cols * cell).round(), (rows * cell).round(), (
+        c,
+      ) {
+        c.drawRect(
+          Rect.fromLTWH(0, 0, cols * cell, rows * cell),
+          Paint()..color = const Color(0xFF141A33),
+        );
+        for (var i = 0; i < kCards.length; i++) {
+          final card = kCards[i];
+          c.save();
+          c.translate((i % cols) * cell, (i ~/ cols) * cell);
+          CardGlyphPainter(
+            card.glyph,
+            AppColors.rarity(card.rarity.index),
+          ).paint(c, const Size(cell, cell));
+          c.restore();
+        }
       });
     });
   });

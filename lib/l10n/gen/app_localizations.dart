@@ -1483,6 +1483,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Bar'**
   String get bar;
+
+  /// No description provided for @targetEnemy1.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an enemy checker'**
+  String get targetEnemy1;
+
+  /// No description provided for @targetEnemyBlot.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an enemy lone checker'**
+  String get targetEnemyBlot;
+
+  /// No description provided for @targetOwn2.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap two of your points'**
+  String get targetOwn2;
 }
 
 class _AppLocalizationsDelegate

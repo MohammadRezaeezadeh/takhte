@@ -767,6 +767,440 @@ class CardGlyphPainter extends CustomPainter {
             fill,
           );
         }
+      case 37: // Even Odds: 2 and 4
+        paintDie(
+          canvas,
+          c.translate(-r * 0.45, 0),
+          r * 0.85,
+          2,
+          bone,
+          angle: -0.15,
+        );
+        paintDie(
+          canvas,
+          c.translate(r * 0.45, 0),
+          r * 0.85,
+          4,
+          bone,
+          angle: 0.15,
+        );
+      case 38: // Ward of Ones: crossed-out 1
+        paintDie(canvas, c, r * 1.1, 1, bone);
+        canvas.drawLine(
+          c.translate(-r * 0.7, -r * 0.7),
+          c.translate(r * 0.7, r * 0.7),
+          Paint()
+            ..color = AppColors.ruby
+            ..strokeWidth = r * 0.14,
+        );
+      case 39: // Twin Dice
+        paintDie(canvas, c.translate(-r * 0.45, 0), r * 0.85, 5, bone);
+        paintDie(canvas, c.translate(r * 0.45, 0), r * 0.85, 5, bone);
+        canvas.drawArc(
+          Rect.fromCenter(
+            center: c.translate(0, -r * 0.55),
+            width: r * 0.9,
+            height: r * 0.5,
+          ),
+          math.pi,
+          math.pi,
+          false,
+          stroke..strokeWidth = r * 0.07,
+        );
+      case 40: // Royal Roll: crowned die
+        paintDie(canvas, c.translate(0, r * 0.2), r * 0.95, 6, bone);
+        final crown = Path()
+          ..moveTo(c.dx - r * 0.45, c.dy - r * 0.45)
+          ..lineTo(c.dx - r * 0.5, c.dy - r * 0.9)
+          ..lineTo(c.dx - r * 0.22, c.dy - r * 0.68)
+          ..lineTo(c.dx, c.dy - r)
+          ..lineTo(c.dx + r * 0.22, c.dy - r * 0.68)
+          ..lineTo(c.dx + r * 0.5, c.dy - r * 0.9)
+          ..lineTo(c.dx + r * 0.45, c.dy - r * 0.45)
+          ..close();
+        canvas.drawPath(crown, Paint()..color = AppColors.goldLight);
+      case 41: // Silk Purse: purse with two arrows
+        final purse = Path()
+          ..moveTo(c.dx - r * 0.25, c.dy - r * 0.4)
+          ..quadraticBezierTo(
+            c.dx - r * 0.95,
+            c.dy + r * 0.3,
+            c.dx - r * 0.5,
+            c.dy + r * 0.85,
+          )
+          ..lineTo(c.dx + r * 0.5, c.dy + r * 0.85)
+          ..quadraticBezierTo(
+            c.dx + r * 0.95,
+            c.dy + r * 0.3,
+            c.dx + r * 0.25,
+            c.dy - r * 0.4,
+          )
+          ..close();
+        canvas.drawPath(purse, Paint()..color = const Color(0xFFB794FF));
+        for (final dx in [-0.2, 0.2]) {
+          canvas.drawArc(
+            Rect.fromCircle(
+              center: c.translate(dx * r, r * 0.25),
+              radius: r * 0.2,
+            ),
+            0,
+            math.pi * 1.6,
+            false,
+            Paint()
+              ..color = Colors.white
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = r * 0.06,
+          );
+        }
+      case 42: // Leaden Dice: grey heavy die with 3
+        paintDie(canvas, c, r * 1.15, 3, kDiceStyles['dice_wood']!, angle: 0.1);
+        canvas.drawRect(
+          Rect.fromCenter(
+            center: c.translate(0, r * 0.85),
+            width: r * 1.4,
+            height: r * 0.18,
+          ),
+          Paint()..color = const Color(0xFF6E6762),
+        );
+      case 43: // Shackle: ring + ball
+        canvas.drawCircle(
+          c.translate(-r * 0.35, -r * 0.2),
+          r * 0.35,
+          stroke..strokeWidth = r * 0.12,
+        );
+        canvas.drawLine(
+          c.translate(-r * 0.05, 0),
+          c.translate(r * 0.35, r * 0.35),
+          stroke,
+        );
+        canvas.drawCircle(
+          c.translate(r * 0.5, r * 0.5),
+          r * 0.38,
+          Paint()..color = const Color(0xFF3A3532),
+        );
+      case 44: // Pickpocket: grabbing hand
+        final hand = Path()
+          ..moveTo(c.dx - r * 0.6, c.dy + r * 0.8)
+          ..lineTo(c.dx - r * 0.6, c.dy - r * 0.1);
+        for (var i = 0; i < 4; i++) {
+          final x = c.dx - r * 0.45 + i * r * 0.3;
+          hand
+            ..lineTo(x, c.dy - r * (0.7 - (i == 0 ? -0.1 : 0)))
+            ..lineTo(x + r * 0.15, c.dy - r * 0.15);
+        }
+        hand
+          ..lineTo(c.dx + r * 0.7, c.dy + r * 0.8)
+          ..close();
+        canvas.drawPath(hand, fill);
+      case 45: // Hex of Sevens: crossed 7
+        _text(canvas, '7', c, r * 1.7, color);
+        canvas.drawCircle(
+          c,
+          r * 0.9,
+          Paint()
+            ..color = AppColors.ruby
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = r * 0.1,
+        );
+        canvas.drawLine(
+          c.translate(-r * 0.63, r * 0.63),
+          c.translate(r * 0.63, -r * 0.63),
+          Paint()
+            ..color = AppColors.ruby
+            ..strokeWidth = r * 0.1,
+        );
+      case 46: // Sprint: checker with speed lines
+        canvas.drawCircle(c.translate(r * 0.3, 0), r * 0.45, fill);
+        for (var i = -1; i <= 1; i++) {
+          canvas.drawLine(
+            c.translate(-r * 0.9, i * r * 0.3),
+            c.translate(-r * 0.25, i * r * 0.3),
+            stroke..strokeWidth = r * 0.07,
+          );
+        }
+      case 47: // Shield Wall: three shields
+        for (var i = -1; i <= 1; i++) {
+          final o = c.translate(i * r * 0.62, i.abs() * r * 0.1);
+          final sh = Path()
+            ..moveTo(o.dx, o.dy - r * 0.5)
+            ..lineTo(o.dx + r * 0.38, o.dy - r * 0.3)
+            ..quadraticBezierTo(
+              o.dx + r * 0.35,
+              o.dy + r * 0.25,
+              o.dx,
+              o.dy + r * 0.5,
+            )
+            ..quadraticBezierTo(
+              o.dx - r * 0.35,
+              o.dy + r * 0.25,
+              o.dx - r * 0.38,
+              o.dy - r * 0.3,
+            )
+            ..close();
+          canvas.drawPath(sh, fill);
+        }
+      case 48: // Homecoming: arch with arrow
+        canvas.drawArc(
+          Rect.fromCenter(
+            center: c.translate(0, r * 0.1),
+            width: r * 1.5,
+            height: r * 1.6,
+          ),
+          math.pi,
+          math.pi,
+          false,
+          stroke..strokeWidth = r * 0.1,
+        );
+        canvas.drawLine(
+          c.translate(-r * 0.75, r * 0.1),
+          c.translate(-r * 0.75, r * 0.9),
+          stroke,
+        );
+        canvas.drawLine(
+          c.translate(r * 0.75, r * 0.1),
+          c.translate(r * 0.75, r * 0.9),
+          stroke,
+        );
+        canvas.drawLine(
+          c.translate(0, r * 0.8),
+          c.translate(0, -r * 0.2),
+          stroke,
+        );
+        canvas.drawPath(
+          Path()
+            ..moveTo(c.dx - r * 0.25, c.dy)
+            ..lineTo(c.dx, c.dy - r * 0.35)
+            ..lineTo(c.dx + r * 0.25, c.dy)
+            ..close(),
+          fill,
+        );
+      case 49: // Rallying Cry: horn
+        final horn = Path()
+          ..moveTo(c.dx - r * 0.8, c.dy - r * 0.15)
+          ..lineTo(c.dx + r * 0.5, c.dy - r * 0.6)
+          ..lineTo(c.dx + r * 0.5, c.dy + r * 0.6)
+          ..lineTo(c.dx - r * 0.8, c.dy + r * 0.15)
+          ..close();
+        canvas.drawPath(horn, fill);
+        for (var i = 1; i <= 2; i++) {
+          canvas.drawArc(
+            Rect.fromCircle(
+              center: c.translate(r * 0.5, 0),
+              radius: r * 0.25 * i,
+            ),
+            -0.7,
+            1.4,
+            false,
+            stroke..strokeWidth = r * 0.06,
+          );
+        }
+      case 50: // Stone Skin: two grey shields
+        for (final dx in [-0.42, 0.42]) {
+          final o = c.translate(dx * r, 0);
+          final sh = Path()
+            ..moveTo(o.dx, o.dy - r * 0.65)
+            ..lineTo(o.dx + r * 0.45, o.dy - r * 0.4)
+            ..quadraticBezierTo(
+              o.dx + r * 0.42,
+              o.dy + r * 0.35,
+              o.dx,
+              o.dy + r * 0.65,
+            )
+            ..quadraticBezierTo(
+              o.dx - r * 0.42,
+              o.dy + r * 0.35,
+              o.dx - r * 0.45,
+              o.dy - r * 0.4,
+            )
+            ..close();
+          canvas.drawPath(sh, Paint()..color = const Color(0xFF9AA3AE));
+          canvas.drawPath(
+            sh,
+            Paint()
+              ..color = color
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = r * 0.05,
+          );
+        }
+      case 51: // Caltrops: spikes
+        for (final o in [
+          Offset(-r * 0.45, r * 0.2),
+          Offset(r * 0.45, -r * 0.1),
+        ]) {
+          for (var i = 0; i < 4; i++) {
+            final a = i * math.pi / 2 + 0.4;
+            canvas.drawLine(
+              c + o,
+              c + o + Offset(math.cos(a), math.sin(a)) * r * 0.45,
+              stroke..strokeWidth = r * 0.1,
+            );
+          }
+        }
+      case 52: // Bait: fishing hook
+        canvas.drawLine(
+          c.translate(0, -r),
+          c.translate(0, r * 0.4),
+          stroke..strokeWidth = r * 0.1,
+        );
+        canvas.drawArc(
+          Rect.fromCircle(
+            center: c.translate(-r * 0.3, r * 0.4),
+            radius: r * 0.3,
+          ),
+          0,
+          math.pi,
+          false,
+          stroke,
+        );
+        canvas.drawCircle(c.translate(-r * 0.6, r * 0.2), r * 0.08, fill);
+      case 53: // Rally: red banner
+        canvas.drawLine(
+          c.translate(-r * 0.6, r),
+          c.translate(-r * 0.6, -r),
+          stroke..strokeWidth = r * 0.1,
+        );
+        canvas.drawPath(
+          Path()
+            ..moveTo(c.dx - r * 0.6, c.dy - r)
+            ..lineTo(c.dx + r * 0.8, c.dy - r * 0.6)
+            ..lineTo(c.dx - r * 0.6, c.dy - r * 0.1)
+            ..close(),
+          Paint()..color = AppColors.ruby,
+        );
+      case 54: // Fortune Teller: crystal ball
+        canvas.drawCircle(
+          c.translate(0, -r * 0.1),
+          r * 0.7,
+          Paint()
+            ..shader = ui.Gradient.radial(
+              c.translate(-r * 0.2, -r * 0.3),
+              r,
+              const [Color(0xFFE0D4FF), Color(0xFF6B4BD8)],
+            ),
+        );
+        canvas.drawRect(
+          Rect.fromCenter(
+            center: c.translate(0, r * 0.75),
+            width: r * 1.1,
+            height: r * 0.25,
+          ),
+          fill,
+        );
+      case 55: // Destiny: two fanned cards
+        for (final a in [-0.25, 0.25]) {
+          canvas.save();
+          canvas.translate(c.dx, c.dy + r * 0.2);
+          canvas.rotate(a);
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(
+              Rect.fromCenter(
+                center: Offset(0, -r * 0.35),
+                width: r * 0.8,
+                height: r * 1.15,
+              ),
+              Radius.circular(r * 0.1),
+            ),
+            Paint()..color = const Color(0xFF1B2A6B),
+          );
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(
+              Rect.fromCenter(
+                center: Offset(0, -r * 0.35),
+                width: r * 0.8,
+                height: r * 1.15,
+              ),
+              Radius.circular(r * 0.1),
+            ),
+            stroke..strokeWidth = r * 0.06,
+          );
+          canvas.restore();
+        }
+      case 56: // High Stakes: coin stack x2
+        for (var i = 0; i < 4; i++) {
+          canvas.drawOval(
+            Rect.fromCenter(
+              center: c.translate(-r * 0.3, r * (0.55 - i * 0.22)),
+              width: r * 0.9,
+              height: r * 0.35,
+            ),
+            Paint()
+              ..color = i.isEven
+                  ? AppColors.goldLight
+                  : const Color(0xFFB8861C),
+          );
+        }
+        _text(canvas, '×2', c.translate(r * 0.5, -r * 0.4), r * 0.75, color);
+      case 57: // Exile: checker flung out
+        canvas.drawCircle(
+          c.translate(-r * 0.35, r * 0.3),
+          r * 0.38,
+          Paint()..color = const Color(0xFF5A3420),
+        );
+        canvas.drawLine(
+          c.translate(-r * 0.05, 0),
+          c.translate(r * 0.75, -r * 0.75),
+          stroke..strokeWidth = r * 0.1,
+        );
+        canvas.drawPath(
+          Path()
+            ..moveTo(c.dx + r * 0.85, c.dy - r * 0.85)
+            ..lineTo(c.dx + r * 0.4, c.dy - r * 0.75)
+            ..lineTo(c.dx + r * 0.75, c.dy - r * 0.4)
+            ..close(),
+          fill,
+        );
+      case 58: // Oasis: palm tree
+        canvas.drawLine(
+          c.translate(0, r),
+          c.translate(r * 0.1, -r * 0.3),
+          Paint()
+            ..color = const Color(0xFF8C6A48)
+            ..strokeWidth = r * 0.14,
+        );
+        for (var i = 0; i < 5; i++) {
+          final a = math.pi + i * math.pi / 4;
+          canvas.drawLine(
+            c.translate(r * 0.1, -r * 0.3),
+            c.translate(r * 0.1, -r * 0.3) +
+                Offset(math.cos(a), math.sin(a) * 0.6) * r * 0.8,
+            Paint()
+              ..color = const Color(0xFF2E9E5A)
+              ..strokeWidth = r * 0.12
+              ..strokeCap = StrokeCap.round,
+          );
+        }
+        canvas.drawOval(
+          Rect.fromCenter(
+            center: c.translate(0, r * 0.95),
+            width: r * 1.6,
+            height: r * 0.25,
+          ),
+          Paint()..color = const Color(0xFF34C3C3),
+        );
+      case 59: // Double Agent: two masks
+        for (final dx in [-0.35, 0.35]) {
+          canvas.drawOval(
+            Rect.fromCenter(
+              center: c.translate(dx * r, dx * r * 0.3),
+              width: r * 0.9,
+              height: r * 1.1,
+            ),
+            Paint()
+              ..color = dx < 0
+                  ? const Color(0xFFF3E9D2)
+                  : const Color(0xFF2A2A2A),
+          );
+          canvas.drawCircle(
+            c.translate(dx * r - r * 0.15, dx * r * 0.3 - r * 0.1),
+            r * 0.08,
+            Paint()..color = dx < 0 ? Colors.black : Colors.white,
+          );
+          canvas.drawCircle(
+            c.translate(dx * r + r * 0.15, dx * r * 0.3 - r * 0.1),
+            r * 0.08,
+            Paint()..color = dx < 0 ? Colors.black : Colors.white,
+          );
+        }
       default: // Greed: coin sack
         final sack = Path()
           ..moveTo(c.dx - r * 0.3, c.dy - r * 0.55)

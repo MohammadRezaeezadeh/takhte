@@ -141,6 +141,29 @@ abstract final class CardId {
   static const truce = 'truce';
   static const tailwind = 'tailwind';
   static const headwind = 'headwind';
+  static const evenOdds = 'even_odds';
+  static const wardOnes = 'ward_ones';
+  static const twinDice = 'twin_dice';
+  static const royalRoll = 'royal_roll';
+  static const silkPurse = 'silk_purse';
+  static const leadenDice = 'leaden_dice';
+  static const shackle = 'shackle';
+  static const pickpocket = 'pickpocket';
+  static const hexSevens = 'hex_sevens';
+  static const sprint = 'sprint';
+  static const shieldWall = 'shield_wall';
+  static const homecoming = 'homecoming';
+  static const reentry = 'reentry';
+  static const stoneSkin = 'stone_skin';
+  static const caltrops = 'caltrops';
+  static const bait = 'bait';
+  static const rally = 'rally';
+  static const fortuneTeller = 'fortune_teller';
+  static const destiny = 'destiny';
+  static const highStakes = 'high_stakes';
+  static const exile = 'exile';
+  static const oasis = 'oasis';
+  static const doubleAgent = 'double_agent';
 }
 
 /// The full card catalogue.
@@ -542,6 +565,249 @@ const List<CardDef> kCards = [
     descEn: "For their next 2 turns, subtract 1 from each of your opponent's dice (down to 1).",
     descFa: 'تا دو نوبت بعدی حریف، از هر تاسش یکی کم می‌شود (تا ۱).',
     glyph: 36,
+  ),
+  // EXPANSION 2
+  CardDef(
+    id: CardId.evenOdds,
+    rarity: Rarity.common,
+    category: CardCategory.dice,
+    nameEn: 'Even Odds',
+    nameFa: 'زوج‌گرا',
+    descEn:
+        'Next turn, every odd die you roll is raised to the next even number.',
+    descFa: 'نوبت بعد، هر تاس فردی که بیاوری به عدد زوج بعدی بالا می‌رود.',
+    glyph: 37,
+  ),
+  CardDef(
+    id: CardId.wardOnes,
+    rarity: Rarity.common,
+    category: CardCategory.dice,
+    nameEn: 'Ward of Ones',
+    nameFa: 'دفع یک',
+    descEn: 'Next turn, any die that shows 1 is rerolled once.',
+    descFa: 'نوبت بعد، هر تاسی که ۱ بیاید یک بار دوباره ریخته می‌شود.',
+    glyph: 38,
+  ),
+  CardDef(
+    id: CardId.twinDice,
+    rarity: Rarity.epic,
+    category: CardCategory.dice,
+    nameEn: 'Twin Dice',
+    nameFa: 'تاس‌های همزاد',
+    descEn: 'Next turn, your dice are guaranteed doubles.',
+    descFa: 'نوبت بعد، تاس‌هایت حتماً جفت می‌آیند.',
+    glyph: 39,
+  ),
+  CardDef(
+    id: CardId.royalRoll,
+    rarity: Rarity.rare,
+    category: CardCategory.dice,
+    nameEn: 'Royal Roll',
+    nameFa: 'تاس شاهانه',
+    descEn: 'Next turn, none of your dice can show less than 3.',
+    descFa: 'نوبت بعد، هیچ‌کدام از تاس‌هایت کمتر از ۳ نمی‌آید.',
+    glyph: 40,
+  ),
+  CardDef(
+    id: CardId.silkPurse,
+    rarity: Rarity.rare,
+    category: CardCategory.dice,
+    nameEn: 'Silk Purse',
+    nameFa: 'کیسهٔ ابریشم',
+    descEn: 'Gain two reroll tokens.',
+    descFa: 'دو ژتون تاس دوباره بگیر.',
+    glyph: 41,
+  ),
+  CardDef(
+    id: CardId.leadenDice,
+    rarity: Rarity.rare,
+    category: CardCategory.sabotage,
+    nameEn: 'Leaden Dice',
+    nameFa: 'تاس سربی',
+    descEn: "Your opponent's dice are capped at 3 next turn.",
+    descFa: 'تاس‌های حریف در نوبت بعدی‌اش حداکثر ۳ می‌آیند.',
+    glyph: 42,
+  ),
+  CardDef(
+    id: CardId.shackle,
+    rarity: Rarity.common,
+    category: CardCategory.sabotage,
+    nameEn: 'Shackle',
+    nameFa: 'پابند',
+    descEn: 'Chain one enemy checker for 4 of their turns.',
+    descFa: 'یک مهرهٔ حریف را تا چهار نوبتِ او به زنجیر بکش.',
+    target: TargetKind.enemyChecker,
+    glyph: 43,
+  ),
+  CardDef(
+    id: CardId.pickpocket,
+    rarity: Rarity.common,
+    category: CardCategory.sabotage,
+    nameEn: 'Pickpocket',
+    nameFa: 'جیب‌بر',
+    descEn: "Steal all of your opponent's reroll tokens. If they have none, gain a Lucky Charm.",
+    descFa:
+        'همهٔ ژتون‌های تاس دوبارهٔ حریف را بدزد؛ اگر نداشت، یک طلسم بخت بگیر.',
+    glyph: 44,
+  ),
+  CardDef(
+    id: CardId.hexSevens,
+    rarity: Rarity.common,
+    category: CardCategory.sabotage,
+    nameEn: 'Hex of Sevens',
+    nameFa: 'طلسم هفت‌ها',
+    descEn: "Your opponent's next 7–7 offers one card fewer.",
+    descFa: 'هفت‌هفت بعدی حریف یک کارت کمتر پیشنهاد می‌دهد.',
+    glyph: 45,
+  ),
+  CardDef(
+    id: CardId.sprint,
+    rarity: Rarity.rare,
+    category: CardCategory.checker,
+    nameEn: 'Sprint',
+    nameFa: 'دوندگی',
+    descEn:
+        'Move one of your checkers exactly 4 pips forward, outside the dice.',
+    descFa: 'یکی از مهره‌هایت را بیرون از تاس دقیقاً ۴ خانه جلو ببر.',
+    target: TargetKind.sprint,
+    glyph: 46,
+  ),
+  CardDef(
+    id: CardId.shieldWall,
+    rarity: Rarity.epic,
+    category: CardCategory.checker,
+    nameEn: 'Shield Wall',
+    nameFa: 'دیوار سپر',
+    descEn: "Every lone checker of yours cannot be hit during your opponent's next turn.",
+    descFa: 'در نوبت بعدی حریف، هیچ مهرهٔ تنهای تو زده نمی‌شود.',
+    glyph: 47,
+  ),
+  CardDef(
+    id: CardId.homecoming,
+    rarity: Rarity.rare,
+    category: CardCategory.tempo,
+    nameEn: 'Homecoming',
+    nameFa: 'بازگشت به خانه',
+    descEn: 'If all your checkers are home, bear one off now.',
+    descFa: 'اگر همهٔ مهره‌هایت در خانه‌اند، همین حالا یکی را خارج کن.',
+    glyph: 48,
+  ),
+  CardDef(
+    id: CardId.reentry,
+    rarity: Rarity.rare,
+    category: CardCategory.checker,
+    nameEn: 'Rallying Cry',
+    nameFa: 'بانگ بازگشت',
+    descEn: 'All your checkers on the bar re-enter at once on the furthest open points.',
+    descFa:
+        'همهٔ مهره‌هایت روی بار یک‌جا در دورترین خانه‌های باز وارد می‌شوند.',
+    glyph: 49,
+  ),
+  CardDef(
+    id: CardId.stoneSkin,
+    rarity: Rarity.rare,
+    category: CardCategory.checker,
+    nameEn: 'Stone Skin',
+    nameFa: 'پوست سنگی',
+    descEn: "Holy Shield two of your points for 3 of your opponent's turns.",
+    descFa: 'دو خانهٔ تو تا سه نوبتِ حریف «سپر مقدس» می‌گیرند.',
+    target: TargetKind.ownPoint2,
+    glyph: 50,
+  ),
+  CardDef(
+    id: CardId.caltrops,
+    rarity: Rarity.rare,
+    category: CardCategory.trap,
+    nameEn: 'Caltrops',
+    nameFa: 'خارپشت',
+    descEn: 'Place toll gates on two points for 8 turns.',
+    descFa: 'روی دو خانه تا هشت نوبت عوارضی بگذار.',
+    target: TargetKind.enemyOrEmpty2,
+    glyph: 51,
+  ),
+  CardDef(
+    id: CardId.bait,
+    rarity: Rarity.rare,
+    category: CardCategory.trap,
+    nameEn: 'Bait',
+    nameFa: 'طعمه',
+    descEn: 'Hide a mine under one of your lone checkers: whoever hits it goes to the bar too.',
+    descFa: 'زیر یکی از مهره‌های تنهایت مین پنهان کن: هر کس آن را بزند خودش هم به بار می‌رود.',
+    target: TargetKind.ownBlot,
+    glyph: 52,
+  ),
+  CardDef(
+    id: CardId.rally,
+    rarity: Rarity.rare,
+    category: CardCategory.tempo,
+    nameEn: 'Rally',
+    nameFa: 'تجدید قوا',
+    descEn: 'If you trail by 20+ pips, roll again this turn; otherwise gain a reroll token.',
+    descFa: 'اگر ۲۰ خانه یا بیشتر عقبی، این نوبت دوباره تاس بریز؛ وگرنه یک ژتون تاس دوباره بگیر.',
+    glyph: 53,
+  ),
+  CardDef(
+    id: CardId.fortuneTeller,
+    rarity: Rarity.common,
+    category: CardCategory.tempo,
+    nameEn: 'Fortune Teller',
+    nameFa: 'فالگیر',
+    descEn: 'Your next 7–7 offers two extra cards.',
+    descFa: 'هفت‌هفت بعدی‌ات دو کارت بیشتر پیشنهاد می‌دهد.',
+    glyph: 54,
+  ),
+  CardDef(
+    id: CardId.destiny,
+    rarity: Rarity.rare,
+    category: CardCategory.tempo,
+    nameEn: 'Destiny',
+    nameFa: 'سرنوشت',
+    descEn: 'At your next 7–7 you take two cards.',
+    descFa: 'در هفت‌هفت بعدی‌ات دو کارت برمی‌داری.',
+    glyph: 55,
+  ),
+  CardDef(
+    id: CardId.highStakes,
+    rarity: Rarity.rare,
+    category: CardCategory.tempo,
+    nameEn: 'High Stakes',
+    nameFa: 'شرط سنگین',
+    descEn: 'Double the stakes of this game.',
+    descFa: 'ارزش این بازی دو برابر می‌شود.',
+    drawbackEn: 'If you lose, you lose double too.',
+    drawbackFa: 'اگر ببازی، دو برابر می\u200cبازی.',
+    glyph: 56,
+  ),
+  CardDef(
+    id: CardId.exile,
+    rarity: Rarity.epic,
+    category: CardCategory.sabotage,
+    nameEn: 'Exile',
+    nameFa: 'تبعید',
+    descEn: 'Send one enemy lone checker to the bar.',
+    descFa: 'یک مهرهٔ تنهای حریف را به بار بفرست.',
+    target: TargetKind.enemyBlot,
+    glyph: 57,
+  ),
+  CardDef(
+    id: CardId.oasis,
+    rarity: Rarity.common,
+    category: CardCategory.tempo,
+    nameEn: 'Oasis',
+    nameFa: 'واحه',
+    descEn: "Wash away your opponent's dice curses on you: Broken Die, Fog, Curse, Headwind, Nightfall and coin skips.",
+    descFa: 'نفرین‌های تاسی حریف بر تو را بشوی: تاس شکسته، مه، نفرین، باد مخالف، شب‌هنگام و جریمهٔ سکه.',
+    glyph: 58,
+  ),
+  CardDef(
+    id: CardId.doubleAgent,
+    rarity: Rarity.rare,
+    category: CardCategory.sabotage,
+    nameEn: 'Double Agent',
+    nameFa: 'جاسوس دوجانبه',
+    descEn: 'Copy the last card your opponent took (if it needs no target). Otherwise gain a reroll token.',
+    descFa: 'آخرین کارتی را که حریف برداشته (اگر هدف نخواهد) برای خودت تکرار کن؛ وگرنه یک ژتون تاس دوباره بگیر.',
+    glyph: 59,
   ),
 ];
 

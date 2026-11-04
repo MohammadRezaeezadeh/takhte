@@ -854,4 +854,13 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get bar => 'بار';
+
+  @override
+  String get targetEnemy1 => 'یک مهرهٔ حریف را انتخاب کن';
+
+  @override
+  String get targetEnemyBlot => 'یک مهرهٔ تنهای حریف را انتخاب کن';
+
+  @override
+  String get targetOwn2 => 'دو خانهٔ خودت را انتخاب کن';
 }

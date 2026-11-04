@@ -40,10 +40,28 @@ abstract final class CardLogic {
                   (e.kind == EffectKind.shield ||
                       e.kind == EffectKind.ironGate)),
         );
+      case CardId.homecoming:
+        return tx.board.allHome(side) && tx.board.borneOff(side) < Pos.checkers;
+      case CardId.reentry:
+        return tx.board.onBar(side) > 0;
+      case CardId.oasis:
+        return tx.effects.any((e) => e.affected == side && _isDiceCurse(e));
       default:
         return true;
     }
   }
+
+  static bool _isDiceCurse(ActiveEffect e) =>
+      e.owner != e.affected &&
+      const {
+        EffectKind.brokenDie,
+        EffectKind.fog,
+        EffectKind.curse,
+        EffectKind.headwind,
+        EffectKind.sevenBlock,
+        EffectKind.skipTurn,
+        EffectKind.mirrorWatch,
+      }.contains(e.kind);
 
   /// All complete target lists for [card] (absolute points; 0 = bar).
   static List<List<int>> allTargets(Tx tx, Side side, String card) {
@@ -112,6 +130,33 @@ abstract final class CardLogic {
           for (var abs = 1; abs <= 24; abs++)
             if (board.atAbsolute(abs).$1 != side) abs,
         ]);
+      case TargetKind.enemyChecker:
+        return [
+          for (var abs = 1; abs <= 24; abs++)
+            if (board.count(opp, toRelative(opp, abs)) > 0) [abs],
+        ];
+      case TargetKind.enemyBlot:
+        return [
+          for (var abs = 1; abs <= 24; abs++)
+            if (board.count(opp, toRelative(opp, abs)) == 1) [abs],
+        ];
+      case TargetKind.ownPoint2:
+        return _pairs([
+          for (var abs = 1; abs <= 24; abs++)
+            if (board.count(side, toRelative(side, abs)) > 0) abs,
+        ]);
+      case TargetKind.sprint:
+        final ctx = EffectSystem.moveContext(tx, side);
+        final mine = board.of(side);
+        final theirs = board.of(opp);
+        return [
+          for (var from = 25; from >= 5; from--)
+            if (mine[from] - (from <= 24 ? (ctx.frozen[from] ?? 0) : 0) > 0 &&
+                !(theirs[25 - (from - 4)] >= 2 ||
+                    (theirs[25 - (from - 4)] == 1 &&
+                        (ctx.protectedMask & (1 << (from - 4))) != 0)))
+              [if (from == Pos.bar) 0 else toAbsolute(side, from)],
+        ];
       case TargetKind.teleport:
         final ctx = EffectSystem.moveContext(tx, side);
         final mine = board.of(side);
@@ -410,10 +455,192 @@ abstract final class CardLogic {
         );
       case CardId.headwind:
         tx.addEffect(EffectKind.headwind, owner: side, affected: opp, turns: 2);
+      case CardId.evenOdds:
+        _nextTurn(tx, side, EffectKind.evenUp);
+      case CardId.wardOnes:
+        _nextTurn(tx, side, EffectKind.wardOnes);
+      case CardId.twinDice:
+        _nextTurn(tx, side, EffectKind.twinDice);
+      case CardId.royalRoll:
+        _nextTurn(tx, side, EffectKind.minThree);
+      case CardId.silkPurse:
+        tx.setInv(side, inv().copyWith(rerolls: inv().rerolls + 2));
+      case CardId.leadenDice:
+        tx.addEffect(
+          EffectKind.curse,
+          owner: side,
+          affected: opp,
+          turns: 1,
+          count: 3,
+        );
+      case CardId.shackle:
+        tx.addEffect(
+          EffectKind.chains,
+          owner: side,
+          affected: opp,
+          turns: 4,
+          point: targets.first,
+          count: 1,
+        );
+      case CardId.pickpocket:
+        final o = tx.inv(opp);
+        if (o.rerolls > 0) {
+          tx
+            ..setInv(opp, o.copyWith(rerolls: 0))
+            ..setInv(side, inv().copyWith(rerolls: inv().rerolls + o.rerolls));
+          tx.events.add(ItemStolen(side, 'reroll'));
+        } else {
+          tx.setInv(side, inv().copyWith(lucky: inv().lucky + 1));
+          tx.events.add(TokenGranted(side, 'lucky'));
+        }
+      case CardId.hexSevens:
+        tx.addEffect(
+          EffectKind.offerMalus,
+          owner: side,
+          affected: opp,
+          turns: 9999,
+        );
+      case CardId.sprint:
+        final fromAbs = targets.first;
+        final from = fromAbs == 0 ? Pos.bar : toRelative(side, fromAbs);
+        final to = from - 4;
+        final hit = tx.board.count(opp, 25 - to) == 1;
+        tx.events.add(Teleported(side, fromAbs, toAbsolute(side, to)));
+        Engine.applyBoardMove(tx, side, Move(from, to, 0, hit: hit));
+      case CardId.shieldWall:
+        for (var rel = 1; rel <= 24; rel++) {
+          if (tx.board.count(side, rel) == 1) {
+            tx.addEffect(
+              EffectKind.shield,
+              owner: side,
+              affected: opp,
+              turns: 1,
+              point: toAbsolute(side, rel),
+            );
+          }
+        }
+      case CardId.homecoming:
+        final mine = List<int>.of(tx.board.of(side));
+        for (var p = 6; p >= 1; p--) {
+          if (mine[p] > 0) {
+            mine[p]--;
+            mine[Pos.off]++;
+            tx.events.add(CheckerBorneOff(side, toAbsolute(side, p)));
+            break;
+          }
+        }
+        tx.board = tx.board.withSide(side, mine);
+        EffectSystem.cleanup(tx);
+        if (tx.board.borneOff(side) == Pos.checkers) {
+          Engine.endGame(tx, side, null);
+        }
+      case CardId.reentry:
+        final mine = List<int>.of(tx.board.of(side));
+        final theirs = tx.board.of(opp);
+        var placed = true;
+        while (mine[Pos.bar] > 0 && placed) {
+          placed = false;
+          for (var rel = 19; rel <= 24; rel++) {
+            if (theirs[25 - rel] == 0) {
+              mine[Pos.bar]--;
+              mine[rel]++;
+              tx.events.add(PhoenixRose(side, toAbsolute(side, rel)));
+              placed = true;
+              break;
+            }
+          }
+        }
+        tx.board = tx.board.withSide(side, mine);
+      case CardId.stoneSkin:
+        for (final p in targets) {
+          tx.addEffect(
+            EffectKind.shield,
+            owner: side,
+            affected: opp,
+            turns: 3,
+            point: p,
+          );
+        }
+      case CardId.caltrops:
+        for (final p in targets) {
+          tx.addEffect(
+            EffectKind.toll,
+            owner: side,
+            affected: opp,
+            turns: 8,
+            point: p,
+          );
+        }
+      case CardId.bait:
+        tx.addEffect(
+          EffectKind.landmine,
+          owner: side,
+          affected: opp,
+          turns: 8,
+          point: targets.first,
+        );
+      case CardId.rally:
+        if (tx.board.pips(side) - tx.board.pips(opp) >= 20) {
+          tx.rollQueue.add(<int>[]);
+        } else {
+          tx.setInv(side, inv().copyWith(rerolls: inv().rerolls + 1));
+        }
+      case CardId.fortuneTeller:
+        for (var i = 0; i < 2; i++) {
+          tx.addEffect(
+            EffectKind.bonusOffer,
+            owner: side,
+            affected: side,
+            turns: 9999,
+          );
+        }
+      case CardId.destiny:
+        tx.addEffect(
+          EffectKind.bonusPick,
+          owner: side,
+          affected: side,
+          turns: 9999,
+        );
+      case CardId.highStakes:
+        tx.cubeValue = (tx.cubeValue * 2).clamp(1, 64);
+      case CardId.exile:
+        final rel = toRelative(opp, targets.first);
+        final theirs = List<int>.of(tx.board.of(opp));
+        theirs[rel]--;
+        theirs[Pos.bar]++;
+        tx.board = tx.board.withSide(opp, theirs);
+        tx.events.add(CheckerHit(opp, targets.first));
+        EffectSystem.cleanup(tx);
+      case CardId.oasis:
+        tx.effects.removeWhere((e) => e.affected == side && _isDiceCurse(e));
+      case CardId.doubleAgent:
+        final theirCards = tx.inv(opp).cards;
+        final last = theirCards.isEmpty ? null : theirCards.last;
+        const banned = {
+          CardId.doubleAgent,
+          CardId.timeStop,
+          CardId.bloodPact,
+          CardId.homecoming,
+          CardId.reentry,
+          CardId.oasis,
+          CardId.lantern,
+          CardId.earthquake,
+        };
+        if (last != null &&
+            cardById(last).target == TargetKind.none &&
+            !banned.contains(last)) {
+          apply(tx, side, last, const []);
+          tx.events.add(CardPicked(side, last));
+        } else {
+          tx.setInv(side, inv().copyWith(rerolls: inv().rerolls + 1));
+        }
       default:
         throw ArgumentError('No logic for card $card');
     }
   }
+
+  static void _nextTurn(Tx tx, Side side, EffectKind k) =>
+      tx.addEffect(k, owner: side, affected: side, turns: 1, immediate: false);
 
   static void _steal(Tx tx, Side side) {
     final opp = side.opponent;
@@ -493,8 +720,12 @@ abstract final class CardLogic {
       } else if (e.kind == EffectKind.bonusPick) {
         picks++;
         tx.removeEffect(e.id);
+      } else if (e.kind == EffectKind.offerMalus) {
+        size--;
+        tx.removeEffect(e.id);
       }
     }
+    if (size < 1) size = 1;
     final ids =
         mods.cardPool ?? tx.config.cardPool ?? [for (final c in kCards) c.id];
     final pool = [
