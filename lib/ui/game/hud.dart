@@ -247,7 +247,8 @@ class _PlayerPanelState extends State<PlayerPanel>
                     ],
                   ],
                 ),
-                Row(
+                Wrap(
+                  spacing: 8,
                   children: [
                     if (widget.showPips)
                       Text(
@@ -258,7 +259,6 @@ class _PlayerPanelState extends State<PlayerPanel>
                         ),
                       ),
                     if (c.match.config.length > 1) ...[
-                      const SizedBox(width: 8),
                       Text(
                         '${l.score}: ${formatNumber(c.match.score(side), lang)}/${formatNumber(c.match.config.length, lang)}',
                         style: const TextStyle(
@@ -272,28 +272,53 @@ class _PlayerPanelState extends State<PlayerPanel>
               ],
             ),
           ),
-          if (inv.rerolls > 0)
-            EffectChip(
-              cardId: CardId.secondChance,
-              buff: true,
-              count: inv.rerolls,
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.sizeOf(context).width * 0.42,
             ),
-          if (inv.lucky > 0)
-            EffectChip(cardId: CardId.luckyCharm, buff: true, count: inv.lucky),
-          if (inv.ghost > 0)
-            EffectChip(cardId: CardId.ghostStep, buff: true, count: inv.ghost),
-          if (inv.phoenix > 0)
-            EffectChip(cardId: CardId.phoenix, buff: true, count: inv.phoenix),
-          for (final e in effects.take(4))
-            EffectChip(
-              cardId: cardForEffect(e.kind),
-              buff: e.owner == side,
-              turns: _showsCounter(e.kind) && e.turnsLeft < 50
-                  ? e.turnsLeft
-                  : null,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (inv.rerolls > 0)
+                    EffectChip(
+                      cardId: CardId.secondChance,
+                      buff: true,
+                      count: inv.rerolls,
+                    ),
+                  if (inv.lucky > 0)
+                    EffectChip(
+                      cardId: CardId.luckyCharm,
+                      buff: true,
+                      count: inv.lucky,
+                    ),
+                  if (inv.ghost > 0)
+                    EffectChip(
+                      cardId: CardId.ghostStep,
+                      buff: true,
+                      count: inv.ghost,
+                    ),
+                  if (inv.phoenix > 0)
+                    EffectChip(
+                      cardId: CardId.phoenix,
+                      buff: true,
+                      count: inv.phoenix,
+                    ),
+                  for (final e in effects.take(4))
+                    EffectChip(
+                      cardId: cardForEffect(e.kind),
+                      buff: e.owner == side,
+                      turns: _showsCounter(e.kind) && e.turnsLeft < 50
+                          ? e.turnsLeft
+                          : null,
+                    ),
+                  if (s.config.cubeEnabled && s.cubeOwner == side)
+                    _CubeBadge(value: s.cubeValue),
+                ],
+              ),
             ),
-          if (s.config.cubeEnabled && s.cubeOwner == side)
-            _CubeBadge(value: s.cubeValue),
+          ),
         ],
       ),
     );
