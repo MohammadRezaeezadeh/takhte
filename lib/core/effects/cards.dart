@@ -232,12 +232,12 @@ const List<CardDef> kCards = [
   // SABOTAGE
   CardDef(
     id: CardId.brokenDie,
-    rarity: Rarity.common,
+    rarity: Rarity.rare,
     category: CardCategory.sabotage,
     nameEn: 'Broken Die',
     nameFa: 'تاس شکسته',
-    descEn: 'Your opponent rolls only one die on their next turn.',
-    descFa: 'حریف در نوبت بعدی‌اش فقط با یک تاس بازی می‌کند.',
+    descEn: 'Your opponent rolls only one die for their next 2 turns.',
+    descFa: 'حریف تا دو نوبت بعدی‌اش فقط با یک تاس بازی می‌کند.',
     glyph: 6,
   ),
   CardDef(
@@ -257,8 +257,12 @@ const List<CardDef> kCards = [
     category: CardCategory.sabotage,
     nameEn: 'Fog',
     nameFa: 'مه',
-    descEn: "Your opponent's doubles count as a normal roll next turn.",
-    descFa: 'جفتِ حریف در نوبت بعدی‌اش مثل تاس معمولی حساب می‌شود.',
+    descEn:
+        'For 3 turns your opponent is lost in the fog: dice max 5, '
+        'no doubles and no 7–7.',
+    descFa:
+        'حریف تا سه نوبت در مه گم است: تاس حداکثر ۵، '
+        'نه جفت حساب می‌شود و نه هفت‌هفت می‌آید.',
     glyph: 8,
   ),
   CardDef(
@@ -267,8 +271,12 @@ const List<CardDef> kCards = [
     category: CardCategory.sabotage,
     nameEn: 'Curse of Small Numbers',
     nameFa: 'نفرین کوچکی',
-    descEn: "Your opponent's dice are capped at 4 for their next 3 turns.",
-    descFa: 'تاس‌های حریف تا سه نوبت بعدی‌اش حداکثر ۴ می‌آیند.',
+    descEn:
+        "Your opponent's next 2 rolls are halved, rounded up (6 becomes 3), "
+        'and doubles do not count.',
+    descFa:
+        'دو تاس بعدی حریف نصف می‌شود (رو به بالا؛ ۶ می‌شود ۳) '
+        'و جفت حساب نمی‌شود.',
     glyph: 9,
   ),
   CardDef(
@@ -594,8 +602,8 @@ const List<CardDef> kCards = [
     category: CardCategory.dice,
     nameEn: 'Twin Dice',
     nameFa: 'تاس‌های همزاد',
-    descEn: 'Next turn, your dice are guaranteed doubles of 4 or higher.',
-    descFa: 'نوبت بعد، تاس‌هایت حتماً جفتِ ۴ یا بالاتر می‌آیند.',
+    descEn: 'Next turn you roll a guaranteed 6–6.',
+    descFa: 'نوبت بعد حتماً جفت‌شش می‌آوری.',
     glyph: 39,
   ),
   CardDef(

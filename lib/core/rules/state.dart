@@ -248,6 +248,7 @@ enum EffectKind {
   twinDice,
   minThree,
   offerMalus,
+  halveDice,
 }
 
 /// An effect living on the board or on a side.

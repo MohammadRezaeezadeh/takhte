@@ -244,7 +244,11 @@ void main() {
       s = finishCurrentTurn(s);
       s = finishCurrentTurn(roll(s));
       s = roll(s);
-      expect(s.rolled.length, 2, reason: 'only one turn');
+      expect(s.rolled.length, 1, reason: 'second turn still broken');
+      s = finishCurrentTurn(s);
+      s = finishCurrentTurn(roll(s));
+      s = roll(s);
+      expect(s.rolled.length, 2, reason: 'two turns only');
     });
 
     test('Chains: two enemy checkers cannot move for two turns', () {
@@ -286,14 +290,26 @@ void main() {
       expect(s.dice.length, 2);
     });
 
-    test('Curse: opponent dice capped at 4', () {
+    test('Fog: opponent dice capped at 5', () {
+      var s = pickOnly(
+        sevenState(Board.initial(), [CardId.fog], config: noSeven),
+      );
+      s = finishCurrentTurn(roll(s));
+      for (var seed = 0; seed < 200; seed++) {
+        final r = roll(s.copyWith(rng: Rng.seeded(seed).state));
+        expect(r.rolled.every((d) => d <= 5), isTrue);
+      }
+    });
+
+    test('Curse: opponent dice halved, doubles do not count', () {
       var s = pickOnly(
         sevenState(Board.initial(), [CardId.curse], config: noSeven),
       );
       s = finishCurrentTurn(roll(s));
       for (var seed = 0; seed < 200; seed++) {
         final r = roll(s.copyWith(rng: Rng.seeded(seed).state));
-        expect(r.rolled.every((d) => d <= 4), isTrue);
+        expect(r.rolled.every((d) => d <= 3), isTrue);
+        expect(r.dice.length, 2);
       }
     });
 

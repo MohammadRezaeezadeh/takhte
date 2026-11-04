@@ -190,6 +190,9 @@ class RollPlan {
   /// Minimum die value.
   int minValue = 1;
 
+  /// Dice are halved, rounded up (6 → 3).
+  bool halve = false;
+
   bool doublesCount;
   int cap;
   double p7Multiplier;
@@ -500,6 +503,7 @@ abstract final class Engine {
       v = (v + plan.bonus).clamp(1, 6);
       if (v < plan.minValue) v = plan.minValue;
       if (plan.evenUp && v.isOdd) v = v + 1 > 6 ? 6 : v + 1;
+      if (plan.halve) v = (v + 1) ~/ 2;
       return v.clamp(1, plan.cap);
     }
 

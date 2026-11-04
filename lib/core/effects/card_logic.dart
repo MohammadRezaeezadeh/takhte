@@ -253,12 +253,31 @@ abstract final class CardLogic {
           EffectKind.brokenDie,
           owner: side,
           affected: opp,
-          turns: 1,
+          turns: 2,
         );
       case CardId.fog:
-        tx.addEffect(EffectKind.fog, owner: side, affected: opp, turns: 1);
+        tx
+          ..addEffect(EffectKind.fog, owner: side, affected: opp, turns: 3)
+          ..addEffect(
+            EffectKind.sevenBlock,
+            owner: side,
+            affected: opp,
+            turns: 3,
+          )
+          ..addEffect(
+            EffectKind.curse,
+            owner: side,
+            affected: opp,
+            turns: 3,
+            count: 5,
+          );
       case CardId.curse:
-        tx.addEffect(EffectKind.curse, owner: side, affected: opp, turns: 3);
+        tx.addEffect(
+          EffectKind.halveDice,
+          owner: side,
+          affected: opp,
+          turns: 2,
+        );
       case CardId.mirror:
         tx.addEffect(
           EffectKind.mirrorWatch,

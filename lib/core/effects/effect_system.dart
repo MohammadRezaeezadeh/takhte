@@ -88,8 +88,12 @@ void _evenUp(RollPlan p) => p.evenUp = true;
 void _wardOnes(RollPlan p) => p.rerollOnes = true;
 void _twin(RollPlan p) {
   p.forceDouble = true;
-  if (p.minValue < 4) p.minValue = 4;
+  p.minValue = 6;
 }
+
+void _halve(RollPlan p) => p
+  ..halve = true
+  ..doublesCount = false;
 
 void _minThree(RollPlan p) {
   if (p.minValue < 3) p.minValue = 3;
@@ -282,6 +286,7 @@ abstract final class EffectSystem {
     EffectKind.twinDice: _PlanFlag(_twin),
     EffectKind.minThree: _PlanFlag(_minThree),
     EffectKind.offerMalus: _Noop(),
+    EffectKind.halveDice: _PlanFlag(_halve),
   };
 
   static EffectHandler handler(EffectKind k) => _handlers[k]!;
