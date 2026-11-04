@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
+import 'package:haftnard/game/audio.dart';
+import 'package:haftnard/game/scene/board_game.dart';
 
 /// App version shown in Settings (kept in sync with pubspec by a test).
 const String kAppVersion = '1.0.0';
@@ -58,6 +60,21 @@ class _FpsOverlayState extends State<FpsOverlay> {
     });
   }
 
+  /// Scene and audio counters (second line), when a game is on screen.
+  static String _sceneLine() {
+    final g = BoardGame.current;
+    final a = Sfx.instance.manager;
+    final parts = <String>[
+      if (g != null && g.isLoaded) ...[
+        '${g.debugStats()['components']} comp',
+        '${g.debugStats()['particles']} fx',
+      ],
+      if (a != null) '${a.activeCount}/${a.voiceCount} sfx',
+      if (a != null && a.stats.resets > 0) '${a.stats.resets} audio resets',
+    ];
+    return parts.isEmpty ? '' : '\n${parts.join(' · ')}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final good = _avgMs < 12 && _janky < 6;
@@ -73,7 +90,8 @@ class _FpsOverlayState extends State<FpsOverlay> {
         ),
         child: Text(
           '${_fps.toStringAsFixed(0)} fps · ${_avgMs.toStringAsFixed(1)} ms avg · '
-          '${_worstMs.toStringAsFixed(0)} ms worst · $_janky/120 janky',
+          '${_worstMs.toStringAsFixed(0)} ms worst · $_janky/120 janky'
+          '${_sceneLine()}',
           textDirection: TextDirection.ltr,
           style: const TextStyle(
             fontSize: 10,

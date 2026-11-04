@@ -1600,7 +1600,9 @@ class CardGlyphPainter extends CustomPainter {
       ),
       textDirection: TextDirection.ltr,
     )..layout();
-    tp.paint(canvas, at - Offset(tp.width / 2, tp.height / 2));
+    tp
+      ..paint(canvas, at - Offset(tp.width / 2, tp.height / 2))
+      ..dispose();
   }
 
   @override
@@ -1760,7 +1762,9 @@ class CardBackPainter extends CustomPainter {
       ),
       textDirection: TextDirection.ltr,
     )..layout();
-    tp.paint(c, o - Offset(tp.width / 2, tp.height / 2));
+    tp
+      ..paint(c, o - Offset(tp.width / 2, tp.height / 2))
+      ..dispose();
   }
 
   @override

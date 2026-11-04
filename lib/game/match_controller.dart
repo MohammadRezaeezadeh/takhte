@@ -111,6 +111,7 @@ class MatchController extends ChangeNotifier {
     GameState? initialState,
   }) : useIsolates = useIsolates ?? kAiUseIsolates,
        state = initialState ?? session.match.current.replay() {
+    live++;
     for (final side in Side.values) {
       final seat = session.seat(side);
       _opponents[side] = seat.ai
@@ -377,8 +378,12 @@ class MatchController extends ChangeNotifier {
     return false;
   }
 
+  /// Controllers created and not yet disposed (leak checks).
+  static int live = 0;
+
   @override
   void dispose() {
+    if (!_disposed) live--;
     _disposed = true;
     unawaited(_events.close());
     super.dispose();

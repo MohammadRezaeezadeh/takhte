@@ -17,6 +17,7 @@ import 'package:haftnard/game/layout.dart';
 import 'package:haftnard/game/match_controller.dart';
 import 'package:haftnard/game/scene/environment.dart';
 import 'package:haftnard/game/scene/fx.dart';
+import 'package:haftnard/game/scene/paragraph_cache.dart';
 import 'package:haftnard/game/themes/board_themes.dart';
 import 'package:haftnard/game/themes/pieces.dart';
 import 'package:meta/meta.dart';
@@ -171,8 +172,9 @@ class BoardGame extends FlameGame implements MatchPresenter {
   late DiceStyle dieStyle;
   ui.Picture? _basePic;
   ui.Picture? _feltPic;
-  late ui.Picture _topPic;
+  ui.Picture? _topPic;
   final Map<String, ui.Image> _chkCache = {};
+  final ParagraphCache _text = ParagraphCache();
 
   /// The live scene, for the debug overlay and tests.
   static BoardGame? current;
@@ -180,8 +182,22 @@ class BoardGame extends FlameGame implements MatchPresenter {
   @override
   void onRemove() {
     if (current == this) current = null;
+    _releaseArt();
+    fx.clear();
     super.onRemove();
   }
+
+  /// Live object counts for the debug overlay and the soak test.
+  Map<String, int> debugStats() => {
+    'components': descendants().length,
+    'particles': fx.particleCount,
+    'popups': fx.popupCount,
+    'pooled': fx.pooledCount,
+    'checkers': _checkers.length,
+    'dice': _dice.length,
+    'images': _chkCache.length,
+    'texts': _text.length,
+  };
 
   late final FxLayer fx;
   late final EnvironmentLayer env;
@@ -291,10 +307,23 @@ class BoardGame extends FlameGame implements MatchPresenter {
       return r.endRecording();
     }
 
+    _releaseArt();
     _basePic = rec(art.paintBase);
     _feltPic = theme.pattern == BoardPattern.cosmic ? null : rec(art.paintFelt);
     _topPic = rec(art.paintTop);
+  }
+
+  /// Frees the cached board pictures and checker images (GPU memory).
+  void _releaseArt() {
+    _basePic?.dispose();
+    _feltPic?.dispose();
+    _topPic?.dispose();
+    _basePic = _feltPic = _topPic = null;
+    for (final img in _chkCache.values) {
+      img.dispose();
+    }
     _chkCache.clear();
+    _text.clear();
   }
 
   ui.Image _checkerImage(Side side) {
@@ -869,7 +898,8 @@ class BoardGame extends FlameGame implements MatchPresenter {
       }
     }
     if (theme.pattern == BoardPattern.caravanserai) _twinkle(c);
-    c.drawPicture(_topPic);
+    final top = _topPic;
+    if (top != null) c.drawPicture(top);
     if (theme.pattern == BoardPattern.neon) _neonPulse(c);
     _renderMarkers(c);
     _renderLastMoves(c);
@@ -1009,19 +1039,24 @@ class BoardGame extends FlameGame implements MatchPresenter {
         ..strokeWidth = 2
         ..color = col,
     );
-    final pb =
-        ui.ParagraphBuilder(
-            ui.ParagraphStyle(textAlign: TextAlign.center, fontSize: r),
-          )
-          ..pushStyle(
-            ui.TextStyle(
-              color: col,
-              fontSize: r * 1.1,
-              fontWeight: FontWeight.w700,
-            ),
-          )
-          ..addText(label);
-    final para = pb.build()..layout(ui.ParagraphConstraints(width: r * 2));
+    final para = _text.get(
+      'badge|$label|${r.toStringAsFixed(1)}|${col.toARGB32()}',
+      () {
+        final pb =
+            ui.ParagraphBuilder(
+                ui.ParagraphStyle(textAlign: TextAlign.center, fontSize: r),
+              )
+              ..pushStyle(
+                ui.TextStyle(
+                  color: col,
+                  fontSize: r * 1.1,
+                  fontWeight: FontWeight.w700,
+                ),
+              )
+              ..addText(label);
+        return pb.build()..layout(ui.ParagraphConstraints(width: r * 2));
+      },
+    );
     c.drawParagraph(para, p.translate(-r, -para.height / 2));
   }
 
@@ -1331,25 +1366,31 @@ class BoardGame extends FlameGame implements MatchPresenter {
       final n = e.value.length;
       if (n <= 5 || e.key is OffSlot) continue;
       final p = e.value.last.pos;
-      final pb =
-          ui.ParagraphBuilder(
-              ui.ParagraphStyle(
-                textAlign: TextAlign.center,
-                fontSize: layout.checkerR,
-              ),
-            )
-            ..pushStyle(
-              ui.TextStyle(
-                color: e.value.last.side == Side.white
-                    ? const Color(0xFF2A1A12)
-                    : const Color(0xFFF3E9D2),
-                fontSize: layout.checkerR * 0.9,
-                fontWeight: FontWeight.w700,
-              ),
-            )
-            ..addText(boardDigits(n, persian: _cfg.persianDigits));
-      final para = pb.build()
-        ..layout(ui.ParagraphConstraints(width: layout.checkerR * 2));
+      final side = e.value.last.side;
+      final para = _text.get(
+        'stack|$n|${side.name}|${layout.checkerR.toStringAsFixed(1)}',
+        () {
+          final pb =
+              ui.ParagraphBuilder(
+                  ui.ParagraphStyle(
+                    textAlign: TextAlign.center,
+                    fontSize: layout.checkerR,
+                  ),
+                )
+                ..pushStyle(
+                  ui.TextStyle(
+                    color: e.value.last.side == Side.white
+                        ? const Color(0xFF2A1A12)
+                        : const Color(0xFFF3E9D2),
+                    fontSize: layout.checkerR * 0.9,
+                    fontWeight: FontWeight.w700,
+                  ),
+                )
+                ..addText(boardDigits(n, persian: _cfg.persianDigits));
+          return pb.build()
+            ..layout(ui.ParagraphConstraints(width: layout.checkerR * 2));
+        },
+      );
       c.drawParagraph(para, p.translate(-layout.checkerR, -para.height / 2));
     }
   }

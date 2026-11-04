@@ -146,7 +146,10 @@ void paintChecker(
     r * (1 + lift * 0.01),
     Paint()
       ..color = Color.fromRGBO(0, 0, 0, 0.45 - math.min(lift, 30) * 0.008)
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, r * 0.18 + lift * 0.15),
+      ..maskFilter = MaskFilter.blur(
+        BlurStyle.normal,
+        _q(r * 0.18 + lift * 0.15),
+      ),
   );
   if (glow != null || selected) {
     canvas.drawCircle(
@@ -508,7 +511,10 @@ void paintDie(
     rr.shift(Offset(s * 0.05 + lift * 0.2, s * 0.08 + lift * 0.4)),
     Paint()
       ..color = const Color(0x77000000)
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, s * 0.08 + lift * 0.1),
+      ..maskFilter = MaskFilter.blur(
+        BlurStyle.normal,
+        _q(s * 0.08 + lift * 0.1),
+      ),
   );
   final seven = value == 7;
   if (seven) {
@@ -604,3 +610,7 @@ void paintDie(
   }
   canvas.restore();
 }
+
+/// Blur sigmas snapped to 0.5 px: a lift-dependent shadow otherwise asks the
+/// renderer for a new blur mask every frame, which bloats its caches.
+double _q(double sigma) => (sigma * 2).roundToDouble() / 2;
