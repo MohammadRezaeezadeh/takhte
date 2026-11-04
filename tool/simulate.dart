@@ -25,6 +25,7 @@ class GameStats {
   int sevens = 0;
   WinType? type;
   final Map<Side, Set<String>> cards = {Side.white: {}, Side.black: {}};
+  final Map<Side, int> cardCount = {Side.white: 0, Side.black: 0};
 }
 
 GameStats playOne(GameConfig cfg, AiConfig w, AiConfig b) {
@@ -51,6 +52,7 @@ GameStats playOne(GameConfig cfg, AiConfig w, AiConfig b) {
             st.rolls++;
           case CardPicked():
             st.cards[e.side]!.add(e.cardId);
+            st.cardCount[e.side] = st.cardCount[e.side]! + 1;
           default:
         }
       }
@@ -70,6 +72,7 @@ void main(List<String> args) {
   var difficulty = Difficulty.medium;
   var out = 'docs/balance/report.md';
   var quiet = false;
+  var forced = 0;
   for (var i = 0; i < args.length; i++) {
     switch (args[i]) {
       case '--games':
@@ -82,6 +85,8 @@ void main(List<String> args) {
         out = args[++i];
       case '--quiet':
         quiet = true;
+      case '--forced':
+        forced = int.parse(args[++i]);
     }
   }
 
@@ -240,6 +245,70 @@ void main(List<String> args) {
     final n = rarityTaken[r] ?? 0;
     if (n == 0) continue;
     b.writeln('| ${r.name} | $n | ${pct((rarityWins[r] ?? 0) / n)} |');
+  }
+  if (forced > 0) {
+    // Intrinsic power: White can only ever be offered card c; Black never
+    // rolls 7–7. Lift per pick = (win rate - baseline) / picks per game.
+    var baseWins = 0;
+    for (var g = 0; g < forced; g++) {
+      final st = playOne(
+        GameConfig(
+          seed: 50000 + g,
+          p7: p7,
+          black: const SideMods(p7Multiplier: 0),
+          white: const SideMods(p7Multiplier: 0),
+        ),
+        AiConfig(difficulty: difficulty, seed: g),
+        AiConfig(difficulty: difficulty, seed: g + 99),
+      );
+      if (st.winner == Side.white) baseWins++;
+    }
+    final base = baseWins / forced;
+    b
+      ..writeln()
+      ..writeln('## Forced-pick power (selection-bias free)')
+      ..writeln()
+      ..writeln(
+        'White may only be offered one card (p7=$p7), Black never rolls 7–7, '
+        '$forced games per card. Baseline (no cards either side): ${pct(base)}. '
+        'Target: lift per pick ≤ +8%.',
+      )
+      ..writeln()
+      ..writeln(
+        '| Card | Rarity | Win rate | Picks/game | Lift per pick | Flag |',
+      )
+      ..writeln('| --- | --- | --- | --- | --- | --- |');
+    final rows = <(String, double, double, double)>[];
+    for (final c in kCards) {
+      var wins = 0;
+      var picks = 0;
+      for (var g = 0; g < forced; g++) {
+        final st = playOne(
+          GameConfig(
+            seed: 50000 + g,
+            p7: p7,
+            white: SideMods(cardPool: [c.id]),
+            black: const SideMods(p7Multiplier: 0),
+          ),
+          AiConfig(difficulty: difficulty, seed: g),
+          AiConfig(difficulty: difficulty, seed: g + 99),
+        );
+        if (st.winner == Side.white) wins++;
+        picks += st.cardCount[Side.white]!;
+      }
+      final wr = wins / forced;
+      final ppg = picks / forced;
+      rows.add((c.id, wr, ppg, ppg == 0 ? 0 : (wr - base) / ppg));
+      if (!quiet) print('  forced ${c.id}: ${pct(wr)}');
+    }
+    rows.sort((x, y) => y.$4.compareTo(x.$4));
+    for (final (id, wr, ppg, lift) in rows) {
+      final flag = lift > 0.08 ? '**strong**' : (lift < -0.02 ? 'harmful' : '');
+      b.writeln(
+        '| ${cardById(id).nameEn} | ${cardById(id).rarity.name} | ${pct(wr)} | '
+        '${ppg.toStringAsFixed(2)} | ${lift >= 0 ? '+' : ''}${pct(lift)} | $flag |',
+      );
+    }
   }
   b
     ..writeln()

@@ -45,6 +45,7 @@ class SideMods {
     this.startGhost = 0,
     this.startLucky = 0,
     this.capDice = 6,
+    this.cardPool,
   });
 
   factory SideMods.fromJson(Map<String, Object?> j) => SideMods(
@@ -58,6 +59,7 @@ class SideMods {
     startGhost: j['sg'] as int? ?? 0,
     startLucky: j['sl'] as int? ?? 0,
     capDice: j['cap'] as int? ?? 6,
+    cardPool: (j['pool'] as List<Object?>?)?.cast<String>(),
   );
 
   /// Multiplier on this side's 7–7 chance (0 disables).
@@ -83,6 +85,9 @@ class SideMods {
   /// Maximum die value this side can roll (boss curse), 6 = none.
   final int capDice;
 
+  /// Overrides the game's card pool for this side's offers.
+  final List<String>? cardPool;
+
   static const SideMods none = SideMods();
 
   Map<String, Object?> toJson() => {
@@ -96,6 +101,7 @@ class SideMods {
     if (startGhost != 0) 'sg': startGhost,
     if (startLucky != 0) 'sl': startLucky,
     if (capDice != 6) 'cap': capDice,
+    if (cardPool != null) 'pool': cardPool,
   };
 }
 

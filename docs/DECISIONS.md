@@ -3,8 +3,41 @@
 One line per decision: **decision** — reason.
 
 - **Flutter 3.47.9 stable pinned in CI** — reproducible builds; bump deliberately.
-- **Riverpod (flutter_riverpod 3.x) for state management** — compile-safe providers, easy to test, no BuildContext coupling.
-- **very_good_analysis lints, minus `public_member_api_docs` and the 80-col rule** — strict but practical for game code.
+- **Riverpod (flutter_riverpod 3.x) for app-wide state; ChangeNotifier for the per-match controller** — compile-safe providers for meta/settings; the controller is screen-scoped and awaited by the scene.
+- **very_good_analysis lints, minus `public_member_api_docs`, 80-col, `no_default_cases`, `unnecessary_type_name_in_constructor`, `unnecessary_unawaited`** — strict but practical; the last two interact badly with `dart fix` in 3.13.
 - **Application id `com.haftnard.game`, minSdk 23** — matches spec; neutral id.
 - **CI signing: secrets → cached CI keystore → freshly generated keystore** — never fails without secrets; cached key keeps upgrades installable most of the time.
 - **Release builds use R8 minify + resource shrinking** — smaller APK.
+- **Board representation: two 26-slot arrays in each side's own frame (0 = off, 25 = bar)** — move generation never branches on colour; absolute numbering (White's home 1–6) only for UI and effects.
+- **Moves are recorded in the mover's frame with the die used** — unambiguous, compact, server-verifiable.
+- **Seven Event: one `p7` check per turn on the first roll only (base 1/36); bonus rolls/rerolls never trigger it** — a 7–7 never wastes a turn and can't chain; matches "same odds as a specific double".
+- **After a 7–7 the player rolls normally in the same turn** — spec: 7–7 never wastes a turn.
+- **No 7–7 on the opening roll** — keeps the classic opening intact.
+- **Cards without valid targets are excluded from offers; if one fizzles anyway it is consumed** — no dead picks.
+- **Rarity weights 60/28/10/2 with pity (+3 epic, +1 legendary weight per offer without epic+)** — bad-luck protection.
+- **Unlisted card rarities default to Common** — spec lists rarities only for some cards.
+- **Effect durations count the affected side's turns** — "for 2 of their turns" reads naturally; shields protect for 3 opponent turns.
+- **Holy Shield follows its checker; Iron Gate is anchored to its point** — differentiates two similar cards.
+- **Ghost Step = a blocked landing glides to the next open point beyond** — "jump over/land past a blocked point".
+- **Toll Gate = crossing (strictly) costs one extra pip per toll** — simple, deterministic, composable with bear-off.
+- **Blood Pact (not home) sends the *most advanced* checker to the bar** — the drawback must hurt.
+- **Mirror copies the opponent's next roll as a bonus roll at the start of your following turn (played after your normal roll)** — clear timing.
+- **Time Stop drawback = opponent picks one extra card at their next 7–7; Greed drawback = opponent's next offer shows one extra card** — risk/reward without new systems.
+- **Phoenix re-enters at the most advanced open point of the opponent's home** — "instantly for free" with a deterministic rule.
+- **Thief with nothing to steal grants a reroll token** — never a dead card.
+- **Hidden landmines: the AI plans without knowing them and replans if legality changes** — fairness; pass-and-play shows mines only on the owner's turn.
+- **Backgammon (Kup Mars) = loser has borne off nothing and has a checker on the bar or in the winner's home** — standard rule.
+- **Crawford game only when the cube is enabled** — cube is off by default (Persian tavla).
+- **Undo is controller-side (state stack per roll) and removes the action from the log** — the engine stays a pure function; logs only contain committed moves.
+- **Human must press Done after moving (undo window); auto-pass only when no move and no reroll/lucky/fate is available; forced single plays auto-play when enabled** — spec "undo before confirming" + "auto-move option".
+- **AI tiers: Beginner (40% random + noise), Easy/Medium (1-ply, noise), Hard (2-ply top-5), Master (2-ply top-9) with Star1-style cutoffs** — strong enough, < ~1 s per move on device in an isolate.
+- **Board aspect adapts (0.92–1.18) to the viewport** — bigger touch columns in portrait.
+- **Point touch targets are full half-height columns** — narrower than 48dp on small phones (inherent to 24 points) but tall; drag-and-drop and "tap source again to play the larger die" mitigate.
+- **Cosmetics, cards and talismans carry fa/en text in Dart data, UI chrome uses ARB** — keeps game data testable in pure Dart.
+- **Persian digits via `NumberFormat.decimalPattern('fa')` and a helper for custom strings** — natural Persian UI.
+- **Journey: 8 stages (2+boss, 2+boss, 1+final boss), all single-point matches** — ~30–45 min runs on mobile.
+- **Journey keeps 40% of run coins on loss (100% on win) + 20/stage + 300 completion bonus** — losing still progresses.
+- **Fonts: Vazirmatn (static weights), Lalezar (display, fa+latin), Cinzel Decorative (latin logo), all OFL with licenses bundled** — spec.
+- **All audio synthesized by `tool/gen_sfx.dart` (22 kHz mono WAV, ~1 MB total)** — no downloads, deterministic.
+- **Music: an 8-second synthesized drone + santur-like plucks loop** — ambient without assets.
+- **`dart fix --apply` is not used blindly** — it mangled `unawaited()` calls once (see commit history).

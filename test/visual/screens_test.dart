@@ -3,6 +3,7 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -10,9 +11,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:haftnard/core/ai/personality.dart';
 import 'package:haftnard/core/effects/cards.dart';
+import 'package:haftnard/core/rules/engine.dart';
 import 'package:haftnard/core/rules/match.dart';
+import 'package:haftnard/core/rules/state.dart';
+import 'package:haftnard/core/rules/types.dart';
 import 'package:haftnard/game/audio.dart';
+import 'package:haftnard/game/layout.dart';
 import 'package:haftnard/game/match_controller.dart';
+import 'package:haftnard/game/scene/board_game.dart';
 import 'package:haftnard/meta/meta_state.dart';
 import 'package:haftnard/meta/save.dart';
 import 'package:haftnard/meta/settings.dart';
@@ -178,5 +184,38 @@ void main() {
       GameScreen(session: session),
       size: const Size(844, 390),
     );
+  });
+
+  testWidgets('human plays a move by tapping the board', (t) async {
+    final session = MatchSession(
+      match: MatchState(const MatchConfig(seed: 21, mode: GameMode.classic)),
+      white: const SeatConfig.human('A'),
+      black: const SeatConfig.human('B'),
+      origin: 'passplay',
+    );
+    await screen(t, 'tap_start', GameScreen(session: session));
+    final game = t
+        .widget<GameWidget<BoardGame>>(find.byType(GameWidget<BoardGame>))
+        .game!;
+    final ctrl = game.controller;
+    var guard = 0;
+    while (ctrl.state.phase == Phase.opening && guard++ < 10) {
+      game.handleTap(game.layout.field.center);
+      await settle(t, frames: 40);
+    }
+    expect(ctrl.state.phase, Phase.moving);
+    final side = ctrl.state.current;
+    final move = Engine.legalMoves(ctrl.state)
+        .firstWhere((m) => m.to != Pos.off);
+    final fromAbs = toAbsolute(side, move.from);
+    final toAbs = toAbsolute(side, move.to);
+    final n = ctrl.state.board.count(side, move.from);
+    game.handleTap(game.layout.checkerCenter(PointSlot(fromAbs), n - 1, n));
+    expect(game.selectedFrom, move.from);
+    game.handleTap(game.layout.pointRect(toAbs).center);
+    await settle(t);
+    expect(ctrl.state.movesThisRoll, isNotEmpty);
+    expect(ctrl.canUndo, isTrue);
+    await shot(t, 'tap_after');
   });
 }

@@ -351,7 +351,8 @@ abstract final class CardLogic {
         tx.removeEffect(e.id);
       }
     }
-    final ids = tx.config.cardPool ?? [for (final c in kCards) c.id];
+    final ids =
+        mods.cardPool ?? tx.config.cardPool ?? [for (final c in kCards) c.id];
     final pool = [
       for (final id in ids)
         if (kCardById.containsKey(id) && isPlayable(tx, side, id)) id,
