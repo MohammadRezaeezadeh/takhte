@@ -278,7 +278,7 @@ void main() {
     pluck(b, k * 0.12, win[k], 0.5, n);
     bell(b, k * 0.12, win[k] * 2, 0.15, 0.4);
   }
-  bell(b, 0.55, 783.99, 0.5, 1.0);
+  bell(b, 0.55, 783.99, 0.5, 1);
   bell(b, 0.55, 1174.66, 0.35, 0.9);
   write('win', b);
 
@@ -298,7 +298,7 @@ void main() {
   for (var k = 0; k < 4; k++) {
     tone(b, k * 0.05, 300.0 + k * 220, 0.3, 0.3, vibrato: 0.02);
   }
-  sweep(b, 0, 1.0, 0.3, n, 0.01, 0.15);
+  sweep(b, 0, 1, 0.3, n, 0.01, 0.15);
   write('magic', b);
 
   b = buf(0.4);
@@ -308,7 +308,7 @@ void main() {
   // Ambient loop: a soft drone with occasional santur plucks (8 s, loops).
   b = buf(8);
   for (final f in [73.375, 110.0, 146.75]) {
-    final s0 = 0;
+    const s0 = 0;
     var phase = 0.0;
     for (var i = s0; i < b.length; i++) {
       final u = i / b.length;

@@ -1,0 +1,435 @@
+{
+  "@@locale": "en",
+  "appTitle": "HaftNard",
+  "tagline": "Backgammon, with a Double Seven",
+  "play": "Play",
+  "journey": "Journey",
+  "store": "Store",
+  "locker": "Locker",
+  "profile": "Profile",
+  "settings": "Settings",
+  "online": "Online",
+  "comingSoon": "Coming soon",
+  "onlineTeaser": "Duel players across the world. The caravan is on its way.",
+  "tutorial": "Tutorial",
+  "resume": "Resume",
+  "resumeMatch": "Resume match",
+  "back": "Back",
+  "start": "Start",
+  "close": "Close",
+  "ok": "OK",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "yes": "Yes",
+  "no": "No",
+  "modeClassic": "Classic",
+  "modeClassicDesc": "Pure backgammon. No cards, no sevens.",
+  "modeSeven": "Seven",
+  "modeSevenDesc": "Roll the glowing 7–7 and choose a power card.",
+  "modePassPlay": "Pass & Play",
+  "modePassPlayDesc": "Two players, one device.",
+  "chooseMode": "Mode",
+  "chooseOpponent": "Opponent",
+  "difficulty": "Difficulty",
+  "diffBeginner": "Beginner",
+  "diffEasy": "Easy",
+  "diffMedium": "Medium",
+  "diffHard": "Hard",
+  "diffMaster": "Master",
+  "matchLength": "Match length",
+  "pointsN": "{n, plural, =1{1 point} other{{n} points}}",
+  "@pointsN": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "doublingCube": "Doubling cube",
+  "doublingCubeDesc": "Off by default, as in Persian tavla.",
+  "human": "Human",
+  "player1": "Player 1",
+  "player2": "Player 2",
+  "you": "You",
+  "yourTurn": "Your turn",
+  "theirTurn": "{name}'s turn",
+  "@theirTurn": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tapToRoll": "Tap the dice to roll",
+  "rollOpening": "Roll to see who starts",
+  "openingTie": "Tie! Roll again.",
+  "startsFirst": "{name} starts",
+  "@startsFirst": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noMoves": "No legal moves — turn passes",
+  "undo": "Undo",
+  "done": "Done",
+  "endTurn": "End turn",
+  "double": "Double",
+  "take": "Take",
+  "drop": "Drop",
+  "doubleOffered": "{name} offers to double to {value}",
+  "@doubleOffered": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "value": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "pips": "Pips",
+  "pipsN": "{n} pips",
+  "@pipsN": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "score": "Score",
+  "matchTo": "Match to {n}",
+  "@matchTo": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "crawford": "Crawford",
+  "sevenTitle": "DOUBLE SEVEN",
+  "choosePower": "Choose your power",
+  "chooseTwo": "Choose {n} powers",
+  "@chooseTwo": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "opponentChose": "{name} chose {card}",
+  "@opponentChose": {
+    "placeholders": {
+      "card": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "selectTargets": "Select targets",
+  "targetEnemy2": "Tap two enemy checkers to chain",
+  "targetOwn": "Tap one of your checkers",
+  "targetOwnBlot": "Tap one of your lone checkers",
+  "targetEmpty": "Tap an empty point",
+  "targetPoint": "Tap a point",
+  "targetTeleportFrom": "Tap the checker to teleport",
+  "targetTeleportTo": "Tap where it lands",
+  "chooseDiceTitle": "Loaded Hand: keep two dice",
+  "fateTitle": "Fate's Edit: tap a die to change it",
+  "useReroll": "Reroll",
+  "useLucky": "+1",
+  "useFate": "Fate",
+  "activeEffects": "Active effects",
+  "turnsLeft": "{n, plural, =1{1 turn} other{{n} turns}}",
+  "@turnsLeft": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "stored": "Stored",
+  "victory": "Victory!",
+  "defeat": "Defeat",
+  "winsGame": "{name} wins",
+  "@winsGame": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "winNormal": "Single game",
+  "winGammon": "Mars!",
+  "winBackgammon": "Kup Mars!",
+  "winDropped": "Double declined",
+  "winResigned": "Resignation",
+  "pointsWon": "+{n} points",
+  "@pointsWon": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "matchWon": "Match won!",
+  "matchLost": "Match lost",
+  "nextGame": "Next game",
+  "rematch": "Rematch",
+  "mainMenu": "Main menu",
+  "paused": "Paused",
+  "resign": "Resign",
+  "resignConfirm": "Resign this game?",
+  "coinsEarned": "+{n} coins",
+  "@coinsEarned": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "xpEarned": "+{n} XP",
+  "@xpEarned": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "levelUp": "Level up! Level {n}",
+  "@levelUp": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "coins": "Coins",
+  "gems": "Gems",
+  "level": "Level {n}",
+  "@level": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "language": "Language",
+  "languageSystem": "Device default",
+  "boardOrientation": "Board direction",
+  "orientationCcw": "Home on the right",
+  "orientationCw": "Home on the left",
+  "animationSpeed": "Animation speed",
+  "speedSlow": "Relaxed",
+  "speedNormal": "Normal",
+  "speedFast": "Fast",
+  "sound": "Sound effects",
+  "music": "Music",
+  "haptics": "Haptics",
+  "colorblind": "Colorblind-safe highlights",
+  "highContrast": "High contrast",
+  "reducedMotion": "Reduced motion",
+  "leftHanded": "Left-handed layout",
+  "autoMove": "Auto-play forced moves",
+  "confirmMoves": "Confirm before ending turn",
+  "showPips": "Show pip counts",
+  "resetProgress": "Reset progress",
+  "resetConfirm": "Erase all progress? This cannot be undone.",
+  "about": "About",
+  "aboutText": "HaftNard is an original game. All art and sound are generated by code. Fonts: Vazirmatn, Lalezar, Cinzel Decorative (SIL Open Font License).",
+  "replayLast": "Replay last game",
+  "replay": "Replay",
+  "storeBoards": "Boards",
+  "storeEnvironments": "Environments",
+  "storeCheckers": "Checkers",
+  "storeDice": "Dice",
+  "storeCardBacks": "Card backs",
+  "storeVictory": "Victory effects",
+  "storeEmotes": "Emotes",
+  "storeBundles": "Bundles",
+  "dailyShop": "Daily shop",
+  "refreshesIn": "Refreshes in {time}",
+  "@refreshesIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "buy": "Buy",
+  "owned": "Owned",
+  "equip": "Equip",
+  "equipped": "Equipped",
+  "notEnough": "Not enough currency",
+  "purchased": "Purchased!",
+  "randomizeLoadout": "Randomize loadout",
+  "preview": "Preview",
+  "statistics": "Statistics",
+  "achievements": "Achievements",
+  "statGames": "Games played",
+  "statWins": "Wins",
+  "statWinRate": "Win rate",
+  "statMars": "Mars wins",
+  "statKupMars": "Kup Mars wins",
+  "statSevens": "Double sevens rolled",
+  "statHits": "Checkers hit",
+  "statFavoriteCard": "Favorite card",
+  "statBestRun": "Best journey",
+  "statJourneysWon": "Journeys completed",
+  "statStreak": "Best win streak",
+  "none": "—",
+  "unlocked": "Unlocked",
+  "locked": "Locked",
+  "newRun": "New journey",
+  "continueRun": "Continue journey",
+  "dailyRun": "Daily journey",
+  "seed": "Seed",
+  "act": "Act {n}",
+  "@act": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "actBazaar": "The Bazaar",
+  "actCaravanserai": "The Caravanserai",
+  "actPalace": "The Palace",
+  "boss": "Boss",
+  "bossRule": "Rule: {rule}",
+  "@bossRule": {
+    "placeholders": {
+      "rule": {
+        "type": "String"
+      }
+    }
+  },
+  "runShop": "Bazaar stall",
+  "talismans": "Talismans",
+  "removeCard": "Banish a card",
+  "removeCardDesc": "Remove a card from your 7–7 offers for this journey.",
+  "upgradeOffer": "Wider offers",
+  "upgradeOfferDesc": "Your 7–7 offers show one more card.",
+  "luckUp": "Seven's favour",
+  "luckUpDesc": "+25% chance of rolling 7–7.",
+  "leaveShop": "Continue",
+  "runCoins": "Run coins",
+  "runOver": "Journey over",
+  "runWon": "Journey complete!",
+  "runKept": "You keep {n} coins",
+  "@runKept": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "opponentN": "Opponent {n} of {total}",
+  "@opponentN": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "total": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "fight": "Fight",
+  "tutorialBasics": "Backgammon basics",
+  "tutorialSevens": "The Double Seven",
+  "next": "Next",
+  "skip": "Skip",
+  "finish": "Finish",
+  "tip": "Tip",
+  "loading": "Loading…",
+  "emoteTitle": "Emotes",
+  "aiThinking": "Thinking…",
+  "pickTalisman": "Choose a talisman",
+  "free": "Free",
+  "dailyBonus": "Daily bonus",
+  "claim": "Claim",
+  "replayControls": "Step {n} of {total}",
+  "@replayControls": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "total": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "gameN": "Game {n}",
+  "@gameN": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "sevenMode": "Seven mode",
+  "classicMode": "Classic mode",
+  "turnSkipped": "{name} loses a turn!",
+  "@turnSkipped": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "coinHeads": "Heads! Opponent skips a turn.",
+  "coinTails": "Tails! You skip a turn.",
+  "mineBoom": "A hidden mine!",
+  "phoenixRises": "The phoenix rises!",
+  "stolen": "Stolen: {item}",
+  "@stolen": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "itemReroll": "Reroll",
+  "itemLucky": "Lucky Charm",
+  "itemGhost": "Ghost Step",
+  "itemPhoenix": "Phoenix",
+  "gripped": "Stuck in quicksand!",
+  "extraTurn": "Time stops — extra turn!",
+  "bonusRoll": "Bonus roll!",
+  "fizzled": "{card} had no target",
+  "@fizzled": {
+    "placeholders": {
+      "card": {
+        "type": "String"
+      }
+    }
+  },
+  "rarityCommon": "Common",
+  "rarityRare": "Rare",
+  "rarityEpic": "Epic",
+  "rarityLegendary": "Legendary",
+  "drawback": "Drawback",
+  "howToPlay": "How to play"
+}
