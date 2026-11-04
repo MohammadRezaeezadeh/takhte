@@ -3,34 +3,42 @@
 _Resume here: read this file and `DECISIONS.md` first._
 
 ## Status
-Milestones M0–M8 are implemented in code; the endless-improvement loop has begun.
+Milestones M0–M8 are complete; the endless-improvement loop is running.
 All work lives on branch `claude/vibrant-newton-gzwmx2`.
 
 | Milestone | State |
 | --- | --- |
-| M0 scaffold, lints, CI (APK + AAB + release on tags), docs | done |
+| M0 scaffold, lints, CI (APK + split APKs + AAB, release on tags), docs | done |
 | M1 pure rules engine, seeded RNG, replay log, exhaustive tests | done |
 | M2 playable Flame board, human vs human, juice | done |
 | M3 AI (5 tiers, 5 personalities) in an isolate | done |
-| M4 7–7 system, 24 cards, effect hooks, per-card tests, simulator, balance pass | done (tuning continues) |
+| M4 7–7 system, effect hooks, per-card tests, simulator, balance passes | done |
 | M5 UI shell, settings, fa/en + RTL, tutorials, save/resume | done |
-| M6 9 boards, 7 environments, 9 checkers, 7 dice, card backs/frames, victory FX, emotes, store, locker, economy | done |
-| M7 Journey: map, bosses, talismans, run shop, daily seed | done |
-| M8 progression, achievements, stats, icon, splash, release config | done |
+| M6 9 boards, 7 environments, 9 checkers, 7 dice, backs/frames, victory FX, emotes, store, locker, economy | done |
+| M7 Journey: map, 10 bosses, 40 talismans, run shop, daily seed | done |
+| M8 progression, achievements, stats, icon, splash, release build | done |
+
+## Content counts
+* Cards: **60** (target 60+) · Talismans: **40** (target 40+) · Bosses: 9 + final.
+* Boards 9 · Environments 7 · Checkers 9 · Dice 7 · Card backs 4 · Frames 3 ·
+  Victory effects 4 · Emotes 8 · Bundles 3 · Achievements 24.
 
 ## Verification
-* `flutter analyze` — 0 issues.
-* `flutter test` — rules, reference move generator (2,500 random positions +
-  completeness check), fuzzed games, replay determinism, every card, AI legality,
-  match/Crawford, controller (undo/resume), meta/economy/save migration, journey,
-  screen smoke tests in en/fa, tap-to-move integration test.
-* `test/visual/*` can write screenshots (`--dart-define=SHOT_OUT=dir` / `ART_OUT=dir`).
+* `flutter analyze` — 0 issues. `flutter test` — 160+ tests.
+* Coverage: rules 95%, core 97%, overall ≈74%.
+* Local `flutter build apk --release` succeeds (universal APK ≈55 MB; CI also
+  produces per-ABI APKs ≈20 MB).
+* Balance: `docs/balance/report.md` (forced-pick methodology; target ≤ +8% win
+  rate per pick).
+* Screenshots: `flutter test test/visual/screens_test.dart --dart-define=SHOT_OUT=dir`.
 
 ## Known issues / environment notes
-* Pushing from the authoring session failed with HTTP 403 (the Claude GitHub App
-  lacked write access to the repository). Commits are local until access is fixed.
-* No physical device was available: performance on mid-range Android is designed
-  for (cached pictures/images, isolate AI, particle caps) but not profiled on device.
+* Pushing from the authoring session failed with HTTP 403 (the Claude GitHub
+  App lacked write access to the repository). Commits are local until access is
+  fixed; nothing in the project depends on it.
+* No physical device was available: performance targets are designed for
+  (cached board pictures and checker images, isolate AI, memoised legal moves,
+  pooled SFX, particle caps) but not profiled on hardware.
 
 ## Next
 See `BACKLOG.md`.
