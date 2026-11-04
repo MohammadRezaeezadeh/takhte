@@ -176,7 +176,10 @@ class _BundleTile extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Row(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
                         formatNumber(full, lang),
@@ -185,7 +188,6 @@ class _BundleTile extends ConsumerWidget {
                           color: AppColors.muted,
                         ),
                       ),
-                      const SizedBox(width: 8),
                       CurrencyChip(amount: bundle.coins, gem: false),
                     ],
                   ),
