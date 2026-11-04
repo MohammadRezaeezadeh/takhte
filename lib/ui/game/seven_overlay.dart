@@ -454,7 +454,7 @@ class CardReveal extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    context.l10n.opponentChose(who, def.name(context.lang)),
+                    context.l10n.opponentChose(def.name(context.lang), who),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(

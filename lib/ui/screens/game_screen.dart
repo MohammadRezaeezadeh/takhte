@@ -790,10 +790,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             ),
           ),
         for (final e in _emotes.entries)
-          Positioned(
+          PositionedDirectional(
             top: e.key == local ? null : 8,
             bottom: e.key == local ? 60 : null,
-            left: 16,
+            start: 16,
             child: TweenAnimationBuilder<double>(
               key: ValueKey('${e.key}${e.value}'),
               tween: Tween(begin: 0.6, end: 1),
@@ -831,14 +831,27 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           ),
         if (_reveal != null)
           Positioned(
-            bottom: 12,
-            left: 16,
-            right: 16,
+            top: 60,
+            left: 12,
+            right: 12,
             child: Center(
-              child: CardReveal(
-                who: _reveal!.$1,
-                cardId: _reveal!.$2,
-                frameId: eq[ItemType.cardFrame]!,
+              child: TweenAnimationBuilder<double>(
+                key: ValueKey(_reveal),
+                tween: Tween(begin: 0, end: 1),
+                duration: const Duration(milliseconds: 280),
+                curve: Curves.easeOutBack,
+                builder: (_, v, child) => Opacity(
+                  opacity: v.clamp(0, 1),
+                  child: Transform.translate(
+                    offset: Offset(0, (1 - v) * -30),
+                    child: child,
+                  ),
+                ),
+                child: CardReveal(
+                  who: _reveal!.$1,
+                  cardId: _reveal!.$2,
+                  frameId: eq[ItemType.cardFrame]!,
+                ),
               ),
             ),
           ),
