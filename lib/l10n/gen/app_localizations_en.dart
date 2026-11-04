@@ -893,4 +893,51 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get attuneCardDesc =>
       'Choose a card: it appears three times as often in your 7–7 offers this journey.';
+
+  @override
+  String cubeExplain(int value, int current) {
+    return 'Your opponent wants this game to count double ($value points). Accept to keep playing for $value, or decline and lose $current now.';
+  }
+
+  @override
+  String get help => 'How to read the board';
+
+  @override
+  String get helpDice =>
+      'Dice: tap to roll. Used dice dim in place. 7–7 opens a card offer.';
+
+  @override
+  String get helpPips =>
+      'Player panel: name, pips left to bear off (lower is better) and checkers already off.';
+
+  @override
+  String get helpBar =>
+      'Bar (middle): hit checkers wait here and must re-enter before anything else moves.';
+
+  @override
+  String get helpOff =>
+      'Tray (side): borne-off checkers. All 15 there wins the game.';
+
+  @override
+  String get helpCube =>
+      'Doubling cube: the current stakes. Only in matches with the cube switched on.';
+
+  @override
+  String get helpSeven =>
+      '7–7: roll it to pick a power card. It gets likelier every turn without one, and it is certain after 12 dry turns.';
+
+  @override
+  String get helpEffects =>
+      'Glowing chips: powers in play, with the turns left. Tap a chip for details.';
+
+  @override
+  String get helpCharges =>
+      'Charges: reroll tokens, Lucky Charms, Ghost Steps and Phoenixes you can still use.';
+
+  @override
+  String get helpButtons =>
+      'Buttons: undo a move, use a reroll token, auto-play the best move, or finish your turn.';
+
+  @override
+  String get helpEmotes => 'Emotes (bottom corner): send a quick reaction.';
 }

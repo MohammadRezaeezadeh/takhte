@@ -1,5 +1,6 @@
 import 'package:haftnard/core/rng/rng.dart';
 import 'package:haftnard/core/rules/board.dart';
+import 'package:haftnard/core/rules/seven_odds.dart';
 import 'package:haftnard/core/rules/types.dart';
 
 /// Turn state machine phases.
@@ -128,7 +129,8 @@ class GameConfig {
   const GameConfig({
     this.mode = GameMode.seven,
     this.seed = 1,
-    this.p7 = 1 / 36,
+    this.p7 = SevenOdds.base,
+    this.sevenPity = true,
     this.cubeEnabled = false,
     this.crawford = false,
     this.offerSize = 3,
@@ -142,6 +144,8 @@ class GameConfig {
     mode: GameMode.values.byName(j['mode']! as String),
     seed: j['seed']! as int,
     p7: (j['p7'] as num?)?.toDouble() ?? 1 / 36,
+    // Saves from before the pity system replay with their original odds.
+    sevenPity: j['sp'] as bool? ?? false,
     cubeEnabled: j['cube'] as bool? ?? false,
     crawford: j['crawford'] as bool? ?? false,
     offerSize: j['offer'] as int? ?? 3,
@@ -160,8 +164,11 @@ class GameConfig {
   final GameMode mode;
   final int seed;
 
-  /// Base chance of the Seven Event per roll.
+  /// Base chance of the Seven Event per own turn (see [SevenOdds]).
   final double p7;
+
+  /// The chance ramps up each dry own turn until a 7–7 is guaranteed.
+  final bool sevenPity;
   final bool cubeEnabled;
 
   /// This game is the Crawford game (no doubling).
@@ -184,6 +191,7 @@ class GameConfig {
     GameMode? mode,
     int? seed,
     double? p7,
+    bool? sevenPity,
     bool? cubeEnabled,
     bool? crawford,
     int? offerSize,
@@ -195,6 +203,7 @@ class GameConfig {
     mode: mode ?? this.mode,
     seed: seed ?? this.seed,
     p7: p7 ?? this.p7,
+    sevenPity: sevenPity ?? this.sevenPity,
     cubeEnabled: cubeEnabled ?? this.cubeEnabled,
     crawford: crawford ?? this.crawford,
     offerSize: offerSize ?? this.offerSize,
@@ -208,6 +217,7 @@ class GameConfig {
     'mode': mode.name,
     'seed': seed,
     'p7': p7,
+    if (sevenPity) 'sp': true,
     'cube': cubeEnabled,
     'crawford': crawford,
     'offer': offerSize,
@@ -342,6 +352,7 @@ class SideInv {
     this.greed = 0,
     this.pity = 0,
     this.sevens = 0,
+    this.dry = 0,
     this.hits = 0,
     this.doubles = 0,
     this.borneFirst = false,
@@ -356,6 +367,7 @@ class SideInv {
     greed: j['gr'] as int? ?? 0,
     pity: j['pi'] as int? ?? 0,
     sevens: j['s'] as int? ?? 0,
+    dry: j['dr'] as int? ?? 0,
     hits: j['h'] as int? ?? 0,
     doubles: j['d'] as int? ?? 0,
     borneFirst: j['bf'] as bool? ?? false,
@@ -380,6 +392,9 @@ class SideInv {
   /// Offers since the last Epic or Legendary (bad-luck protection).
   final int pity;
   final int sevens;
+
+  /// Own turns in a row without a 7–7 (drives the pity ramp).
+  final int dry;
   final int hits;
   final int doubles;
   final bool borneFirst;
@@ -398,6 +413,7 @@ class SideInv {
     int? greed,
     int? pity,
     int? sevens,
+    int? dry,
     int? hits,
     int? doubles,
     bool? borneFirst,
@@ -410,6 +426,7 @@ class SideInv {
     greed: greed ?? this.greed,
     pity: pity ?? this.pity,
     sevens: sevens ?? this.sevens,
+    dry: dry ?? this.dry,
     hits: hits ?? this.hits,
     doubles: doubles ?? this.doubles,
     borneFirst: borneFirst ?? this.borneFirst,
@@ -424,6 +441,7 @@ class SideInv {
     if (greed != 0) 'gr': greed,
     if (pity != 0) 'pi': pity,
     if (sevens != 0) 's': sevens,
+    if (dry != 0) 'dr': dry,
     if (hits != 0) 'h': hits,
     if (doubles != 0) 'd': doubles,
     if (borneFirst) 'bf': true,

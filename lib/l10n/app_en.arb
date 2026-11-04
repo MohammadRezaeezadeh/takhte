@@ -457,5 +457,27 @@
     }
   },
   "attuneCard": "Attune a card",
-  "attuneCardDesc": "Choose a card: it appears three times as often in your 7–7 offers this journey."
+  "attuneCardDesc": "Choose a card: it appears three times as often in your 7–7 offers this journey.",
+  "cubeExplain": "Your opponent wants this game to count double ({value} points). Accept to keep playing for {value}, or decline and lose {current} now.",
+  "help": "How to read the board",
+  "helpDice": "Dice: tap to roll. Used dice dim in place. 7–7 opens a card offer.",
+  "helpPips": "Player panel: name, pips left to bear off (lower is better) and checkers already off.",
+  "helpBar": "Bar (middle): hit checkers wait here and must re-enter before anything else moves.",
+  "helpOff": "Tray (side): borne-off checkers. All 15 there wins the game.",
+  "helpCube": "Doubling cube: the current stakes. Only in matches with the cube switched on.",
+  "helpSeven": "7–7: roll it to pick a power card. It gets likelier every turn without one, and it is certain after 12 dry turns.",
+  "helpEffects": "Glowing chips: powers in play, with the turns left. Tap a chip for details.",
+  "helpCharges": "Charges: reroll tokens, Lucky Charms, Ghost Steps and Phoenixes you can still use.",
+  "helpButtons": "Buttons: undo a move, use a reroll token, auto-play the best move, or finish your turn.",
+  "helpEmotes": "Emotes (bottom corner): send a quick reaction.",
+  "@cubeExplain": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      },
+      "current": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -202,8 +202,8 @@ const List<CardDef> kCards = [
     id: CardId.doubleDown,
     rarity: Rarity.epic,
     category: CardCategory.dice,
-    nameEn: 'Double Down',
-    nameFa: 'دوبل',
+    nameEn: 'Roll Again',
+    nameFa: 'تاس دوباره',
     descEn: 'Roll twice this turn and play both rolls.',
     descFa: 'این نوبت دو بار تاس بریز و هر دو را بازی کن.',
     glyph: 1,
@@ -225,8 +225,7 @@ const List<CardDef> kCards = [
     nameEn: 'Second Chance',
     nameFa: 'بخت دوباره',
     descEn: 'Gain a reroll token. Use it on any future roll before moving.',
-    descFa:
-        'یک ژتون تاس دوباره بگیر؛ پیش از حرکت در هر نوبتی قابل استفاده است.',
+    descFa: 'یک ژتون تکرار تاس بگیر؛ پیش از حرکت در هر نوبتی قابل استفاده است.',
     glyph: 3,
   ),
   CardDef(
@@ -316,7 +315,7 @@ const List<CardDef> kCards = [
     nameEn: 'Thief',
     nameFa: 'دزد',
     descEn: "Steal one of your opponent's stored charges. If they have none, gain a reroll token.",
-    descFa: 'یکی از توانایی‌های ذخیرهٔ حریف را بدزد؛ اگر چیزی نداشت، یک ژتون تاس دوباره بگیر.',
+    descFa: 'یکی از توانایی‌های ذخیرهٔ حریف را بدزد؛ اگر چیزی نداشت، یک ژتون تکرار تاس بگیر.',
     glyph: 11,
   ),
   // CHECKER POWERS
@@ -431,7 +430,7 @@ const List<CardDef> kCards = [
     descFa: 'اگر همهٔ مهره‌هایت در خانه باشند، فوراً دو مهره را خارج کن.',
     drawbackEn:
         'The pact is paid in blood: your opponent gains a reroll token.',
-    drawbackFa: 'بهای پیمان: حریف یک ژتون تاس دوباره می‌گیرد.',
+    drawbackFa: 'بهای پیمان: حریف یک ژتون تکرار تاس می‌گیرد.',
     glyph: 21,
   ),
   CardDef(
@@ -477,7 +476,7 @@ const List<CardDef> kCards = [
     nameEn: 'Bazaar Bargain',
     nameFa: 'چانه‌زنی بازار',
     descEn: 'Gain a reroll token and a Lucky Charm.',
-    descFa: 'یک ژتون تاس دوباره و یک طلسم بخت بگیر.',
+    descFa: 'یک ژتون تکرار تاس و یک طلسم بخت بگیر.',
     drawbackEn:
         'A bargain cuts both ways: your opponent gains a Lucky Charm too.',
     drawbackFa: 'معامله دوطرفه است: حریف هم یک طلسم بخت می‌گیرد.',
@@ -644,7 +643,7 @@ const List<CardDef> kCards = [
     nameEn: 'Silk Purse',
     nameFa: 'کیسهٔ ابریشم',
     descEn: 'Gain two reroll tokens.',
-    descFa: 'دو ژتون تاس دوباره بگیر.',
+    descFa: 'دو ژتون تکرار تاس بگیر.',
     glyph: 41,
   ),
   CardDef(
@@ -676,7 +675,7 @@ const List<CardDef> kCards = [
     nameFa: 'جیب‌بر',
     descEn: "Steal all of your opponent's reroll tokens. If they have none, gain a Lucky Charm.",
     descFa:
-        'همهٔ ژتون‌های تاس دوبارهٔ حریف را بدزد؛ اگر نداشت، یک طلسم بخت بگیر.',
+        'همهٔ ژتون‌های تکرار تاسِ حریف را بدزد؛ اگر نداشت، یک طلسم بخت بگیر.',
     glyph: 44,
   ),
   CardDef(
@@ -772,7 +771,7 @@ const List<CardDef> kCards = [
     nameEn: 'Rally',
     nameFa: 'تجدید قوا',
     descEn: 'If you trail by 20+ pips, roll again this turn; otherwise gain a reroll token.',
-    descFa: 'اگر ۲۰ خانه یا بیشتر عقبی، این نوبت دوباره تاس بریز؛ وگرنه یک ژتون تاس دوباره بگیر.',
+    descFa: 'اگر ۲۰ خانه یا بیشتر عقبی، این نوبت دوباره تاس بریز؛ وگرنه یک ژتون تکرار تاس بگیر.',
     glyph: 53,
   ),
   CardDef(
@@ -835,7 +834,7 @@ const List<CardDef> kCards = [
     nameEn: 'Double Agent',
     nameFa: 'جاسوس دوجانبه',
     descEn: 'Copy the last card your opponent took (if it needs no target). Otherwise gain a reroll token.',
-    descFa: 'آخرین کارتی را که حریف برداشته (اگر هدف نخواهد) برای خودت تکرار کن؛ وگرنه یک ژتون تاس دوباره بگیر.',
+    descFa: 'آخرین کارتی را که حریف برداشته (اگر هدف نخواهد) برای خودت تکرار کن؛ وگرنه یک ژتون تکرار تاس بگیر.',
     glyph: 59,
   ),
   CardDef(
@@ -855,7 +854,7 @@ const List<CardDef> kCards = [
     nameEn: 'Caravan',
     nameFa: 'کاروان',
     descEn: 'Gain a reroll token and a Lucky Charm.',
-    descFa: 'یک ژتون تاس دوباره و یک «طلسم بخت» بگیر.',
+    descFa: 'یک ژتون تکرار تاس و یک «طلسم بخت» بگیر.',
     glyph: 61,
   ),
   CardDef(
@@ -905,7 +904,7 @@ const List<CardDef> kCards = [
     nameEn: 'Royal Treasury',
     nameFa: 'خزانهٔ شاهی',
     descEn: 'Gain two reroll tokens and a Phoenix.',
-    descFa: 'دو ژتون تاس دوباره و یک «ققنوس» بگیر.',
+    descFa: 'دو ژتون تکرار تاس و یک «ققنوس» بگیر.',
     glyph: 69,
   ),
   CardDef(
@@ -986,7 +985,7 @@ const List<CardDef> kCards = [
     nameEn: 'Bandit',
     nameFa: 'راهزن',
     descEn: "Steal one of your opponent's charges (or gain a reroll), and their next 7–7 shows one card fewer.",
-    descFa: 'یکی از ژتون‌های حریف را بدزد (یا یک تاس دوباره بگیر) و هفت‌هفت بعدی‌اش یک کارت کمتر دارد.',
+    descFa: 'یکی از ژتون‌های حریف را بدزد (یا یک ژتون تکرار تاس بگیر) و هفت‌هفت بعدی‌اش یک کارت کمتر دارد.',
     glyph: 74,
   ),
   CardDef(
@@ -1032,7 +1031,7 @@ const List<CardDef> kCards = [
     nameEn: 'Pilgrimage',
     nameFa: 'زیارت',
     descEn: 'Gain a reroll token, and your next 7–7 shows one extra card.',
-    descFa: 'یک ژتون تاس دوباره بگیر و هفت‌هفت بعدی‌ات یک کارت اضافه دارد.',
+    descFa: 'یک ژتون تکرار تاس بگیر و هفت‌هفت بعدی‌ات یک کارت اضافه دارد.',
     glyph: 78,
   ),
   CardDef(

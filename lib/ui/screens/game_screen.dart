@@ -20,6 +20,7 @@ import 'package:haftnard/game/scene/board_game.dart';
 import 'package:haftnard/meta/cosmetics.dart';
 import 'package:haftnard/meta/meta_state.dart';
 import 'package:haftnard/ui/app.dart';
+import 'package:haftnard/ui/game/board_help.dart';
 import 'package:haftnard/ui/game/hud.dart';
 import 'package:haftnard/ui/game/overlays.dart';
 import 'package:haftnard/ui/game/seven_overlay.dart';
@@ -791,6 +792,18 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             icon: Icons.pause,
             tooltip: context.l10n.paused,
             onPressed: () => unawaited(_pause()),
+          ),
+        ),
+        PositionedDirectional(
+          top: 6,
+          end: 58,
+          child: JewelIconButton(
+            key: const ValueKey('board-help'),
+            icon: Icons.question_mark,
+            tooltip: context.l10n.help,
+            onPressed: () => unawaited(
+              showBoardHelp(context, cube: ctrl.state.config.cubeEnabled),
+            ),
           ),
         ),
         if (widget.tutorial == null)

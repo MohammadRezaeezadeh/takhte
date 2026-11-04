@@ -1,5 +1,6 @@
 import 'package:haftnard/core/rng/rng.dart';
 import 'package:haftnard/core/rules/record.dart';
+import 'package:haftnard/core/rules/seven_odds.dart';
 import 'package:haftnard/core/rules/state.dart';
 import 'package:haftnard/core/rules/types.dart';
 
@@ -10,7 +11,8 @@ class MatchConfig {
     this.length = 1,
     this.cubeEnabled = false,
     this.seed = 1,
-    this.p7 = 1 / 36,
+    this.p7 = SevenOdds.base,
+    this.sevenPity = true,
     this.cardPool,
     this.white = SideMods.none,
     this.black = SideMods.none,
@@ -22,6 +24,7 @@ class MatchConfig {
     cubeEnabled: j['cube'] as bool? ?? false,
     seed: j['seed']! as int,
     p7: (j['p7'] as num?)?.toDouble() ?? 1 / 36,
+    sevenPity: j['sp'] as bool? ?? false,
     cardPool: (j['pool'] as List<Object?>?)?.cast<String>(),
     white: SideMods.fromJson(
       ((j['wm'] as Map?) ?? const {}).cast<String, Object?>(),
@@ -36,6 +39,7 @@ class MatchConfig {
   final bool cubeEnabled;
   final int seed;
   final double p7;
+  final bool sevenPity;
   final List<String>? cardPool;
   final SideMods white;
   final SideMods black;
@@ -46,6 +50,7 @@ class MatchConfig {
     'cube': cubeEnabled,
     'seed': seed,
     'p7': p7,
+    if (sevenPity) 'sp': true,
     if (cardPool != null) 'pool': cardPool,
     'wm': white.toJson(),
     'bm': black.toJson(),
@@ -102,6 +107,7 @@ class MatchState {
     mode: config.mode,
     seed: deriveSeed(config.seed, index),
     p7: config.p7,
+    sevenPity: config.sevenPity,
     cubeEnabled: config.cubeEnabled && config.length > 1,
     crawford: crawford,
     cardPool: config.cardPool,

@@ -265,6 +265,8 @@ class CubeOfferPanel extends StatelessWidget {
     super.key,
   });
   final String name;
+
+  /// Stakes if accepted; declining loses half of this now.
   final int value;
   final VoidCallback onTake;
   final VoidCallback onDrop;
@@ -301,6 +303,19 @@ class CubeOfferPanel extends StatelessWidget {
               l.doubleOffered(name, value),
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 18),
+            ),
+            const SizedBox(height: 8),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 300),
+              child: Text(
+                l.cubeExplain(value, value ~/ 2),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 13,
+                  height: 1.5,
+                  color: AppColors.muted,
+                ),
+              ),
             ),
             const SizedBox(height: 14),
             Row(

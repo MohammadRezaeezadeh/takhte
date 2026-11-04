@@ -521,11 +521,15 @@ class ActionBar extends StatelessWidget {
       default:
         break;
     }
+    // Scales down instead of overflowing on narrow phones.
     return SizedBox(
       height: 64,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: leftHanded ? buttons.reversed.toList() : buttons,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: leftHanded ? buttons.reversed.toList() : buttons,
+        ),
       ),
     );
   }

@@ -1543,6 +1543,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose a card: it appears three times as often in your 7–7 offers this journey.'**
   String get attuneCardDesc;
+
+  /// No description provided for @cubeExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Your opponent wants this game to count double ({value} points). Accept to keep playing for {value}, or decline and lose {current} now.'**
+  String cubeExplain(int value, int current);
+
+  /// No description provided for @help.
+  ///
+  /// In en, this message translates to:
+  /// **'How to read the board'**
+  String get help;
+
+  /// No description provided for @helpDice.
+  ///
+  /// In en, this message translates to:
+  /// **'Dice: tap to roll. Used dice dim in place. 7–7 opens a card offer.'**
+  String get helpDice;
+
+  /// No description provided for @helpPips.
+  ///
+  /// In en, this message translates to:
+  /// **'Player panel: name, pips left to bear off (lower is better) and checkers already off.'**
+  String get helpPips;
+
+  /// No description provided for @helpBar.
+  ///
+  /// In en, this message translates to:
+  /// **'Bar (middle): hit checkers wait here and must re-enter before anything else moves.'**
+  String get helpBar;
+
+  /// No description provided for @helpOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Tray (side): borne-off checkers. All 15 there wins the game.'**
+  String get helpOff;
+
+  /// No description provided for @helpCube.
+  ///
+  /// In en, this message translates to:
+  /// **'Doubling cube: the current stakes. Only in matches with the cube switched on.'**
+  String get helpCube;
+
+  /// No description provided for @helpSeven.
+  ///
+  /// In en, this message translates to:
+  /// **'7–7: roll it to pick a power card. It gets likelier every turn without one, and it is certain after 12 dry turns.'**
+  String get helpSeven;
+
+  /// No description provided for @helpEffects.
+  ///
+  /// In en, this message translates to:
+  /// **'Glowing chips: powers in play, with the turns left. Tap a chip for details.'**
+  String get helpEffects;
+
+  /// No description provided for @helpCharges.
+  ///
+  /// In en, this message translates to:
+  /// **'Charges: reroll tokens, Lucky Charms, Ghost Steps and Phoenixes you can still use.'**
+  String get helpCharges;
+
+  /// No description provided for @helpButtons.
+  ///
+  /// In en, this message translates to:
+  /// **'Buttons: undo a move, use a reroll token, auto-play the best move, or finish your turn.'**
+  String get helpButtons;
+
+  /// No description provided for @helpEmotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Emotes (bottom corner): send a quick reaction.'**
+  String get helpEmotes;
 }
 
 class _AppLocalizationsDelegate

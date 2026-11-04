@@ -6,6 +6,7 @@ import 'package:haftnard/core/rules/actions.dart';
 import 'package:haftnard/core/rules/board.dart';
 import 'package:haftnard/core/rules/events.dart';
 import 'package:haftnard/core/rules/move_gen.dart';
+import 'package:haftnard/core/rules/seven_odds.dart';
 import 'package:haftnard/core/rules/state.dart';
 import 'package:haftnard/core/rules/types.dart';
 
@@ -476,8 +477,15 @@ abstract final class Engine {
     final plan = _plan(tx);
     final bonus = tx.rollsThisTurn > 0;
     if (tx.config.sevenEnabled && !tx.sevenUsed && !bonus) {
-      final p = (tx.config.p7 * plan.p7Multiplier).clamp(0.0, 1.0);
-      if (tx.rng.nextDouble() < p) {
+      final dry = tx.inv(tx.current).dry;
+      final odds = tx.config.sevenPity
+          ? SevenOdds.chance(dry, base: tx.config.p7)
+          : tx.config.p7;
+      final p = (odds * plan.p7Multiplier).clamp(0.0, 1.0);
+      final seven = tx.rng.nextDouble() < p;
+      final inv0 = tx.inv(tx.current);
+      tx.setInv(tx.current, inv0.copyWith(dry: seven ? 0 : inv0.dry + 1));
+      if (seven) {
         tx.sevenUsed = true;
         tx.rolled = [7, 7];
         tx.dice = [];

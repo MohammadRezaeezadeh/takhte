@@ -290,7 +290,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get fateTitle => 'دست تقدیر: روی تاسی بزن تا تغییرش دهی';
 
   @override
-  String get useReroll => 'تاس دوباره';
+  String get useReroll => 'تکرار تاس';
 
   @override
   String get useLucky => '+۱';
@@ -800,7 +800,7 @@ class AppLocalizationsFa extends AppLocalizations {
   }
 
   @override
-  String get itemReroll => 'تاس دوباره';
+  String get itemReroll => 'ژتون تکرار تاس';
 
   @override
   String get itemLucky => 'طلسم بخت';
@@ -896,4 +896,51 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get attuneCardDesc =>
       'کارتی را انتخاب کن تا در این سفر سه برابر بیشتر در پیشنهادهای هفت‌هفت تو بیاید.';
+
+  @override
+  String cubeExplain(int value, int current) {
+    return 'حریف می‌خواد امتیاز این دست دوبرابر بشه ($value امتیاز). قبول کنی بازی روی $value ادامه پیدا می‌کنه؛ رد کنی همین الان $current امتیاز می‌بازی.';
+  }
+
+  @override
+  String get help => 'راهنمای صفحه';
+
+  @override
+  String get helpDice =>
+      'تاس‌ها: بزن تا بریزی. تاس استفاده‌شده همان‌جا کم‌رنگ می‌شود. هفت‌هفت پیشنهاد کارت باز می‌کند.';
+
+  @override
+  String get helpPips =>
+      'پنل بازیکن: نام، خانه‌های باقی‌مانده تا خروج (کمتر بهتر است) و مهره‌های خارج‌شده.';
+
+  @override
+  String get helpBar =>
+      'بار (وسط تخته): مهره‌های زده‌شده این‌جا منتظرند و اول باید وارد بازی شوند.';
+
+  @override
+  String get helpOff =>
+      'سینی کنار: مهره‌های خارج‌شده. هر ۱۵ مهره که آن‌جا برسد بازی را برده‌ای.';
+
+  @override
+  String get helpCube =>
+      'تاس دوبل: ارزش فعلی این دست. فقط در مسابقه‌هایی که دوبل روشن است.';
+
+  @override
+  String get helpSeven =>
+      'هفت‌هفت: با آوردنش یک کارت قدرت انتخاب می‌کنی. هر نوبت بدون آن احتمالش بیشتر می‌شود و بعد از ۱۲ نوبت حتماً می‌آید.';
+
+  @override
+  String get helpEffects =>
+      'نشان‌های درخشان: قدرت‌های فعال با تعداد نوبت باقی‌مانده. برای جزئیات رویشان بزن.';
+
+  @override
+  String get helpCharges =>
+      'ژتون‌ها: تکرار تاس، طلسم بخت، گام شبح و ققنوس‌هایی که هنوز داری.';
+
+  @override
+  String get helpButtons =>
+      'دکمه‌ها: برگرداندن حرکت، استفاده از ژتون تکرار تاس، بهترین حرکت خودکار و پایان نوبت.';
+
+  @override
+  String get helpEmotes => 'شکلک‌ها (گوشهٔ پایین): یک واکنش سریع بفرست.';
 }
