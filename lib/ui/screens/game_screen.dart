@@ -197,6 +197,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   void _persist(MatchController c) {
+    if (!mounted) return;
     if (session.origin == 'tutorial') return;
     if (widget.persistOverride != null) {
       widget.persistOverride!(session);
@@ -206,6 +207,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   void _onGameFinished(MatchController c, GameRecord finished, GameState end) {
+    if (!mounted) return;
     _meta.saveLastRecord(finished.toJson());
     final humans = {
       for (final s in Side.values)

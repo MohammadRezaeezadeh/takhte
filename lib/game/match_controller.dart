@@ -248,9 +248,11 @@ class MatchController extends ChangeNotifier {
     } finally {
       _busy = false;
     }
+    // The screen may have closed while the step animated (Back mid-turn).
+    if (_disposed) return;
     if (state.isOver) _finishGame();
     onPersist?.call(this);
-    if (!_disposed) notifyListeners();
+    notifyListeners();
   }
 
   void _finishGame() {

@@ -18,6 +18,8 @@ import 'package:haftnard/game/match_controller.dart';
 import 'package:haftnard/game/scene/environment.dart';
 import 'package:haftnard/game/scene/fx.dart';
 import 'package:haftnard/game/scene/paragraph_cache.dart';
+import 'package:haftnard/game/scene/power_layer.dart';
+import 'package:haftnard/game/scene/power_visuals.dart';
 import 'package:haftnard/game/themes/board_themes.dart';
 import 'package:haftnard/game/themes/pieces.dart';
 import 'package:meta/meta.dart';
@@ -255,6 +257,18 @@ class BoardGame extends FlameGame implements MatchPresenter {
   Set<int> previewPoints = {};
   ({Side side, String label, Color color})? previewDice;
 
+  /// For the power layer: what is on screen, and where a point's checkers
+  /// are drawn (bottom to top).
+  GameState? get shownState => _shown;
+  bool get persianDigits => _cfg.persianDigits;
+  bool get reducedMotion => _cfg.reducedMotion;
+  double get time => _time;
+  List<Offset> checkerPositionsAt(int abs) => [
+    for (final c in _stacks[PointSlot(abs)] ?? const <_Chk>[]) c.pos,
+  ];
+
+  late final PowerLayer power;
+
   /// Test hook: is a card preview currently drawn?
   bool get debugPreviewing => previewPoints.isNotEmpty || previewDice != null;
 
@@ -279,6 +293,8 @@ class BoardGame extends FlameGame implements MatchPresenter {
     layout = BoardLayout(size.toSize(), homeOnRight: _cfg.homeOnRight);
     await add(env);
     await add(_SceneLayer(this)..priority = 10);
+    power = PowerLayer(this)..priority = 20;
+    await add(power);
     await add(fx);
     await add(_InputLayer(this)..priority = 100);
     _rebuild();
@@ -635,6 +651,7 @@ class BoardGame extends FlameGame implements MatchPresenter {
         case TurnStarted():
           // The opening dice stay on the board as the starter's roll.
           if (!_keepOpeningDice) _dice.clear();
+          _ghosts.clear();
         case GameEnded(:final winner):
           await Future<void>.delayed(
             Duration(milliseconds: (300 / _speed).round()),
@@ -655,6 +672,10 @@ class BoardGame extends FlameGame implements MatchPresenter {
     // Reconcile anything not explicitly animated (Blood Pact, resyncs).
     resync(after);
     env.mood = _mood(after);
+    // Show, don't tell: every power that appeared, fired or ended this step.
+    power.play(
+      PowerVisuals.moments(before, after, events, viewer: controller.localSide),
+    );
   }
 
   double _mood(GameState s) {
@@ -768,17 +789,30 @@ class BoardGame extends FlameGame implements MatchPresenter {
     final st = controller.state;
     final isDouble = raw.length == 2 && raw[0] == raw[1];
     final four = isDouble && st.dice.length + st.movesThisRoll.length == 4;
-    final slots = _diceSlots(side, raw.length);
+    final active = {
+      for (final e in st.effects)
+        if (e.affected == side && e.isActive(st.turnNumber)) e.kind,
+    };
+    // Broken Die: a second die is thrown too, and shatters on landing.
+    final doomed = raw.length == 1 && active.contains(EffectKind.brokenDie);
+    final slots = _diceSlots(side, doomed ? 2 : raw.length);
+    final shownFirst = _unmodifiedFaces(st, side, raw);
+    _ghosts.clear();
     _diceAnimating = true;
     try {
       _dice
         ..clear()
         ..addAll([
           for (var i = 0; i < raw.length; i++)
-            _Die(raw[i], _diceStart(side))..target = slots[i],
+            _Die(shownFirst[i], _diceStart(side))..target = slots[i],
+          if (doomed)
+            _Die(_rng.nextInt(6) + 1, _diceStart(side))..target = slots[1],
         ]);
       await _tumble(_dice, (_cfg.reducedMotion ? 0.3 : 0.72) / _speed);
+      if (doomed && isMounted) await _shatterLast();
+      if (isMounted) await _applyModifiers(raw, shownFirst);
       if (four && isMounted) await _cloneDouble(side);
+      if (isDouble && !four && isMounted) _cancelledDouble(side, raw[0]);
     } finally {
       _diceAnimating = false;
     }
@@ -802,6 +836,119 @@ class BoardGame extends FlameGame implements MatchPresenter {
       }
     }
   }
+
+  /// Translucent, crossed-out twins of a double that did not count.
+  final List<({int value, Offset pos})> _ghosts = [];
+
+  /// Faces to land on before visible dice modifiers act: a halved 3 lands
+  /// as a 6 and drains, a capped die lands higher and is pressed down, wind
+  /// shifts by one. The engine only reports final values; these faces show
+  /// what the power did.
+  List<int> _unmodifiedFaces(GameState st, Side side, List<int> raw) {
+    final active = [
+      for (final e in st.effects)
+        if (e.affected == side && e.isActive(st.turnNumber)) e,
+    ];
+    bool has(EffectKind k) => active.any((e) => e.kind == k);
+    final cap = active
+        .where((e) => e.kind == EffectKind.curse)
+        .map((e) => e.count > 0 ? e.count : 4)
+        .fold<int>(7, math.min);
+    final head = has(EffectKind.headwind) && !has(EffectKind.tailwind);
+    final tail = has(EffectKind.tailwind) && !has(EffectKind.headwind);
+    return [
+      for (final v in raw)
+        if (has(EffectKind.halveDice) && v <= 3)
+          math.min(6, v * 2)
+        else if (cap < 6 && v == cap)
+          cap + 1 + _rng.nextInt(6 - cap)
+        else if (head && v < 6)
+          v + 1
+        else if (tail && v > 1)
+          v - 1
+        else
+          v,
+    ];
+  }
+
+  Future<void> _applyModifiers(List<int> raw, List<int> first) async {
+    var changed = false;
+    for (var i = 0; i < raw.length && i < _dice.length; i++) {
+      if (first[i] != raw[i]) changed = true;
+    }
+    if (!changed) return;
+    await Future<void>.delayed(Duration(milliseconds: (280 / _speed).round()));
+    if (!isMounted) return;
+    for (var i = 0; i < raw.length && i < _dice.length; i++) {
+      final from = first[i];
+      final to = raw[i];
+      if (from == to) continue;
+      final d = _dice[i]..value = to;
+      final down = to < from;
+      fx
+        ..burst(
+          d.pos,
+          color: down ? const Color(0xFF7A3FB8) : const Color(0xFF7CF29A),
+          count: 16,
+          kind: ParticleKind.smoke,
+          gravity: down ? 60 : -60,
+          size: 5,
+          life: 0.8,
+        )
+        ..popup(
+          '${down ? '' : '+'}${to - from}',
+          d.pos.translate(0, -layout.dieSize),
+          color: down ? const Color(0xFFFF8A8A) : const Color(0xFF7CF29A),
+          size: 20,
+        );
+    }
+    Sfx.instance.play('magic', rate: 0.6);
+  }
+
+  Future<void> _shatterLast() async {
+    await Future<void>.delayed(Duration(milliseconds: (220 / _speed).round()));
+    if (!isMounted || _dice.length < 2) return;
+    final d = _dice.removeLast();
+    fx
+      ..burst(d.pos, color: dieStyle.face, count: 28, speed: 260, size: 3.5)
+      ..ring(d.pos, const Color(0xFFFF8A8A), size: layout.dieSize * 1.6);
+    Sfx.instance
+      ..play('hit', rate: 1.6)
+      ..haptic(HapticKind.medium);
+    debugShattered++;
+  }
+
+  void _cancelledDouble(Side side, int value) {
+    final slots = _diceSlots(side, 4);
+    _ghosts
+      ..clear()
+      ..add((value: value, pos: slots[0]))
+      ..add((value: value, pos: slots[3]));
+    for (final p in [slots[0], slots[3]]) {
+      fx.burst(
+        p,
+        color: const Color(0xFFCFD8DC),
+        count: 10,
+        kind: ParticleKind.smoke,
+        gravity: -10,
+        size: 9,
+        life: 1.4,
+      );
+    }
+    fx.popup(
+      _cfg.persianDigits ? 'جفت حساب نشد' : 'No doubles!',
+      layout.diceCenter(side).translate(0, -layout.dieSize * 1.3),
+      color: const Color(0xFFCFD8DC),
+      size: 20,
+    );
+    Sfx.instance.play('card_whoosh', rate: 0.5);
+  }
+
+  /// Test hooks: ghost dice of a cancelled double; Broken Die shatters.
+  @visibleForTesting
+  int get debugGhostDice => _ghosts.length;
+  @visibleForTesting
+  int debugShattered = 0;
 
   /// A beat after a double lands, two twins split out of the landed dice.
   Future<void> _cloneDouble(Side side) async {
@@ -866,26 +1013,99 @@ class BoardGame extends FlameGame implements MatchPresenter {
     }
   }
 
+  /// 7–7s seen this session: after the first few the build-up is shorter.
+  static int _sevensSeen = 0;
+
+  /// Set by a tap during the 7–7 build-up to skip the rest of it.
+  bool _skipSeven = false;
+  bool _inSeven = false;
+
+  /// Test hook: is the 7–7 cinematic running?
+  @visibleForTesting
+  bool get debugSevenCinematic => _inSeven;
+
+  Future<void> _wait(double seconds) async {
+    final ms = (seconds * 1000 / _speed).round();
+    for (var t = 0; t < ms && !_skipSeven; t += 16) {
+      await Future<void>.delayed(const Duration(milliseconds: 16));
+      if (!isMounted) return;
+    }
+  }
+
+  /// The Double Seven moment: a slow-motion throw, the dice hover, wobble
+  /// and glow, then slam down with a burst of light, the fanfare, the
+  /// environment flaring, a screen shake and a haptic pattern. ~2.7 s the
+  /// first time; shorter later; a tap skips to the end.
   Future<void> _rollSeven(Side side) async {
-    final slots = _diceSlots(side, 2);
-    _dice
-      ..clear()
-      ..addAll([for (final s in slots) _Die(7, _diceStart(side))..target = s]);
-    await _tumble(_dice, 0.7 / _speed);
-    for (final d in _dice) {
-      d.value = 7;
+    final fast = _sevensSeen >= 3 || _cfg.reducedMotion;
+    _sevensSeen++;
+    _skipSeven = false;
+    _inSeven = true;
+    try {
+      final k = fast ? 0.6 : 1.0;
+      final slots = _diceSlots(side, 2);
+      _dice
+        ..clear()
+        ..addAll([
+          for (final s in slots) _Die(7, _diceStart(side))..target = s,
+        ]);
+      await _tumble(_dice, 0.9 * k / _speed);
+      if (!isMounted) return;
+      // Hover: the dice rise, wobble and glow before the final landing.
+      Sfx.instance.play('card_whoosh', rate: 1.5);
+      Sfx.instance.haptic(HapticKind.light);
+      final hoverMs = (700 * k / _speed).round();
+      for (var t = 0; t < hoverMs && !_skipSeven; t += 16) {
+        await Future<void>.delayed(const Duration(milliseconds: 16));
+        if (!isMounted) return;
+        final f = t / hoverMs;
+        for (var i = 0; i < _dice.length; i++) {
+          final d = _dice[i];
+          d
+            ..pos = d.target.translate(
+              0,
+              -layout.dieSize * 0.5 * math.sin(f * math.pi),
+            )
+            ..angle = d.tilt + math.sin(f * 30 + i) * 0.18 * (1 - f)
+            ..t = 0.99;
+        }
+        if (t % 160 < 16) {
+          for (final d in _dice) {
+            fx.burst(d.pos, count: 4, speed: 60, gravity: -30, life: 0.5);
+          }
+        }
+      }
+      for (final d in _dice) {
+        d
+          ..pos = d.target
+          ..angle = d.tilt
+          ..t = 1;
+      }
+      // Slam.
+      Sfx.instance
+        ..play('seven_fanfare')
+        ..play('hit', rate: 0.7, volume: 0.6)
+        ..haptic(HapticKind.heavy);
+      env.flare = 1;
+      if (!_cfg.reducedMotion) _shake = 8;
+      for (final d in _dice) {
+        fx
+          ..burst(d.pos, count: 50, speed: 360, gravity: 40)
+          ..burst(d.pos, count: 16, kind: ParticleKind.star, gravity: -40)
+          ..ring(d.pos, const Color(0xFFFFD36B), size: layout.dieSize * 2.4);
+      }
+      fx.flashScreen(const Color(0xFFFFD36B), strength: 0.55);
+      unawaited(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 140));
+        Sfx.instance.haptic(HapticKind.medium);
+        await Future<void>.delayed(const Duration(milliseconds: 140));
+        Sfx.instance.haptic(HapticKind.heavy);
+      }());
+      await _wait(0.9 * k);
+    } finally {
+      _inSeven = false;
+      _skipSeven = false;
     }
-    Sfx.instance.play('seven_fanfare');
-    Sfx.instance.haptic(HapticKind.heavy);
-    env.flare = 1;
-    if (!_cfg.reducedMotion) _shake = 6;
-    for (final d in _dice) {
-      fx
-        ..burst(d.pos, count: 40, speed: 320, gravity: 40)
-        ..ring(d.pos, const Color(0xFFFFD36B), size: layout.dieSize * 2);
-    }
-    fx.flashScreen(const Color(0xFFFFD36B), strength: 0.45);
-    await Future<void>.delayed(Duration(milliseconds: (900 / _speed).round()));
   }
 
   void _syncDice(GameState s) {
@@ -1626,6 +1846,29 @@ class BoardGame extends FlameGame implements MatchPresenter {
   void _renderDice(Canvas c) {
     final s = _shown;
     final sz = layout.dieSize;
+    for (final g in _ghosts) {
+      c.saveLayer(
+        Rect.fromCircle(center: g.pos, radius: sz),
+        Paint()..color = const Color(0x66000000),
+      );
+      paintDie(c, g.pos, sz, g.value, dieStyle);
+      c.restore();
+      final x = Paint()
+        ..strokeWidth = 3
+        ..strokeCap = StrokeCap.round
+        ..color = const Color(0xCCFF6B6B);
+      c
+        ..drawLine(
+          g.pos.translate(-sz * 0.4, -sz * 0.4),
+          g.pos.translate(sz * 0.4, sz * 0.4),
+          x,
+        )
+        ..drawLine(
+          g.pos.translate(sz * 0.4, -sz * 0.4),
+          g.pos.translate(-sz * 0.4, sz * 0.4),
+          x,
+        );
+    }
     for (final d in _dice) {
       paintDie(
         c,
@@ -1677,7 +1920,56 @@ class BoardGame extends FlameGame implements MatchPresenter {
     );
   }
 
+  /// Tapping a frozen checker: it shakes, clinks, and says for how long.
+  bool _frozenFeedback(GameState s, Side side, int abs) {
+    final ice = s.effects.where(
+      (e) =>
+          (e.kind == EffectKind.chains ||
+              e.kind == EffectKind.quicksandFreeze) &&
+          e.affected == side &&
+          e.point == abs,
+    );
+    if (ice.isEmpty) return false;
+    final list = _stacks[PointSlot(abs)];
+    if (list == null || list.isEmpty) return false;
+    final c = list.last;
+    final home = c.pos;
+    unawaited(() async {
+      for (var i = 0; i < 6 && isMounted; i++) {
+        c.pos = home.translate(i.isEven ? 4 : -4, 0);
+        await Future<void>.delayed(const Duration(milliseconds: 35));
+      }
+      c.pos = home;
+    }());
+    final turns = ice.first.turnsLeft;
+    final n = _cfg.persianDigits
+        ? turns
+              .toString()
+              .split('')
+              .map((d) => '۰۱۲۳۴۵۶۷۸۹'[int.parse(d)])
+              .join()
+        : '$turns';
+    fx.popup(
+      _cfg.persianDigits ? 'یخ زده — $n نوبت' : 'Frozen — $n turns',
+      home.translate(0, -layout.checkerR * 1.6),
+      color: const Color(0xFF9FE8FF),
+      size: 18,
+    );
+    Sfx.instance
+      ..play('card_flip', rate: 1.6)
+      ..haptic(HapticKind.light);
+    debugFrozenTaps++;
+    return true;
+  }
+
+  @visibleForTesting
+  int debugFrozenTaps = 0;
+
   void handleTap(Offset p) {
+    if (_inSeven) {
+      _skipSeven = true;
+      return;
+    }
     final s = controller.state;
     if (targetable.isNotEmpty) {
       final hit = layout.hitTest(p);
@@ -1705,6 +1997,9 @@ class BoardGame extends FlameGame implements MatchPresenter {
     final hit = layout.hitTest(p);
     if (hit == null) {
       selectedFrom = null;
+      return;
+    }
+    if (selectedFrom == null && hit > 0 && _frozenFeedback(s, side, hit)) {
       return;
     }
     // Destination for the current selection?

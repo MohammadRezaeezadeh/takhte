@@ -95,3 +95,12 @@ One line per decision: **decision** — reason.
   - HUD chips (both players) explain themselves on tap; delayed effects show as dashed "pending" chips with «نوبت بعد حریف»/«نوبت بعد خودت».
   - The first 7–7 in a profile runs a three-step guide (`Settings.sevenGuideDone`).
   - Not done: the pending chip doesn't literally fly to its target when it fires. The firing is covered by the on-board visuals (section B).
+- **"Show, don't tell" for every power** (`lib/game/scene/power_visuals.dart` maps state to visuals; `power_layer.dart` draws them):
+  - Every active effect has a persistent on-board indicator with a turn counter, at half opacity while pending: ice blocks on chained or stuck checkers, shield bubbles, iron gates, the owner-only mine mark, swirling quicksand, toll posts, a truce flag, and dice-area marks (crack, fog wisps, curse aura, wind arrows, magnet arc, ⊘7, buff sparkles, hourglass, offer ±, mirror).
+  - A distinct moment (particles plus a pitched sound) plays when an effect lands, fires or ends (ice forms or cracks, the mine explodes, tokens fly in…), and for instant cards. Time Stop greys the scene with a clock.
+  - Dice show the effect itself: Broken Die throws a second die that shatters; a cancelled double leaves two crossed-out ghost dice in fog with "No doubles!"; halving, caps and wind land the die on its unmodified face, then drain or shift it to the real value with a −N/+N popup.
+  - Tapping a frozen checker shakes it with an ice clink and «یخ زده — N نوبت».
+  - Tests: per card, a moment fires when it takes effect, an indicator exists for its duration, and it is removed with an expiry moment (80 tests, pure Dart). A real-match widget test checks that drawn indicators equal the live effects on every frame.
+  - The engine reports only final dice values, so the "unmodified" faces are reconstructed to show what the power did.
+- **Double Seven build-up:** slow-motion throw → hover, wobble and glow with a rising whoosh → slam with a gold flash, bursts, fanfare, environment flare, shake and a three-beat haptic (~2.7 s). Tap to skip; after three 7–7s in a session it plays at 60% length.
+- **Fix:** closing the game screen mid-turn no longer touches `ref` after unmount (the controller stops before persisting).
