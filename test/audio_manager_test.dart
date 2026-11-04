@@ -55,6 +55,24 @@ void main() {
     expect(audio.stats.failures, 0);
   });
 
+  test('bear-off burst reuses voices (playtest regression)', () {
+    // Bear-off fires slide + bear_off + pop on every move; this used to
+    // create (and leak) a fresh platform player per sound.
+    final created = backend.voices.length;
+    for (var i = 0; i < 30; i++) {
+      now += 260;
+      audio
+        ..play('slide', volume: 0.5)
+        ..play('bear_off')
+        ..play('pop');
+      expect(audio.activeCount, lessThanOrEqualTo(audio.maxActive));
+    }
+    expect(backend.voices, hasLength(created));
+    final bearOff = backend.voices.where((v) => v.file == 'bear_off.ogg');
+    expect(bearOff, hasLength(1), reason: 'one dedicated bear-off voice');
+    expect(bearOff.single.plays, 30);
+  });
+
   test('per-type cap: at most 3 clacks sound together', () {
     for (var i = 0; i < 10; i++) {
       now += 45; // past the debounce window, inside the clip length

@@ -35,19 +35,27 @@ class _Popup {
   /// layouts own native memory, so they are disposed with the popup.
   TextPainter? _tp;
 
-  TextPainter get painter => _tp ??= TextPainter(
-    text: TextSpan(
-      text: text,
-      style: TextStyle(
-        fontFamily: 'Lalezar',
-        fontSize: size * 1.2,
-        color: color,
-        fontWeight: FontWeight.w700,
-        shadows: const [Shadow(blurRadius: 6, color: Color(0xCC000000))],
+  /// Text layouts built so far (tests: must be one per popup, not per frame).
+  static int debugLayouts = 0;
+
+  TextPainter get painter => _tp ??= _layout();
+
+  TextPainter _layout() {
+    debugLayouts++;
+    return TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          fontFamily: 'Lalezar',
+          fontSize: size * 1.2,
+          color: color,
+          fontWeight: FontWeight.w700,
+          shadows: const [Shadow(blurRadius: 6, color: Color(0xCC000000))],
+        ),
       ),
-    ),
-    textDirection: TextDirection.ltr,
-  )..layout();
+      textDirection: TextDirection.ltr,
+    )..layout();
+  }
 
   void dispose() {
     _tp?.dispose();
@@ -106,6 +114,12 @@ class FxLayer extends Component {
   int get particleCount => _ps.length;
   int get popupCount => _pops.length;
   int get pooledCount => _free.length;
+
+  /// See [_Popup.debugLayouts].
+  static int get debugPopupLayouts => _Popup.debugLayouts;
+
+  /// Popups spawned so far (tests).
+  static int debugPopupsCreated = 0;
 
   void _spawn({
     required Offset pos,
@@ -221,6 +235,7 @@ class FxLayer extends Component {
     Color color = const Color(0xFFFFE9A8),
     double size = 22,
   }) {
+    debugPopupsCreated++;
     if (_pops.length >= maxPopups) _pops.removeAt(0).dispose();
     _pops.add(_Popup(text, at, color, size));
   }

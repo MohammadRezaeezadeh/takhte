@@ -381,6 +381,22 @@ class MatchController extends ChangeNotifier {
   /// Controllers created and not yet disposed (leak checks).
   static int live = 0;
 
+  /// Listeners currently attached (leak checks).
+  int get listenerCount => _listenerCount;
+  int _listenerCount = 0;
+
+  @override
+  void addListener(VoidCallback listener) {
+    _listenerCount++;
+    super.addListener(listener);
+  }
+
+  @override
+  void removeListener(VoidCallback listener) {
+    _listenerCount--;
+    super.removeListener(listener);
+  }
+
   @override
   void dispose() {
     if (!_disposed) live--;

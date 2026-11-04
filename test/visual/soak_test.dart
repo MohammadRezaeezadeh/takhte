@@ -1,6 +1,11 @@
-// Soak test: 30 complete AI-vs-AI matches in one session, each through a
-// fresh GameScreen + Flame scene with the real AudioManager on a fake
-// backend. Object counts and memory must stay flat from match to match.
+// Soak test: 50 complete AI-vs-AI matches (each ends with a full bear-off)
+// in one session, each through a fresh GameScreen + Flame scene with the
+// real AudioManager on a fake backend.
+//
+// Bear-off used to be where things went wrong (a new audio player and a
+// per-frame text layout on every bear-off), so every frame of the bear-off
+// is sampled: object counts must stay flat while bearing off and return to
+// the match's baseline afterwards.
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -8,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:haftnard/core/ai/personality.dart';
 import 'package:haftnard/core/rules/match.dart';
+import 'package:haftnard/core/rules/types.dart';
 import 'package:haftnard/game/audio.dart';
 import 'package:haftnard/game/audio/audio_manager.dart';
 import 'package:haftnard/game/match_controller.dart';
@@ -22,27 +28,18 @@ import 'package:haftnard/ui/screens/game_screen.dart';
 
 import '../support/fake_audio.dart';
 
-class _Sample {
-  _Sample(this.stats, this.controllers, this.rssMb, this.voices);
-  final Map<String, int> stats;
-  final int controllers;
-  final double rssMb;
-  final int voices;
-  @override
-  String toString() =>
-      '$stats ctrl=$controllers voices=$voices rss=${rssMb.round()}MB';
-}
-
 void main() {
-  const matches = int.fromEnvironment('SOAK_MATCHES', defaultValue: 30);
+  const matches = int.fromEnvironment('SOAK_MATCHES', defaultValue: 50);
   final backend = FakeBackend();
+  late AudioManager audio;
 
   setUpAll(() {
     SevenOverlay.useSensors = false;
     kAiUseIsolates = false;
+    audio = AudioManager(backend);
     Sfx.instance
       ..available = true
-      ..manager = AudioManager(backend);
+      ..manager = audio;
   });
 
   tearDownAll(() {
@@ -51,111 +48,136 @@ void main() {
       ..available = false;
   });
 
-  testWidgets(
-    'soak: $matches matches keep components, particles, listeners and memory flat',
-    (tester) async {
-      tester.view.devicePixelRatio = 1;
-      tester.view.physicalSize = const Size(400, 860);
-      addTearDown(tester.view.reset);
-      await Sfx.instance.preload();
-      final samples = <_Sample>[];
-      final weak = <WeakReference<BoardGame>>[];
-      var peakParticles = 0;
-      for (var m = 0; m < matches; m++) {
-        final svc = SaveService(MemorySaveStore());
-        svc.data.settings = const Settings(animSpeed: 2);
-        final session = MatchSession(
-          match: MatchState(MatchConfig(seed: 100 + m, p7: 0.12)),
-          white: const SeatConfig.ai(
-            personalityId: 'hammer',
-            difficulty: Difficulty.easy,
-            name: 'W',
-          ),
-          black: const SeatConfig.ai(
-            personalityId: 'fox',
-            difficulty: Difficulty.easy,
-            name: 'B',
-          ),
-        );
-        await tester.pumpWidget(
-          ProviderScope(
-            key: ValueKey(m),
-            overrides: [saveServiceProvider.overrideWithValue(svc)],
-            child: HaftNardApp(home: GameScreen(session: session)),
-          ),
-        );
-        for (var i = 0; i < 9000 && !session.match.isOver; i++) {
-          await tester.pump(const Duration(milliseconds: 120));
-          final g = BoardGame.current;
-          if (g != null && g.isLoaded) {
-            final p = g.debugStats()['particles']!;
-            if (p > peakParticles) peakParticles = p;
-          }
-        }
-        expect(session.match.isOver, isTrue, reason: 'match $m stalled');
-        // Let the game-over effects play out and settle.
-        for (var i = 0; i < 40; i++) {
-          await tester.pump(const Duration(milliseconds: 100));
-        }
-        expect(tester.takeException(), isNull, reason: 'match $m');
-        final g = BoardGame.current!;
-        weak.add(WeakReference(g));
-        samples.add(
-          _Sample(
-            g.debugStats(),
-            MatchController.live,
-            ProcessInfo.currentRss / (1 << 20),
-            backend.live.length,
-          ),
-        );
-      }
-      // Tear the last screen down: everything must be released.
-      await tester.pumpWidget(const SizedBox());
-      await tester.pump();
-      expect(MatchController.live, 0, reason: 'controllers leaked');
-      expect(BoardGame.current, isNull, reason: 'scene leaked');
+  testWidgets('soak: $matches matches through bear-off keep every count flat', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(400, 860);
+    addTearDown(tester.view.reset);
+    await Sfx.instance.preload();
+    final players = backend.voices.length;
+    final weak = <WeakReference<BoardGame>>[];
+    final rss = <double>[];
+    int? firstBaseline;
 
-      final first = samples.take(5).toList();
-      final last = samples.skip(matches - 5).toList();
-      int maxOf(List<_Sample> l, String k) =>
-          l.map((s) => s.stats[k]!).reduce((a, b) => a > b ? a : b);
-      expect(
-        maxOf(last, 'components'),
-        lessThanOrEqualTo(maxOf(first, 'components') + 2),
-        reason: 'component count grew: ${samples.first} -> ${samples.last}',
+    for (var m = 0; m < matches; m++) {
+      final svc = SaveService(MemorySaveStore());
+      svc.data.settings = const Settings(animSpeed: 2);
+      final session = MatchSession(
+        match: MatchState(MatchConfig(seed: 100 + m)),
+        white: const SeatConfig.ai(
+          personalityId: 'hammer',
+          difficulty: Difficulty.easy,
+          name: 'W',
+        ),
+        black: const SeatConfig.ai(
+          personalityId: 'fox',
+          difficulty: Difficulty.easy,
+          name: 'B',
+        ),
       );
-      expect(peakParticles, lessThanOrEqualTo(FxLayer.maxParticles));
-      expect(maxOf(last, 'popups'), lessThanOrEqualTo(FxLayer.maxPopups));
-      expect(maxOf(last, 'images'), lessThanOrEqualTo(2));
-      for (final s in samples) {
-        expect(s.controllers, lessThanOrEqualTo(1), reason: '$s');
-        expect(s.voices, Sfx.instance.manager!.voiceCount, reason: '$s');
+      await tester.pumpWidget(
+        ProviderScope(
+          key: ValueKey(m),
+          overrides: [saveServiceProvider.overrideWithValue(svc)],
+          child: HaftNardApp(home: GameScreen(session: session)),
+        ),
+      );
+      final layoutsBefore = FxLayer.debugPopupLayouts;
+      final popupsBefore = FxLayer.debugPopupsCreated;
+      int? baseComponents;
+      int? baseListeners;
+      var bearOffFrames = 0;
+      for (var i = 0; i < 12000 && !session.match.isOver; i++) {
+        await tester.pump(const Duration(milliseconds: 60));
+        final g = BoardGame.current;
+        if (g == null || !g.isLoaded) continue;
+        final st = g.debugStats();
+        final ctrl = g.controller;
+        baseComponents ??= st['components'];
+        baseListeners ??= ctrl.listenerCount;
+        final s = ctrl.state;
+        final bearingOff =
+            s.board.borneOff(Side.white) > 0 ||
+            s.board.borneOff(Side.black) > 0;
+        if (!bearingOff) continue;
+        bearOffFrames++;
+        final where = 'match $m, bear-off frame $bearOffFrames';
+        expect(
+          st['components'],
+          lessThanOrEqualTo(baseComponents! + 2),
+          reason: 'components grew during bear-off ($where)',
+        );
+        expect(st['particles'], lessThanOrEqualTo(FxLayer.maxParticles));
+        expect(st['popups'], lessThanOrEqualTo(FxLayer.maxPopups));
+        expect(audio.activeCount, lessThanOrEqualTo(audio.maxActive));
+        expect(
+          backend.voices,
+          hasLength(players),
+          reason: 'new player ($where)',
+        );
+        expect(
+          ctrl.listenerCount,
+          baseListeners,
+          reason: 'listeners changed during bear-off ($where)',
+        );
       }
-      // Churn the heap so the GC runs: finished matches' scenes must be
-      // collectable (nothing keeps a reference to them).
-      for (var k = 0; k < 40; k++) {
-        List<List<int>>.generate(2000, (i) => List.filled(500, i)).clear();
-        await tester.pump(const Duration(milliseconds: 10));
+      expect(session.match.isOver, isTrue, reason: 'match $m stalled');
+      expect(bearOffFrames, greaterThan(10), reason: 'match $m bear-off');
+      // Let the game-over effects and every sound finish.
+      for (var i = 0; i < 50; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
       }
-      final alive = weak.where((w) => w.target != null).length;
+      expect(tester.takeException(), isNull, reason: 'match $m');
+      final g = BoardGame.current!;
+      weak.add(WeakReference(g));
+      final end = g.debugStats();
+      firstBaseline ??= baseComponents;
       expect(
-        alive,
-        lessThanOrEqualTo(3),
-        reason: '$alive/$matches scenes leaked',
+        end['components'],
+        lessThanOrEqualTo(baseComponents! + 2),
+        reason: 'match $m: components did not return to baseline',
       );
-      double avgRss(List<_Sample> l) =>
-          l.map((s) => s.rssMb).reduce((a, b) => a + b) / l.length;
-      final growth = avgRss(last) - avgRss(first);
-      debugPrint('SOAK rss growth ${growth.round()} MB, scenes alive $alive');
+      expect(baseComponents, lessThanOrEqualTo(firstBaseline! + 2));
+      expect(end['images'], lessThanOrEqualTo(2));
+      expect(audio.stats.resets, 0, reason: 'audio needed a reset');
+      expect(MatchController.live, lessThanOrEqualTo(1));
+      // One text layout per popup, never one per frame.
       expect(
-        growth,
-        // Loose bound: flutter_tester's RSS also holds its software
-        // rasterizer caches; object-level leaks are caught exactly above.
-        lessThan(200),
-        reason: 'memory grew ${growth.round()} MB over $matches matches',
+        FxLayer.debugPopupLayouts - layoutsBefore,
+        lessThanOrEqualTo(FxLayer.debugPopupsCreated - popupsBefore),
+        reason: 'popup text laid out per frame in match $m',
       );
-      expect(Sfx.instance.manager!.stats.played, greaterThan(500));
-    },
-    timeout: const Timeout(Duration(minutes: 20)),
-  );
+      rss.add(ProcessInfo.currentRss / (1 << 20));
+    }
+
+    // Tear the last screen down: everything must be released.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 5));
+    expect(MatchController.live, 0, reason: 'controllers leaked');
+    expect(BoardGame.current, isNull, reason: 'scene leaked');
+    expect(backend.live, hasLength(players));
+
+    // Churn the heap so the GC runs: finished matches' scenes must be
+    // collectable (nothing keeps a reference to them).
+    for (var k = 0; k < 80; k++) {
+      List<List<int>>.generate(4000, (i) => List.filled(500, i)).clear();
+      await tester.pump(const Duration(milliseconds: 10));
+    }
+    final alive = weak.where((w) => w.target != null).length;
+    expect(
+      alive,
+      // GC timing varies; a real leak keeps every scene alive.
+      lessThanOrEqualTo(8),
+      reason: '$alive/$matches scenes leaked',
+    );
+
+    double avg(Iterable<double> l) => l.reduce((a, b) => a + b) / l.length;
+    final growth = avg(rss.skip(matches - 5)) - avg(rss.take(5));
+    debugPrint('SOAK rss growth ${growth.round()} MB, scenes alive $alive');
+    // Loose bound: flutter_tester's RSS also holds its software rasterizer
+    // caches; object-level leaks are caught exactly above.
+    expect(growth, lessThan(300), reason: 'memory grew ${growth.round()} MB');
+    expect(audio.stats.played, greaterThan(1000));
+  }, timeout: const Timeout(Duration(minutes: 30)));
 }
