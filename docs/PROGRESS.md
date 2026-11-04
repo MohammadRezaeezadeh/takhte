@@ -19,23 +19,28 @@ All work lives on branch `claude/vibrant-newton-gzwmx2`.
 | M8 progression, achievements, stats, icon, splash, release build | done |
 
 ## Content counts
-* Cards: **60** (target 60+) · Talismans: **40** (target 40+) · Bosses: 9 + final.
+* Cards: **60** (target 60+) · Talismans: **40** (target 40+) · Bosses: 14 + final.
 * Boards 9 · Environments 7 · Checkers 9 · Dice 7 · Card backs 4 · Frames 3 ·
-  Victory effects 4 · Emotes 8 · Bundles 3 · Achievements 24.
+  Victory effects 4 · Emotes 8 · Bundles 3 · Achievements 33 · Tips 14 ·
+  Music loops 2 · SFX 21.
+* Journey shop: talismans, banish, attune (card upgrade), wider offers, luck.
 
 ## Verification
-* `flutter analyze` — 0 issues. `flutter test` — 160+ tests.
+* `tool/check.sh` mirrors CI: format gate, `flutter analyze --fatal-infos`, tests.
+* `flutter test` — 179 tests (rules, reference movegen, fuzz, every card, AI,
+  controller, meta, journey, UI flows, full AI-vs-AI match through the real UI).
 * Coverage: rules 95%, core 97%, overall ≈74%.
 * Local `flutter build apk --release` succeeds (universal APK ≈55 MB; CI also
   produces per-ABI APKs ≈20 MB).
-* Balance: `docs/balance/report.md` (forced-pick methodology; target ≤ +8% win
-  rate per pick).
+* Balance: `docs/balance/report.md` (forced-pick methodology with an inert-card
+  baseline; every measurable card ≤ +5% win rate per pick, target ≤ +8%).
 * Screenshots: `flutter test test/visual/screens_test.dart --dart-define=SHOT_OUT=dir`.
 
 ## Known issues / environment notes
 * Pushing from the authoring session failed with HTTP 403 (the Claude GitHub
-  App lacked write access to the repository). Commits are local until access is
-  fixed; nothing in the project depends on it.
+  App lacked write access to the repository). Commits and tags (v0.0.0–v0.9.0)
+  are local; a full `haftnard.bundle` (git bundle, untracked) sits in the repo
+  root as a fallback.
 * No physical device was available: performance targets are designed for
   (cached board pictures and checker images, isolate AI, memoised legal moves,
   pooled SFX, particle caps) but not profiled on hardware.
