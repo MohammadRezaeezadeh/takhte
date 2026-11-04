@@ -251,6 +251,44 @@ const List<Boss> kBosses = [
     personality: 'fox',
     boss: SideMods(offerBonus: 2, startGhost: 1, p7Multiplier: 1.5),
   ),
+  Boss(
+    id: 'twin_viziers',
+    nameEn: 'The Twin Viziers',
+    nameFa: 'وزیران دوقلو',
+    ruleEn: 'They begin with Tailwind and Loaded Hand.',
+    ruleFa: 'با «باد موافق» و «دست سنگین» شروع می‌کنند.',
+    personality: 'builder',
+    boss: SideMods(startCards: ['tailwind', 'loaded_hand']),
+  ),
+  Boss(
+    id: 'desert_witch',
+    nameEn: 'The Desert Witch',
+    nameFa: 'جادوگر کویر',
+    ruleEn: 'Night falls on you: no 7–7 for your first six turns. She starts with a Phoenix.',
+    ruleFa: 'شب بر تو می‌افتد: تا شش نوبت اول هفت‌هفت نداری. او با یک ققنوس شروع می‌کند.',
+    personality: 'fox',
+    boss: SideMods(startCards: ['nightfall'], startPhoenix: 1),
+  ),
+  Boss(
+    id: 'iron_wall',
+    nameEn: 'The Iron Wall',
+    nameFa: 'دیوار آهنین',
+    ruleEn: 'Your dice never roll higher than 5. He starts with a reroll and a Lucky Charm.',
+    ruleFa: 'تاس‌های تو هرگز بیشتر از ۵ نمی‌آیند. او با تاس دوباره و طلسم بخت شروع می‌کند.',
+    personality: 'builder',
+    player: SideMods(capDice: 5),
+    boss: SideMods(startCards: ['bazaar_bargain']),
+  ),
+  Boss(
+    id: 'gambler_king',
+    nameEn: 'The Gambler King',
+    nameFa: 'شاهِ قماربازان',
+    ruleEn: 'Chaos: both sides roll 7–7 three times as often, and he takes two cards each time.',
+    ruleFa: 'آشوب: هر دو طرف سه برابر هفت‌هفت می‌آورند و او هر بار دو کارت برمی‌دارد.',
+    personality: 'gambler',
+    player: SideMods(p7Multiplier: 3),
+    boss: SideMods(p7Multiplier: 3, pickBonus: 1),
+  ),
 ];
 
 const Boss kFinalBoss = Boss(
@@ -419,7 +457,7 @@ class JourneyRun {
       p7Multiplier: p7 * bp.p7Multiplier,
       offerBonus: offer,
       doublesCount: bp.doublesCount,
-      rerollEveryNthDouble: has('dervish') ? 3 : 0,
+      rerollEveryNthDouble: has('prayer_beads') ? 2 : (has('dervish') ? 3 : 0),
       firstBearOffReroll: has('first_light'),
       startRerolls:
           (has('gamblers_purse') ? 1 : 0) + (has('iron_will') ? 2 : 0),
@@ -427,6 +465,45 @@ class JourneyRun {
       startGhost: has('ghost_lantern') ? 1 : 0,
       startLucky: has('horseshoe') ? 1 : 0,
       capDice: bp.capDice,
+      pickBonus: has('twin_fate') ? 1 : 0,
+      startCards: [
+        for (final e in _startCardTalismans.entries)
+          if (has(e.key)) e.value,
+      ],
+    );
+  }
+
+  static const Map<String, String> _startCardTalismans = {
+    'lucky_bones': CardId.luckySix,
+    'desert_wind': CardId.tailwind,
+    'moon_veil': CardId.nightfall,
+    'fortune_purse': CardId.bargain,
+    'simorgh_egg': CardId.simorgh,
+    'sand_clock': CardId.hourglassSand,
+    'mirror_shard': CardId.mirror,
+    'loaded_bones': CardId.loadedHand,
+    'broken_bones': CardId.brokenDie,
+    'fog_horn': CardId.fog,
+    'seven_compass': CardId.sevenMagnet,
+    'greedy_ring': CardId.greed,
+  };
+
+  /// The opponent's modifiers: the boss rule plus the player's hexes.
+  SideMods opponentMods(Boss? boss) {
+    final b = boss?.boss ?? SideMods.none;
+    var p7 = b.p7Multiplier;
+    if (has('evil_eye')) p7 *= 0.5;
+    return SideMods(
+      p7Multiplier: p7,
+      offerBonus: b.offerBonus,
+      doublesCount: b.doublesCount && !has('dull_blade'),
+      startRerolls: b.startRerolls,
+      startPhoenix: b.startPhoenix,
+      startGhost: b.startGhost,
+      startLucky: b.startLucky,
+      capDice: has('heavy_hand') ? math.min(5, b.capDice) : b.capDice,
+      pickBonus: b.pickBonus,
+      startCards: b.startCards,
     );
   }
 
@@ -442,12 +519,20 @@ class JourneyRun {
     required int hits,
     required int sevens,
     required bool mars,
+    bool kupMars = false,
+    int pipLead = 0,
+    bool boss = false,
   }) {
     var c = 25 + 10 * points + stage * 5;
     if (has('merchant_scale')) c = (c * 1.3).round();
     if (mars && has('mars_medal')) c += 25;
+    if (kupMars && has('jackpot')) c += 40;
     if (has('hit_purse')) c += hits * 3;
     if (has('golden_touch')) c += sevens * 12;
+    if (has('tax_collector') && pipLead > 0) c += pipLead ~/ 5;
+    if (boss && has('bounty')) c += 40;
+    if (has('wanderer_boots')) c += 8;
+    if (has('banker')) c += math.min(30, ((coins + c) * 0.1).round());
     return c;
   }
 
@@ -460,7 +545,8 @@ class JourneyRun {
     final rng = Rng.seeded(seed ^ (stage * 7919 + 13));
     final pool = kTalismans.where((t) => !talismans.contains(t.id)).toList();
     rng.shuffle(pool);
-    final discount = has('caravan_map') ? 0.8 : 1.0;
+    final discount =
+        (has('caravan_map') ? 0.8 : 1.0) * (has('ledger') ? 0.9 : 1.0);
     int price(int p) => (p * discount).round();
     shop = [
       for (final t in pool.take(3))

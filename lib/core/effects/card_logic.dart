@@ -476,7 +476,7 @@ abstract final class CardLogic {
   static void dealOffer(Tx tx, Side side) {
     final mods = tx.config.mods(side);
     var size = tx.config.offerSize + mods.offerBonus;
-    var picks = 1;
+    var picks = 1 + mods.pickBonus;
     for (final e in List.of(tx.effects)) {
       if (e.affected != side) continue;
       if (e.kind == EffectKind.bonusOffer) {

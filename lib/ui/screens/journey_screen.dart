@@ -83,7 +83,7 @@ class _JourneyScreenState extends ConsumerState<JourneyScreen> {
             seed: deriveSeed(run.seed, run.stage * 31 + _retry),
             cardPool: run.cardPool(unlocked),
             white: run.playerMods(stage.boss),
-            black: stage.boss?.boss ?? const MatchConfig().black,
+            black: run.opponentMods(stage.boss),
           ),
         ),
         white: SeatConfig.human(context.l10n.you),
@@ -122,6 +122,9 @@ class _JourneyScreenState extends ConsumerState<JourneyScreen> {
             sevens: inv.sevens,
             mars:
                 res?.type == WinType.gammon || res?.type == WinType.backgammon,
+            kupMars: res?.type == WinType.backgammon,
+            pipLead: end.board.pips(Side.black) - end.board.pips(Side.white),
+            boss: stage.boss != null,
           )
         : 0;
     final before = run.stage;

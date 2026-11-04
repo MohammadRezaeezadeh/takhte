@@ -181,4 +181,30 @@ void main() {
     expect(kCards.length, 37);
     expect(kCards.map((c) => c.glyph).toSet().length, kCards.length);
   });
+
+  test('start cards apply at the opening roll', () {
+    var s = GameState.initial(
+      const GameConfig(
+        seed: 5,
+        white: SideMods(startCards: [CardId.bargain, CardId.luckySix]),
+        black: SideMods(startCards: [CardId.nightfall]),
+      ),
+    );
+    while (s.phase == Phase.opening) {
+      s = Engine.apply(s, const RollOpening()).state;
+    }
+    expect(s.white.rerolls, 1);
+    expect(s.white.lucky, 1);
+    expect(s.effectsOf(EffectKind.sixNext).single.owner, Side.white);
+    expect(s.effectsOf(EffectKind.sevenBlock).single.affected, Side.white);
+  });
+
+  test('pick bonus lets a side take two cards', () {
+    final s = preRollState(
+      Board.initial(),
+      config: const GameConfig(p7: 1, white: SideMods(pickBonus: 1)),
+    );
+    final r = roll(s);
+    expect(r.picksLeft, 2);
+  });
 }

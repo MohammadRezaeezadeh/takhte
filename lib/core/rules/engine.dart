@@ -430,6 +430,13 @@ abstract final class Engine {
     tx.rolled = [w, b];
     tx.dice = [w, b];
     tx.phase = Phase.moving;
+    for (final side in Side.values) {
+      for (final card in tx.config.mods(side).startCards) {
+        if (cardById(card).target != TargetKind.none) continue;
+        CardLogic.apply(tx, side, card, const []);
+        tx.events.add(CardPicked(side, card));
+      }
+    }
     tx.events
       ..add(TurnStarted(tx.current))
       ..add(DiceRolled(tx.current, [w, b]));

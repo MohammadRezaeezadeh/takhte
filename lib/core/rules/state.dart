@@ -46,6 +46,8 @@ class SideMods {
     this.startLucky = 0,
     this.capDice = 6,
     this.cardPool,
+    this.startCards = const [],
+    this.pickBonus = 0,
   });
 
   factory SideMods.fromJson(Map<String, Object?> j) => SideMods(
@@ -60,6 +62,8 @@ class SideMods {
     startLucky: j['sl'] as int? ?? 0,
     capDice: j['cap'] as int? ?? 6,
     cardPool: (j['pool'] as List<Object?>?)?.cast<String>(),
+    startCards: ((j['sc'] as List<Object?>?) ?? const []).cast<String>(),
+    pickBonus: j['pb'] as int? ?? 0,
   );
 
   /// Multiplier on this side's 7–7 chance (0 disables).
@@ -88,6 +92,12 @@ class SideMods {
   /// Overrides the game's card pool for this side's offers.
   final List<String>? cardPool;
 
+  /// Untargeted cards applied for free when the game starts.
+  final List<String> startCards;
+
+  /// Extra picks at each of this side's 7–7 offers.
+  final int pickBonus;
+
   static const SideMods none = SideMods();
 
   Map<String, Object?> toJson() => {
@@ -102,6 +112,8 @@ class SideMods {
     if (startLucky != 0) 'sl': startLucky,
     if (capDice != 6) 'cap': capDice,
     if (cardPool != null) 'pool': cardPool,
+    if (startCards.isNotEmpty) 'sc': startCards,
+    if (pickBonus != 0) 'pb': pickBonus,
   };
 }
 
