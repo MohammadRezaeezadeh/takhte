@@ -96,4 +96,28 @@ void main() {
       }
     }
   });
+
+  test(
+    'per-turn checksums are reproducible and redaction hides enemy mines',
+    () {
+      final rec = randomGame(const GameConfig(seed: 31, p7: 0.4), 4);
+      final a = rec.turnChecksums();
+      final b = GameRecord.fromJson(
+        (jsonDecode(jsonEncode(rec.toJson())) as Map).cast<String, Object?>(),
+      ).turnChecksums();
+      expect(a, isNotEmpty);
+      expect(a, b);
+      for (final s in rec.replayStates()) {
+        for (final viewer in Side.values) {
+          final r = redactedFor(s, viewer);
+          expect(
+            r.effects.any(
+              (e) => e.kind == EffectKind.landmine && e.owner != viewer,
+            ),
+            isFalse,
+          );
+        }
+      }
+    },
+  );
 }

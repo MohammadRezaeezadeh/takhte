@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:haftnard/core/rules/actions.dart';
 import 'package:haftnard/core/rules/engine.dart';
 import 'package:haftnard/core/rules/state.dart';
+import 'package:haftnard/core/rules/types.dart';
 
 /// A replayable game: configuration (including the seed) plus every action.
 class GameRecord {
@@ -36,12 +37,36 @@ class GameRecord {
     return out;
   }
 
+  /// `(turnNumber, stateHash)` at the end of every turn, for desync checks:
+  /// a client submits the hash it reached; the server compares.
+  List<(int, int)> turnChecksums() {
+    final out = <(int, int)>[];
+    var s = initial;
+    for (final a in actions) {
+      final next = Engine.apply(s, a).state;
+      if (next.turnNumber != s.turnNumber || next.isOver) {
+        out.add((s.turnNumber, stateHash(next)));
+      }
+      s = next;
+    }
+    return out;
+  }
+
   Map<String, Object?> toJson() => {
     'v': formatVersion,
     'config': config.toJson(),
     'actions': [for (final a in actions) a.toJson()],
   };
 }
+
+/// [state] as [viewer] may see it: the opponent's hidden traps are removed.
+/// Servers must send this (not the raw state) to each remote client.
+GameState redactedFor(GameState state, Side viewer) => state.copyWith(
+  effects: [
+    for (final e in state.effects)
+      if (!(e.kind == EffectKind.landmine && e.owner != viewer)) e,
+  ],
+);
 
 /// 32-bit FNV-1a hash of the canonical JSON of [state]. Used as a per-turn
 /// checksum so a server and clients can detect desyncs cheaply.

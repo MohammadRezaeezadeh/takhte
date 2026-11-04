@@ -27,9 +27,14 @@ The server is authoritative and replays the same pure-Dart engine
 ```
 
 ## Hidden information
-Landmines are hidden. Online, the server must redact the opponent's mine
-effects (`EffectKind.landmine`) from state sent to the other client and
-re-validate legality server-side (mines can change mid-turn legality).
+Landmines are hidden. The server sends each client `redactedFor(state, side)`
+(`lib/core/rules/record.dart`), which strips the opponent's mines, and
+re-validates legality server-side (mines can change mid-turn legality).
+
+## Checksums
+`GameRecord.turnChecksums()` yields `(turnNumber, stateHash)` at every turn
+boundary; clients attach the hash they reached to each submitted turn and the
+server compares it with its own replay. Covered by `test/core/fuzz_test.dart`.
 
 ## Anti-cheat
 Because RNG and legality live on the server, a modified client cannot forge dice
