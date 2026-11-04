@@ -19,6 +19,7 @@ import 'package:haftnard/game/scene/environment.dart';
 import 'package:haftnard/game/scene/fx.dart';
 import 'package:haftnard/game/themes/board_themes.dart';
 import 'package:haftnard/game/themes/pieces.dart';
+import 'package:meta/meta.dart';
 
 /// Visual configuration for the scene.
 class SceneConfig {
@@ -70,10 +71,26 @@ class _Chk {
   Completer<void>? _done;
   final List<Offset> trail = [];
 
+  /// True while travelling between slots (a move, hit, bar entry or a drag
+  /// returning home) — as opposed to a small re-layout nudge inside a stack.
+  bool travelling = false;
+
+  /// Order in which travels started; later travels paint above earlier ones.
+  int travelStamp = 0;
+
   bool get moving => _t < 1 || dragging;
 
-  Future<void> glide(Offset to, double dur, {double arc = 0}) {
+  /// Painted above every resting checker.
+  bool get onTop => dragging || (travelling && _t < 1);
+
+  Future<void> glide(
+    Offset to,
+    double dur, {
+    double arc = 0,
+    bool travel = false,
+  }) {
     _done?.complete();
+    travelling = travel;
     _from = pos;
     _to = to;
     _t = 0;
@@ -99,6 +116,7 @@ class _Chk {
       if (_t >= 1) {
         pos = _to;
         lift = 0;
+        travelling = false;
         if (_arc > 0) _squashT = 0;
         final d = _done;
         _done = null;
@@ -156,10 +174,20 @@ class BoardGame extends FlameGame implements MatchPresenter {
   late ui.Picture _topPic;
   final Map<String, ui.Image> _chkCache = {};
 
+  /// The live scene, for the debug overlay and tests.
+  static BoardGame? current;
+
+  @override
+  void onRemove() {
+    if (current == this) current = null;
+    super.onRemove();
+  }
+
   late final FxLayer fx;
   late final EnvironmentLayer env;
   final List<_Chk> _checkers = [];
   final Map<Slot, List<_Chk>> _stacks = {};
+  int _travelSeq = 0;
   final List<_Die> _dice = [];
   double _time = 0;
   double _shake = 0;
@@ -202,6 +230,7 @@ class BoardGame extends FlameGame implements MatchPresenter {
 
   @override
   Future<void> onLoad() async {
+    current = this;
     await Shaders.load();
     fx = FxLayer(reducedMotion: _cfg.reducedMotion)..priority = 50;
     env = EnvironmentLayer(
@@ -392,7 +421,9 @@ class BoardGame extends FlameGame implements MatchPresenter {
   }) async {
     final list = _stacks.putIfAbsent(to, () => []);
     list.add(c);
-    c.slot = to;
+    c
+      ..slot = to
+      ..travelStamp = ++_travelSeq;
     final target = layout.checkerCenter(to, list.length - 1, list.length);
     final dist = (c.pos - target).distance;
     final arcH = _cfg.reducedMotion ? 0.0 : math.min(60, dist * 0.25) * arc;
@@ -400,6 +431,7 @@ class BoardGame extends FlameGame implements MatchPresenter {
       target,
       (dur * (0.7 + math.min(dist, 400) / 900)) / _speed,
       arc: arcH,
+      travel: true,
     );
     _relayout(to);
   }
@@ -1167,13 +1199,41 @@ class BoardGame extends FlameGame implements MatchPresenter {
     }
   }
 
+  /// Paint order: resting checkers stack by stack in index order (index 0
+  /// at the bottom), then every travelling or dragged checker, the most
+  /// recently started on top. Recomputed every frame from the stacks, so
+  /// moves, hits, bar entries and undo can never leave a stale order.
+  List<_Chk> _paintOrder() {
+    final rest = <_Chk>[];
+    final top = <_Chk>[];
+    final seen = <_Chk>{};
+    for (final list in _stacks.values) {
+      for (final c in list) {
+        seen.add(c);
+        (c.onTop ? top : rest).add(c);
+      }
+    }
+    for (final c in _checkers) {
+      if (!seen.contains(c)) (c.onTop ? top : rest).add(c);
+    }
+    top.sort((a, b) => a.travelStamp.compareTo(b.travelStamp));
+    return rest..addAll(top);
+  }
+
+  /// Test hook: what is painted, bottom to top.
+  @visibleForTesting
+  List<({Side side, Slot slot, int index, bool onTop})> debugPaintOrder() => [
+    for (final c in _paintOrder())
+      (
+        side: c.side,
+        slot: c.slot,
+        index: _stacks[c.slot]?.indexOf(c) ?? -1,
+        onTop: c.onTop,
+      ),
+  ];
+
   void _renderCheckers(Canvas c) {
-    final ordered = [..._checkers]
-      ..sort((a, b) {
-        final am = a.moving ? 1 : 0;
-        final bm = b.moving ? 1 : 0;
-        return am.compareTo(bm);
-      });
+    final ordered = _paintOrder();
     final s = _shown;
     final selSlot = s == null || selectedFrom == null
         ? null
@@ -1425,7 +1485,9 @@ class BoardGame extends FlameGame implements MatchPresenter {
     final list = _stacks[_slotFor(side, rel)];
     if (list == null || list.isEmpty) return;
     final c = list.last;
-    _dragChk = c..dragging = true;
+    _dragChk = c
+      ..dragging = true
+      ..travelStamp = ++_travelSeq;
     _dragFrom = rel;
     _dragOffset = c.pos - p;
     c.lift = 14;
@@ -1464,7 +1526,13 @@ class BoardGame extends FlameGame implements MatchPresenter {
       _relayout(c.slot);
       final list = _stacks[c.slot]!;
       final idx = list.indexOf(c);
-      unawaited(c.glide(layout.checkerCenter(c.slot, idx, list.length), 0.18));
+      unawaited(
+        c.glide(
+          layout.checkerCenter(c.slot, idx, list.length),
+          0.18,
+          travel: true,
+        ),
+      );
       if (hit != null && hit > 0 && toRelative(side, hit) == from) {
         selectedFrom = from;
       }
