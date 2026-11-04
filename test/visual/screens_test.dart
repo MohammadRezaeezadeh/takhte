@@ -24,6 +24,7 @@ import 'package:haftnard/meta/save.dart';
 import 'package:haftnard/meta/settings.dart';
 import 'package:haftnard/ui/app.dart';
 import 'package:haftnard/ui/game/seven_overlay.dart';
+import 'package:haftnard/ui/screens/codex_screen.dart';
 import 'package:haftnard/ui/screens/game_screen.dart';
 import 'package:haftnard/ui/screens/journey_screen.dart';
 import 'package:haftnard/ui/screens/locker_screen.dart';
@@ -130,6 +131,7 @@ void main() {
     (t) => screen(t, 'locker_fa', const LockerScreen(), lang: 'fa'),
   );
   testWidgets('profile', (t) => screen(t, 'profile_en', const ProfileScreen()));
+  testWidgets('codex', (t) => screen(t, 'codex_fa', const CodexScreen(), lang: 'fa'));
   testWidgets(
     'settings',
     (t) => screen(t, 'settings_fa', const SettingsScreen(), lang: 'fa'),

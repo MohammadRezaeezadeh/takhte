@@ -7,6 +7,7 @@ import 'package:haftnard/core/rules/record.dart';
 import 'package:haftnard/meta/achievements.dart';
 import 'package:haftnard/meta/meta_state.dart';
 import 'package:haftnard/ui/app.dart';
+import 'package:haftnard/ui/screens/codex_screen.dart';
 import 'package:haftnard/ui/screens/replay_screen.dart';
 import 'package:haftnard/ui/theme.dart';
 import 'package:haftnard/ui/widgets/jewel.dart';
@@ -140,6 +141,18 @@ class ProfileScreen extends ConsumerWidget {
                                 ),
                               ],
                             ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        JewelButton(
+                          label: l.codex,
+                          icon: Icons.style,
+                          color: const Color(0xFF3B1C6E),
+                          height: 52,
+                          fontSize: 18,
+                          onPressed: () => unawaited(
+                            Navigator.of(context)
+                                .push(fadeRoute<void>(const CodexScreen())),
                           ),
                         ),
                         const SizedBox(height: 12),

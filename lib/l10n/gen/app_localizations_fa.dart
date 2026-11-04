@@ -873,4 +873,20 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get welcomeSkip => 'بازی را بلدم';
+
+  @override
+  String get codex => 'دانشنامهٔ کارت‌ها';
+
+  @override
+  String codexProgress(int n, int total) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+    final intl.NumberFormat totalNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return '$nString از $totalString کارت باز شده';
+  }
 }

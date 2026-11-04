@@ -870,4 +870,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcomeSkip => 'I know how to play';
+
+  @override
+  String get codex => 'Card codex';
+
+  @override
+  String codexProgress(int n, int total) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+    final intl.NumberFormat totalNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return '$nString of $totalString cards unlocked';
+  }
 }

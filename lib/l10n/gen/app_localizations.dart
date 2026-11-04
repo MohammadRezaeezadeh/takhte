@@ -1519,6 +1519,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'I know how to play'**
   String get welcomeSkip;
+
+  /// No description provided for @codex.
+  ///
+  /// In en, this message translates to:
+  /// **'Card codex'**
+  String get codex;
+
+  /// No description provided for @codexProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} of {total} cards unlocked'**
+  String codexProgress(int n, int total);
 }
 
 class _AppLocalizationsDelegate

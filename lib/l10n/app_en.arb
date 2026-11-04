@@ -441,5 +441,19 @@
   "targetOwn2": "Tap two of your points",
   "welcomeTitle": "Welcome to HaftNard",
   "welcomeBody": "Classic Persian backgammon — with a twist: roll the glowing Double Seven and claim a power card. New to the board? A two-minute interactive lesson will get you playing.",
-  "welcomeSkip": "I know how to play"
+  "welcomeSkip": "I know how to play",
+  "codex": "Card codex",
+  "codexProgress": "{n} of {total} cards unlocked",
+  "@codexProgress": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "total": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  }
 }
