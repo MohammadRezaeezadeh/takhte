@@ -839,4 +839,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get howToPlay => 'How to play';
+
+  @override
+  String get targetOwnBlot2 => 'Tap two of your lone checkers';
+
+  @override
+  String get targetEmpty2 => 'Tap two empty points';
+
+  @override
+  String get targetPoint2 => 'Tap two points';
 }

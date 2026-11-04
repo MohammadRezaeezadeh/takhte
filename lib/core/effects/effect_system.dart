@@ -198,6 +198,40 @@ class _MirrorBonus extends EffectHandler {
   }
 }
 
+class _SevenBlock extends EffectHandler {
+  const _SevenBlock() : super(priority: 20);
+  @override
+  void onBeforeRoll(Tx tx, ActiveEffect e, RollPlan plan) =>
+      plan.p7Multiplier = 0;
+}
+
+class _SixNext extends EffectHandler {
+  const _SixNext() : super(priority: 5);
+  @override
+  void onBeforeRoll(Tx tx, ActiveEffect e, RollPlan plan) =>
+      plan.forceFirst = 6;
+}
+
+class _Wind extends EffectHandler {
+  const _Wind(this.delta);
+  final int delta;
+  @override
+  void onBeforeRoll(Tx tx, ActiveEffect e, RollPlan plan) =>
+      plan.bonus += delta;
+}
+
+/// Truce: every lone checker of either side is protected.
+class _Truce extends EffectHandler {
+  const _Truce();
+  @override
+  void onGenerateMoves(Tx tx, ActiveEffect e, Side mover, ContextBuilder b) {
+    final theirs = tx.board.of(mover.opponent);
+    for (var rel = 1; rel <= 24; rel++) {
+      if (theirs[25 - rel] == 1) b.protectedMask |= 1 << rel;
+    }
+  }
+}
+
 /// Registry and helpers for the effect system.
 abstract final class EffectSystem {
   static const Map<EffectKind, EffectHandler> _handlers = {
@@ -219,6 +253,11 @@ abstract final class EffectSystem {
     EffectKind.skipTurn: _SkipTurn(),
     EffectKind.bonusPick: _Noop(),
     EffectKind.bonusOffer: _Noop(),
+    EffectKind.sevenBlock: _SevenBlock(),
+    EffectKind.sixNext: _SixNext(),
+    EffectKind.truce: _Truce(),
+    EffectKind.tailwind: _Wind(1),
+    EffectKind.headwind: _Wind(-1),
   };
 
   static EffectHandler handler(EffectKind k) => _handlers[k]!;

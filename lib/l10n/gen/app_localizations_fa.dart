@@ -842,4 +842,13 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get howToPlay => 'روش بازی';
+
+  @override
+  String get targetOwnBlot2 => 'دو مهرهٔ تنهای خودت را انتخاب کن';
+
+  @override
+  String get targetEmpty2 => 'دو خانهٔ خالی را انتخاب کن';
+
+  @override
+  String get targetPoint2 => 'دو خانه را انتخاب کن';
 }

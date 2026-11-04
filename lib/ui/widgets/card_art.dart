@@ -523,6 +523,250 @@ class CardGlyphPainter extends CustomPainter {
           Paint()..color = const Color(0xFFB8861C),
         );
         canvas.restore();
+      case 24: // Twin Anchors
+        for (final dx in [-0.45, 0.45]) {
+          final a = c.translate(dx * r, 0);
+          canvas.drawLine(
+            a.translate(0, -r * 0.7),
+            a.translate(0, r * 0.6),
+            stroke..strokeWidth = r * 0.12,
+          );
+          canvas.drawCircle(a.translate(0, -r * 0.78), r * 0.12, stroke);
+          canvas.drawArc(
+            Rect.fromCircle(center: a.translate(0, r * 0.2), radius: r * 0.42),
+            0.2,
+            math.pi - 0.4,
+            false,
+            stroke,
+          );
+        }
+      case 25: // Bazaar Bargain: two coins and a die
+        canvas.drawCircle(
+          c.translate(-r * 0.4, r * 0.3),
+          r * 0.38,
+          Paint()..color = AppColors.goldLight,
+        );
+        canvas.drawCircle(
+          c.translate(-r * 0.1, r * 0.45),
+          r * 0.38,
+          Paint()..color = const Color(0xFFE9C25A),
+        );
+        paintDie(
+          canvas,
+          c.translate(r * 0.4, -r * 0.3),
+          r * 0.75,
+          2,
+          bone,
+          angle: 0.25,
+        );
+      case 26: // Hourglass Sand
+        final hg2 = Path()
+          ..moveTo(c.dx - r * 0.55, c.dy - r)
+          ..lineTo(c.dx + r * 0.55, c.dy - r)
+          ..lineTo(c.dx + r * 0.08, c.dy)
+          ..lineTo(c.dx + r * 0.55, c.dy + r)
+          ..lineTo(c.dx - r * 0.55, c.dy + r)
+          ..lineTo(c.dx - r * 0.08, c.dy)
+          ..close();
+        canvas.drawPath(
+          hg2,
+          Paint()..color = const Color(0xFFE9C25A).withValues(alpha: 0.35),
+        );
+        canvas.drawPath(hg2, stroke);
+        _text(canvas, '4', c.translate(0, -r * 0.5), r * 0.7, color);
+      case 27: // Simorgh: great bird with spread wings
+        final body = Path()
+          ..moveTo(c.dx, c.dy - r * 0.2)
+          ..quadraticBezierTo(
+            c.dx - r * 1.2,
+            c.dy - r * 0.9,
+            c.dx - r,
+            c.dy + r * 0.1,
+          )
+          ..quadraticBezierTo(c.dx - r * 0.5, c.dy, c.dx, c.dy + r * 0.3)
+          ..quadraticBezierTo(c.dx + r * 0.5, c.dy, c.dx + r, c.dy + r * 0.1)
+          ..quadraticBezierTo(
+            c.dx + r * 1.2,
+            c.dy - r * 0.9,
+            c.dx,
+            c.dy - r * 0.2,
+          )
+          ..close();
+        canvas.drawPath(
+          body,
+          Paint()
+            ..shader = ui.Gradient.linear(
+              c.translate(0, -r),
+              c.translate(0, r),
+              const [Color(0xFF6CF2FF), Color(0xFF6B4BD8)],
+            ),
+        );
+        for (var i = -2; i <= 2; i++) {
+          canvas.drawLine(
+            c.translate(0, r * 0.3),
+            c.translate(i * r * 0.2, r * 1.0),
+            stroke..strokeWidth = r * 0.06,
+          );
+        }
+      case 28: // Nightfall: crescent moon
+        canvas.drawCircle(c, r * 0.8, fill);
+        canvas.drawCircle(
+          c.translate(r * 0.35, -r * 0.2),
+          r * 0.72,
+          Paint()..color = const Color(0xFF141A33),
+        );
+        BoardArt.star(
+          canvas,
+          c.translate(r * 0.5, r * 0.45),
+          r * 0.15,
+          5,
+          fill,
+        );
+      case 29: // Lantern of Truth
+        final body2 = Rect.fromCenter(
+          center: c.translate(0, r * 0.1),
+          width: r * 0.9,
+          height: r * 1.3,
+        );
+        canvas.drawCircle(
+          c.translate(0, r * 0.1),
+          r * 0.9,
+          Paint()
+            ..color = color.withValues(alpha: 0.25)
+            ..maskFilter = MaskFilter.blur(BlurStyle.normal, r * 0.3),
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(body2, Radius.circular(r * 0.35)),
+          fill,
+        );
+        canvas.drawLine(c.translate(0, -r * 0.55), c.translate(0, -r), stroke);
+        for (final dx in [-0.18, 0.0, 0.18]) {
+          canvas.drawLine(
+            c.translate(dx * r, -r * 0.5),
+            c.translate(dx * r, r * 0.7),
+            Paint()
+              ..color = const Color(0xFF8C6418)
+              ..strokeWidth = r * 0.05,
+          );
+        }
+      case 30: // Earthquake: cracked ground
+        canvas.drawRect(
+          Rect.fromLTRB(c.dx - r, c.dy + r * 0.1, c.dx + r, c.dy + r * 0.7),
+          Paint()..color = const Color(0xFF8C6A48),
+        );
+        canvas.drawPath(
+          Path()
+            ..moveTo(c.dx - r * 0.1, c.dy - r * 0.9)
+            ..lineTo(c.dx + r * 0.15, c.dy - r * 0.3)
+            ..lineTo(c.dx - r * 0.15, c.dy + r * 0.1)
+            ..lineTo(c.dx + r * 0.1, c.dy + r * 0.7),
+          stroke..strokeWidth = r * 0.12,
+        );
+        for (final dx in [-0.7, 0.7]) {
+          canvas.drawLine(
+            c.translate(dx * r, -r * 0.6),
+            c.translate(dx * r * 0.8, -r * 0.2),
+            stroke..strokeWidth = r * 0.07,
+          );
+        }
+      case 31: // Lucky Six
+        paintDie(canvas, c, r * 1.2, 6, bone, angle: 0.08);
+        BoardArt.star(
+          canvas,
+          c.translate(r * 0.75, -r * 0.75),
+          r * 0.25,
+          5,
+          fill,
+        );
+      case 32: // Vortex: two swirls
+        for (final dx in [-0.45, 0.45]) {
+          final v = Path();
+          for (var i = 0; i <= 40; i++) {
+            final a = i / 40 * math.pi * 3.5;
+            final rr = r * 0.5 * (1 - i / 40);
+            final p =
+                c.translate(dx * r, 0) +
+                Offset(math.cos(a) * rr, math.sin(a) * rr * 0.7);
+            if (i == 0) {
+              v.moveTo(p.dx, p.dy);
+            } else {
+              v.lineTo(p.dx, p.dy);
+            }
+          }
+          canvas.drawPath(v, stroke..strokeWidth = r * 0.08);
+        }
+      case 33: // Minefield: two mines
+        for (final o in [
+          Offset(-r * 0.45, r * 0.15),
+          Offset(r * 0.45, -r * 0.15),
+        ]) {
+          canvas.drawCircle(
+            c + o,
+            r * 0.38,
+            Paint()..color = const Color(0xFF2A2A2A),
+          );
+          for (var i = 0; i < 8; i++) {
+            final a = i * math.pi / 4;
+            canvas.drawLine(
+              c + o,
+              c + o + Offset(math.cos(a), math.sin(a)) * r * 0.55,
+              Paint()
+                ..color = const Color(0xFF2A2A2A)
+                ..strokeWidth = r * 0.09,
+            );
+          }
+          canvas.drawCircle(
+            c + o.translate(-r * 0.1, -r * 0.1),
+            r * 0.08,
+            Paint()..color = AppColors.ruby,
+          );
+        }
+      case 34: // Truce: white flag / dove-like
+        canvas.drawLine(
+          c.translate(-r * 0.6, r),
+          c.translate(-r * 0.6, -r),
+          stroke..strokeWidth = r * 0.1,
+        );
+        final flag = Path()
+          ..moveTo(c.dx - r * 0.6, c.dy - r)
+          ..quadraticBezierTo(
+            c.dx,
+            c.dy - r * 1.2,
+            c.dx + r * 0.8,
+            c.dy - r * 0.8,
+          )
+          ..quadraticBezierTo(
+            c.dx + r * 0.3,
+            c.dy - r * 0.4,
+            c.dx + r * 0.8,
+            c.dy,
+          )
+          ..quadraticBezierTo(
+            c.dx,
+            c.dy - r * 0.1,
+            c.dx - r * 0.6,
+            c.dy - r * 0.1,
+          )
+          ..close();
+        canvas.drawPath(flag, Paint()..color = const Color(0xFFF3E9D2));
+      case 35: // Tailwind: arrows forward
+      case 36: // Headwind: arrows back
+        final dir = glyph == 35 ? 1.0 : -1.0;
+        for (var i = -1; i <= 1; i++) {
+          final y = c.dy + i * r * 0.5;
+          final path = Path()
+            ..moveTo(c.dx - r * 0.9 * dir, y)
+            ..quadraticBezierTo(c.dx, y - r * 0.25, c.dx + r * 0.7 * dir, y);
+          canvas.drawPath(path, stroke..strokeWidth = r * 0.09);
+          canvas.drawPath(
+            Path()
+              ..moveTo(c.dx + r * 0.95 * dir, y)
+              ..lineTo(c.dx + r * 0.65 * dir, y - r * 0.18)
+              ..lineTo(c.dx + r * 0.65 * dir, y + r * 0.18)
+              ..close(),
+            fill,
+          );
+        }
       default: // Greed: coin sack
         final sack = Path()
           ..moveTo(c.dx - r * 0.3, c.dy - r * 0.55)

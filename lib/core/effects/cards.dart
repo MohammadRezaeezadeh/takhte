@@ -36,7 +36,23 @@ enum TargetKind {
 
   /// Teleport: a source (own checker, 0 = bar) and a destination 1–3 pips on.
   teleport,
+
+  /// Two of your lone checkers (one if only one exists).
+  ownBlot2,
+
+  /// Two distinct empty points.
+  emptyPoint2,
+
+  /// Two distinct points that are empty or hold enemy checkers.
+  enemyOrEmpty2,
 }
+
+/// Target kinds whose points may be chosen in any order.
+bool isUnorderedTarget(TargetKind k) =>
+    k == TargetKind.enemyCheckers2 ||
+    k == TargetKind.ownBlot2 ||
+    k == TargetKind.emptyPoint2 ||
+    k == TargetKind.enemyOrEmpty2;
 
 /// Static card data.
 class CardDef {
@@ -99,6 +115,19 @@ abstract final class CardId {
   static const bloodPact = 'blood_pact';
   static const gamblersCoin = 'gamblers_coin';
   static const greed = 'greed';
+  static const twinAnchors = 'twin_anchors';
+  static const bargain = 'bazaar_bargain';
+  static const hourglassSand = 'hourglass_sand';
+  static const simorgh = 'simorgh_blessing';
+  static const nightfall = 'nightfall';
+  static const lantern = 'lantern_truth';
+  static const earthquake = 'earthquake';
+  static const luckySix = 'lucky_six';
+  static const vortex = 'vortex';
+  static const minefield = 'minefield';
+  static const truce = 'truce';
+  static const tailwind = 'tailwind';
+  static const headwind = 'headwind';
 }
 
 /// The full card catalogue.
@@ -363,6 +392,141 @@ const List<CardDef> kCards = [
     drawbackEn: "Your opponent's next 7–7 offers one extra card.",
     drawbackFa: 'هفت‌هفت بعدی حریف یک کارت بیشتر پیشنهاد می‌دهد.',
     glyph: 23,
+  ),
+  // EXPANSION 1
+  CardDef(
+    id: CardId.twinAnchors,
+    rarity: Rarity.rare,
+    category: CardCategory.checker,
+    nameEn: 'Twin Anchors',
+    nameFa: 'لنگرهای دوقلو',
+    descEn: "Two of your lone checkers each block their point for 2 of your opponent's turns.",
+    descFa: 'دو مهرهٔ تنهای تو هر کدام تا دو نوبتِ حریف خانه‌شان را می‌بندند.',
+    target: TargetKind.ownBlot2,
+    glyph: 24,
+  ),
+  CardDef(
+    id: CardId.bargain,
+    rarity: Rarity.common,
+    category: CardCategory.dice,
+    nameEn: 'Bazaar Bargain',
+    nameFa: 'چانه‌زنی بازار',
+    descEn: 'Gain a reroll token and a Lucky Charm.',
+    descFa: 'یک ژتون تاس دوباره و یک طلسم بخت بگیر.',
+    glyph: 25,
+  ),
+  CardDef(
+    id: CardId.hourglassSand,
+    rarity: Rarity.rare,
+    category: CardCategory.sabotage,
+    nameEn: 'Hourglass Sand',
+    nameFa: 'شن ساعت',
+    descEn: "Next turn your opponent's dice are capped at 4 and their doubles count as a normal roll.",
+    descFa: 'نوبت بعد تاس‌های حریف حداکثر ۴ می‌آیند و جفتش مثل تاس معمولی حساب می‌شود.',
+    glyph: 26,
+  ),
+  CardDef(
+    id: CardId.simorgh,
+    rarity: Rarity.rare,
+    category: CardCategory.checker,
+    nameEn: "Simorgh's Blessing",
+    nameFa: 'برکت سیمرغ',
+    descEn: 'Gain two Phoenix charges: your next two hit checkers re-enter instantly.',
+    descFa: 'دو ققنوس بگیر: دو مهرهٔ بعدی‌ات که زده شوند فوراً دوباره وارد می‌شوند.',
+    glyph: 27,
+  ),
+  CardDef(
+    id: CardId.nightfall,
+    rarity: Rarity.common,
+    category: CardCategory.sabotage,
+    nameEn: 'Nightfall',
+    nameFa: 'شب‌هنگام',
+    descEn: 'Your opponent cannot roll 7–7 during their next 6 turns.',
+    descFa: 'حریف تا شش نوبت بعدی‌اش نمی‌تواند هفت‌هفت بیاورد.',
+    glyph: 28,
+  ),
+  CardDef(
+    id: CardId.lantern,
+    rarity: Rarity.common,
+    category: CardCategory.trap,
+    nameEn: 'Lantern of Truth',
+    nameFa: 'فانوس حقیقت',
+    descEn: "Reveal and destroy all of your opponent's mines, quicksand and toll gates.",
+    descFa: 'همهٔ مین‌ها، باتلاق‌ها و عوارضی‌های حریف را آشکار و نابود کن.',
+    glyph: 29,
+  ),
+  CardDef(
+    id: CardId.earthquake,
+    rarity: Rarity.rare,
+    category: CardCategory.sabotage,
+    nameEn: 'Earthquake',
+    nameFa: 'زلزله',
+    descEn: 'Break every chain and quicksand on your checkers and shatter enemy shields and gates.',
+    descFa: 'همهٔ زنجیرها و باتلاق‌های روی مهره‌هایت را بشکن و سپرها و دروازه‌های حریف را خرد کن.',
+    glyph: 30,
+  ),
+  CardDef(
+    id: CardId.luckySix,
+    rarity: Rarity.common,
+    category: CardCategory.dice,
+    nameEn: 'Lucky Six',
+    nameFa: 'شش خوش',
+    descEn: 'Next turn, your first die is a 6.',
+    descFa: 'نوبت بعد، تاس اولت ۶ می‌آید.',
+    glyph: 31,
+  ),
+  CardDef(
+    id: CardId.vortex,
+    rarity: Rarity.rare,
+    category: CardCategory.trap,
+    nameEn: 'Vortex',
+    nameFa: 'گرداب',
+    descEn: 'Mark two points with quicksand.',
+    descFa: 'دو خانه را باتلاقی کن.',
+    target: TargetKind.enemyOrEmpty2,
+    glyph: 32,
+  ),
+  CardDef(
+    id: CardId.minefield,
+    rarity: Rarity.epic,
+    category: CardCategory.trap,
+    nameEn: 'Minefield',
+    nameFa: 'میدان مین',
+    descEn: 'Hide mines on two empty points.',
+    descFa: 'روی دو خانهٔ خالی مین پنهان کن.',
+    target: TargetKind.emptyPoint2,
+    glyph: 33,
+  ),
+  CardDef(
+    id: CardId.truce,
+    rarity: Rarity.epic,
+    category: CardCategory.tempo,
+    nameEn: 'Truce',
+    nameFa: 'آتش‌بس',
+    descEn: "No checker on either side can be hit until your opponent's second turn ends.",
+    descFa: 'تا پایان دومین نوبتِ حریف، هیچ مهره‌ای از دو طرف زده نمی‌شود.',
+    glyph: 34,
+  ),
+  CardDef(
+    id: CardId.tailwind,
+    rarity: Rarity.common,
+    category: CardCategory.dice,
+    nameEn: 'Tailwind',
+    nameFa: 'باد موافق',
+    descEn: 'Next turn, add 1 to each of your dice (up to 6).',
+    descFa: 'نوبت بعد، به هر تاست یکی اضافه می‌شود (تا ۶).',
+    glyph: 35,
+  ),
+  CardDef(
+    id: CardId.headwind,
+    rarity: Rarity.common,
+    category: CardCategory.sabotage,
+    nameEn: 'Headwind',
+    nameFa: 'باد مخالف',
+    descEn:
+        "Next turn, subtract 1 from each of your opponent's dice (down to 1).",
+    descFa: 'نوبت بعد، از هر تاس حریف یکی کم می‌شود (تا ۱).',
+    glyph: 36,
   ),
 ];
 

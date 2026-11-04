@@ -1459,6 +1459,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'How to play'**
   String get howToPlay;
+
+  /// No description provided for @targetOwnBlot2.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap two of your lone checkers'**
+  String get targetOwnBlot2;
+
+  /// No description provided for @targetEmpty2.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap two empty points'**
+  String get targetEmpty2;
+
+  /// No description provided for @targetPoint2.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap two points'**
+  String get targetPoint2;
 }
 
 class _AppLocalizationsDelegate

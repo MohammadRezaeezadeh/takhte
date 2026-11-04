@@ -16,6 +16,24 @@ abstract final class CardLogic {
     switch (card) {
       case CardId.timeStop:
         return !tx.extraTurn;
+      case CardId.lantern:
+        return tx.effects.any(
+          (e) =>
+              e.owner == side.opponent &&
+              (e.kind == EffectKind.landmine ||
+                  e.kind == EffectKind.quicksand ||
+                  e.kind == EffectKind.toll),
+        );
+      case CardId.earthquake:
+        return tx.effects.any(
+          (e) =>
+              (e.affected == side &&
+                  (e.kind == EffectKind.chains ||
+                      e.kind == EffectKind.quicksandFreeze)) ||
+              (e.owner == side.opponent &&
+                  (e.kind == EffectKind.shield ||
+                      e.kind == EffectKind.ironGate)),
+        );
       default:
         return true;
     }
@@ -69,6 +87,25 @@ abstract final class CardLogic {
           for (var abs = 1; abs <= 24; abs++)
             if (board.atAbsolute(abs).$1 != side) [abs],
         ];
+      case TargetKind.ownBlot2:
+        return _pairs([
+          for (var abs = 1; abs <= 24; abs++)
+            if (board.count(side, toRelative(side, abs)) == 1) abs,
+        ]);
+      case TargetKind.emptyPoint2:
+        final mined = {
+          for (final e in tx.effects)
+            if (e.kind == EffectKind.landmine) e.point,
+        };
+        return _pairs([
+          for (var abs = 1; abs <= 24; abs++)
+            if (board.atAbsolute(abs).$1 == null && !mined.contains(abs)) abs,
+        ]);
+      case TargetKind.enemyOrEmpty2:
+        return _pairs([
+          for (var abs = 1; abs <= 24; abs++)
+            if (board.atAbsolute(abs).$1 != side) abs,
+        ]);
       case TargetKind.teleport:
         final ctx = EffectSystem.moveContext(tx, side);
         final mine = board.of(side);
@@ -95,11 +132,20 @@ abstract final class CardLogic {
     }
   }
 
+  /// Unordered distinct pairs; a single option if only one point exists.
+  static List<List<int>> _pairs(List<int> pts) {
+    if (pts.length == 1) return [pts];
+    return [
+      for (var i = 0; i < pts.length; i++)
+        for (var j = i + 1; j < pts.length; j++) [pts[i], pts[j]],
+    ];
+  }
+
   static bool validTargets(Tx tx, Side side, String card, List<int> t) {
     final all = allTargets(tx, side, card);
     bool same(List<int> a, List<int> b) {
       if (a.length != b.length) return false;
-      if (cardById(card).target == TargetKind.enemyCheckers2) {
+      if (isUnorderedTarget(cardById(card).target)) {
         final x = List.of(a)..sort();
         final y = List.of(b)..sort();
         for (var i = 0; i < x.length; i++) {
@@ -266,6 +312,96 @@ abstract final class CardLogic {
           affected: opp,
           turns: 9999,
         );
+      case CardId.twinAnchors:
+        for (final p in targets) {
+          tx.addEffect(
+            EffectKind.ironGate,
+            owner: side,
+            affected: opp,
+            turns: 2,
+            point: p,
+          );
+        }
+      case CardId.bargain:
+        tx.setInv(
+          side,
+          inv().copyWith(rerolls: inv().rerolls + 1, lucky: inv().lucky + 1),
+        );
+      case CardId.hourglassSand:
+        tx
+          ..addEffect(EffectKind.fog, owner: side, affected: opp, turns: 1)
+          ..addEffect(EffectKind.curse, owner: side, affected: opp, turns: 1);
+      case CardId.simorgh:
+        tx.setInv(side, inv().copyWith(phoenix: inv().phoenix + 2));
+      case CardId.nightfall:
+        tx.addEffect(
+          EffectKind.sevenBlock,
+          owner: side,
+          affected: opp,
+          turns: 6,
+        );
+      case CardId.lantern:
+        final removed = tx.effects
+            .where(
+              (e) =>
+                  e.owner == opp &&
+                  (e.kind == EffectKind.landmine ||
+                      e.kind == EffectKind.quicksand ||
+                      e.kind == EffectKind.toll),
+            )
+            .map((e) => e.id)
+            .toSet();
+        tx.effects.removeWhere((e) => removed.contains(e.id));
+      case CardId.earthquake:
+        tx.effects.removeWhere(
+          (e) =>
+              (e.affected == side &&
+                  (e.kind == EffectKind.chains ||
+                      e.kind == EffectKind.quicksandFreeze)) ||
+              (e.owner == opp &&
+                  (e.kind == EffectKind.shield ||
+                      e.kind == EffectKind.ironGate)),
+        );
+      case CardId.luckySix:
+        tx.addEffect(
+          EffectKind.sixNext,
+          owner: side,
+          affected: side,
+          turns: 1,
+          immediate: false,
+        );
+      case CardId.vortex:
+        for (final p in targets) {
+          tx.addEffect(
+            EffectKind.quicksand,
+            owner: side,
+            affected: opp,
+            turns: 6,
+            point: p,
+          );
+        }
+      case CardId.minefield:
+        for (final p in targets) {
+          tx.addEffect(
+            EffectKind.landmine,
+            owner: side,
+            affected: opp,
+            turns: 8,
+            point: p,
+          );
+        }
+      case CardId.truce:
+        tx.addEffect(EffectKind.truce, owner: side, affected: opp, turns: 2);
+      case CardId.tailwind:
+        tx.addEffect(
+          EffectKind.tailwind,
+          owner: side,
+          affected: side,
+          turns: 1,
+          immediate: false,
+        );
+      case CardId.headwind:
+        tx.addEffect(EffectKind.headwind, owner: side, affected: opp, turns: 1);
       default:
         throw ArgumentError('No logic for card $card');
     }

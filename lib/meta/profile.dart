@@ -130,6 +130,19 @@ const Map<String, int> kCardUnlockLevel = {
   CardId.ghostStep: 5,
   CardId.teleport: 6,
   CardId.bloodPact: 7,
+  CardId.bargain: 2,
+  CardId.luckySix: 2,
+  CardId.tailwind: 3,
+  CardId.headwind: 3,
+  CardId.nightfall: 4,
+  CardId.lantern: 4,
+  CardId.twinAnchors: 5,
+  CardId.hourglassSand: 5,
+  CardId.vortex: 6,
+  CardId.simorgh: 6,
+  CardId.earthquake: 7,
+  CardId.minefield: 8,
+  CardId.truce: 9,
 };
 
 /// The player's persistent profile.

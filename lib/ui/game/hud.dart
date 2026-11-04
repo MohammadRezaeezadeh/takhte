@@ -33,6 +33,11 @@ String cardForEffect(EffectKind k) => switch (k) {
   EffectKind.skipTurn => CardId.gamblersCoin,
   EffectKind.bonusPick => CardId.timeStop,
   EffectKind.bonusOffer => CardId.greed,
+  EffectKind.sevenBlock => CardId.nightfall,
+  EffectKind.sixNext => CardId.luckySix,
+  EffectKind.truce => CardId.truce,
+  EffectKind.tailwind => CardId.tailwind,
+  EffectKind.headwind => CardId.headwind,
 };
 
 /// Effects whose turn counter is meaningful to show.

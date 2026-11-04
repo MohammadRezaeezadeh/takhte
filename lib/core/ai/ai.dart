@@ -361,6 +361,33 @@ class AiBrain {
       case CardId.greed:
         final lead = b.pips(opp) - b.pips(side);
         v = 0.1 + (lead > 20 ? 0.15 : 0);
+      case CardId.twinAnchors:
+        v = contact ? 0.4 : 0.02;
+      case CardId.bargain:
+        v = 0.4;
+      case CardId.hourglassSand:
+        v = 0.42;
+      case CardId.simorgh:
+        v = contact ? 0.45 : 0.03;
+      case CardId.nightfall:
+        v = 0.2;
+      case CardId.lantern:
+        v = 0.35;
+      case CardId.earthquake:
+        v = 0.4;
+      case CardId.luckySix:
+        v = 0.35;
+      case CardId.vortex:
+        v = contact ? 0.45 : 0.2;
+      case CardId.minefield:
+        v = contact ? 0.55 : 0.05;
+      case CardId.truce:
+        final behind = b.pips(side) - b.pips(opp);
+        v = contact ? (behind > 0 ? 0.15 : 0.45) : 0.02;
+      case CardId.tailwind:
+        v = 0.35;
+      case CardId.headwind:
+        v = 0.35;
       default:
         v = 0.2;
     }
@@ -404,10 +431,18 @@ class AiBrain {
     switch (card) {
       case CardId.holyShield:
       case CardId.ironGate:
-        final rel = toRelative(side, t.first);
-        if (mine[rel] != 1) return 0.1;
-        final shots = Evaluator.shots(rel, oppPos, mine, theirs[25] > 0);
-        return shots / 36 * (1 + (25 - rel) / 25) * 3;
+      case CardId.twinAnchors:
+        var sc = 0.0;
+        for (final abs in t) {
+          final rel = toRelative(side, abs);
+          if (mine[rel] != 1) {
+            sc += 0.1;
+            continue;
+          }
+          final shots = Evaluator.shots(rel, oppPos, mine, theirs[25] > 0);
+          sc += shots / 36 * (1 + (25 - rel) / 25) * 3;
+        }
+        return sc;
       case CardId.chains:
         var sc = 0.0;
         for (final abs in t) {
@@ -416,19 +451,27 @@ class AiBrain {
         }
         return sc;
       case CardId.landmine:
+      case CardId.minefield:
         // Likelihood an opponent checker lands here soon.
-        final myFrame = toRelative(side, t.first);
         var sc = 0.0;
-        for (final x in oppPos) {
-          final dist = myFrame - x;
-          if (dist >= 1 && dist <= 12) {
-            sc += theirs[25 - x] * (dist <= 6 ? 1.0 : 0.4);
+        for (final abs in t) {
+          final myFrame = toRelative(side, abs);
+          for (final x in oppPos) {
+            final dist = myFrame - x;
+            if (dist >= 1 && dist <= 12) {
+              sc += theirs[25 - x] * (dist <= 6 ? 1.0 : 0.4);
+            }
           }
         }
         return sc / 3;
       case CardId.quicksand:
-        final rel = toRelative(opp, t.first);
-        return theirs[rel] * (rel >= 13 ? 1.2 : 0.6) / 2;
+      case CardId.vortex:
+        var sc = 0.0;
+        for (final abs in t) {
+          final rel = toRelative(opp, abs);
+          sc += theirs[rel] * (rel >= 13 ? 1.2 : 0.6) / 2;
+        }
+        return sc;
       case CardId.tollGate:
         final myFrame = toRelative(side, t.first);
         var behind = 0;

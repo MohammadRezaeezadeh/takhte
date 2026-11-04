@@ -297,7 +297,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   bool _unordered() =>
-      cardById(ctrl.state.pendingCard!).target == TargetKind.enemyCheckers2;
+      isUnorderedTarget(cardById(ctrl.state.pendingCard!).target);
 
   bool _matches(List<int> combo, List<int> chosen, {required bool prefixOnly}) {
     if (_unordered()) {
@@ -371,6 +371,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       TargetKind.enemyOrEmpty => l.targetPoint,
       TargetKind.teleport =>
         _chosen.isEmpty ? l.targetTeleportFrom : l.targetTeleportTo,
+      TargetKind.ownBlot2 => l.targetOwnBlot2,
+      TargetKind.emptyPoint2 => l.targetEmpty2,
+      TargetKind.enemyOrEmpty2 => l.targetPoint2,
       TargetKind.none => '',
     };
   }

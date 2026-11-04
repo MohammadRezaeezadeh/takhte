@@ -220,6 +220,11 @@ enum EffectKind {
   skipTurn,
   bonusPick,
   bonusOffer,
+  sevenBlock,
+  sixNext,
+  truce,
+  tailwind,
+  headwind,
 }
 
 /// An effect living on the board or on a side.

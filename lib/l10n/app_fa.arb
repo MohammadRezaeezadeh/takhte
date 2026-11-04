@@ -226,5 +226,8 @@
   "rarityEpic": "حماسی",
   "rarityLegendary": "افسانه‌ای",
   "drawback": "بها",
-  "howToPlay": "روش بازی"
+  "howToPlay": "روش بازی",
+  "targetOwnBlot2": "دو مهرهٔ تنهای خودت را انتخاب کن",
+  "targetEmpty2": "دو خانهٔ خالی را انتخاب کن",
+  "targetPoint2": "دو خانه را انتخاب کن"
 }

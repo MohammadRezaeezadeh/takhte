@@ -171,6 +171,13 @@ class RollPlan {
     required this.p7Multiplier,
   });
   int count;
+
+  /// Added to every die (clamped to 1..6) before the cap.
+  int bonus = 0;
+
+  /// Forces the first die to this value.
+  int? forceFirst;
+
   bool doublesCount;
   int cap;
   double p7Multiplier;
@@ -469,8 +476,12 @@ abstract final class Engine {
 
   static void _rollNormal(Tx tx, RollPlan plan) {
     final values = [
-      for (var i = 0; i < plan.count; i++) tx.rng.die().clamp(1, plan.cap),
+      for (var i = 0; i < plan.count; i++)
+        (tx.rng.die() + plan.bonus).clamp(1, 6).clamp(1, plan.cap),
     ];
+    if (plan.forceFirst != null && values.isNotEmpty) {
+      values[0] = plan.forceFirst!.clamp(1, plan.cap);
+    }
     tx.movesThisRoll = [];
     if (values.length == 3) {
       tx.choiceDice = values;
