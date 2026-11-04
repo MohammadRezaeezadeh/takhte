@@ -131,7 +131,10 @@ void main() {
     (t) => screen(t, 'locker_fa', const LockerScreen(), lang: 'fa'),
   );
   testWidgets('profile', (t) => screen(t, 'profile_en', const ProfileScreen()));
-  testWidgets('codex', (t) => screen(t, 'codex_fa', const CodexScreen(), lang: 'fa'));
+  testWidgets(
+    'codex',
+    (t) => screen(t, 'codex_fa', const CodexScreen(), lang: 'fa'),
+  );
   testWidgets(
     'settings',
     (t) => screen(t, 'settings_fa', const SettingsScreen(), lang: 'fa'),
