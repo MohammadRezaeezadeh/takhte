@@ -23,12 +23,12 @@ Every green push publishes a GitHub Release (see `RELEASE.md`).
 * Cards: **80** · Talismans: **60** · Bosses: 14 + final.
 * Boards 9 · Environments 7 · Checkers 9 · Dice 7 · Card backs 4 · Frames 3 ·
   Victory effects 4 · Emotes 8 · Bundles 3 · Achievements 33 · Tips 14 ·
-  Music loops 2 · SFX 21.
+  Music: 3 long adaptive tracks (+2 tension versions) · SFX 21.
 * Journey shop: talismans, banish, attune (card upgrade), wider offers, luck.
 
 ## Verification
 * `tool/check.sh` mirrors CI: format gate, `flutter analyze --fatal-infos`, tests.
-* `flutter test` — 203 tests (rules, reference movegen, fuzz, every card, AI,
+* `flutter test` — 415 tests (rules, reference movegen, fuzz, every card, AI,
   controller, meta, journey, save fuzzing, UI flows, full AI-vs-AI match through
   the real UI).
 * Coverage: rules 95%, core 97%, overall ≈74%.

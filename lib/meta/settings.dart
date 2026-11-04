@@ -15,6 +15,8 @@ class Settings {
     this.showPips = true,
     this.tutorialDone = false,
     this.sevenGuideDone = false,
+    this.musicVolume = 0.35,
+    this.sfxVolume = 1,
     this.sevenTutorialDone = false,
     this.showFps = false,
   });
@@ -34,6 +36,8 @@ class Settings {
     showPips: j['showPips'] as bool? ?? true,
     tutorialDone: j['tutorialDone'] as bool? ?? false,
     sevenGuideDone: j['sevenGuideDone'] as bool? ?? false,
+    musicVolume: (j['musicVolume'] as num?)?.toDouble() ?? 0.35,
+    sfxVolume: (j['sfxVolume'] as num?)?.toDouble() ?? 1,
     sevenTutorialDone: j['sevenTutorialDone'] as bool? ?? false,
     showFps: j['showFps'] as bool? ?? false,
   );
@@ -59,6 +63,10 @@ class Settings {
 
   /// The first-7–7 walkthrough of the card choice was shown.
   final bool sevenGuideDone;
+
+  /// Music sits below the effects by default.
+  final double musicVolume;
+  final double sfxVolume;
   final bool sevenTutorialDone;
 
   /// Hidden developer overlay with frame timings.
@@ -79,6 +87,8 @@ class Settings {
     bool? showPips,
     bool? tutorialDone,
     bool? sevenGuideDone,
+    double? musicVolume,
+    double? sfxVolume,
     bool? sevenTutorialDone,
     bool? showFps,
   }) => Settings(
@@ -96,6 +106,8 @@ class Settings {
     showPips: showPips ?? this.showPips,
     tutorialDone: tutorialDone ?? this.tutorialDone,
     sevenGuideDone: sevenGuideDone ?? this.sevenGuideDone,
+    musicVolume: musicVolume ?? this.musicVolume,
+    sfxVolume: sfxVolume ?? this.sfxVolume,
     sevenTutorialDone: sevenTutorialDone ?? this.sevenTutorialDone,
     showFps: showFps ?? this.showFps,
   );
@@ -115,6 +127,8 @@ class Settings {
     'showPips': showPips,
     'tutorialDone': tutorialDone,
     'sevenGuideDone': sevenGuideDone,
+    'musicVolume': musicVolume,
+    'sfxVolume': sfxVolume,
     'sevenTutorialDone': sevenTutorialDone,
     'showFps': showFps,
   };

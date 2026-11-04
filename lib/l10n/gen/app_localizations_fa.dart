@@ -1022,4 +1022,10 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get guideNext => 'فهمیدم';
+
+  @override
+  String get musicVolume => 'بلندی موسیقی';
+
+  @override
+  String get sfxVolume => 'بلندی جلوه‌های صوتی';
 }

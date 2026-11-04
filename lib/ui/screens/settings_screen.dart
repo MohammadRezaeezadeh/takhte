@@ -27,7 +27,9 @@ class SettingsScreen extends ConsumerWidget {
       Sfx.instance
         ..soundOn = v.sound
         ..musicOn = v.music
-        ..hapticsOn = v.haptics;
+        ..hapticsOn = v.haptics
+        ..sfxVolume = v.sfxVolume;
+      unawaited(Sfx.instance.setMusicVolume(v.musicVolume));
       unawaited(Sfx.instance.setAmbient(on: v.music));
     }
 
@@ -43,6 +45,33 @@ class SettingsScreen extends ConsumerWidget {
                   style: const TextStyle(color: AppColors.muted, fontSize: 12),
                 ),
         );
+
+    Widget slider(
+      String title,
+      double v,
+      Settings Function(double) f, {
+      required String key,
+    }) => Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(fontSize: 13, color: AppColors.muted),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Slider(
+              key: ValueKey(key),
+              value: v.clamp(0.0, 1.0),
+              onChanged: (x) => set(f(x)),
+            ),
+          ),
+        ],
+      ),
+    );
 
     Widget seg<T>(
       String title,
@@ -112,7 +141,19 @@ class SettingsScreen extends ConsumerWidget {
                           child: Column(
                             children: [
                               sw(l.sound, s.sound, (v) => s.copyWith(sound: v)),
+                              slider(
+                                l.sfxVolume,
+                                s.sfxVolume,
+                                (v) => s.copyWith(sfxVolume: v),
+                                key: 'sfx-volume',
+                              ),
                               sw(l.music, s.music, (v) => s.copyWith(music: v)),
+                              slider(
+                                l.musicVolume,
+                                s.musicVolume,
+                                (v) => s.copyWith(musicVolume: v),
+                                key: 'music-volume',
+                              ),
                               sw(
                                 l.haptics,
                                 s.haptics,

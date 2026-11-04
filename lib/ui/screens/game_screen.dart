@@ -133,7 +133,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => unawaited(ctrl.begin()),
     );
-    unawaited(Sfx.instance.setAmbient(on: true, track: 'ambient_game'));
+    unawaited(
+      Sfx.instance.setAmbient(on: true, track: Sfx.instance.nextGameTrack()),
+    );
     if (ctrl.state.isOver) _showGameOver = true;
   }
 
@@ -188,7 +190,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     }
     _revealTimer?.cancel();
     _resultTimer?.cancel();
-    unawaited(Sfx.instance.setAmbient(on: true, track: 'ambient'));
+    unawaited(Sfx.instance.setTension(on: false));
+    unawaited(Sfx.instance.setAmbient(on: true, track: 'music_menu'));
     unawaited(_sub.cancel());
     ctrl
       ..removeListener(_onCtrl)
@@ -340,6 +343,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         case QuicksandGripped():
           _toast(l.gripped, icon: Icons.waves, color: const Color(0xFF8C6A48));
         case SevenRolled(:final side):
+          Sfx.instance.duckForSeven();
           _aiReact(side, 'emo_seven', chance: 0.7);
           _aiReact(side.opponent, 'emo_wow', chance: 0.4);
         case CheckerHit(:final victim):
@@ -370,8 +374,18 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     }
   }
 
+  /// Tension: someone trails by 40+ pips, or the race to bear off is on.
+  static bool _tense(GameState s) {
+    if (s.isOver) return false;
+    final w = s.board.pips(Side.white);
+    final b = s.board.pips(Side.black);
+    final racing = s.board.allHome(Side.white) || s.board.allHome(Side.black);
+    return (w - b).abs() >= 40 || racing;
+  }
+
   void _onCtrl() {
     if (!mounted) return;
+    unawaited(Sfx.instance.setTension(on: _tense(ctrl.state)));
     final tut = widget.tutorial;
     if (tut != null &&
         !_stepDone &&

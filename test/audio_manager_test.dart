@@ -178,6 +178,63 @@ void main() {
     await a.onResume();
     expect(a.ready, isTrue);
   });
+  group('music', () {
+    setUp(() => audio.crossfade = const Duration(milliseconds: 12));
+
+    test('switching tracks crossfades on a second player', () async {
+      await audio.playMusic('music_menu', volume: 0.4);
+      await audio.playMusic('music_game_a');
+      expect(backend.music, hasLength(2));
+      expect(backend.music.first.log, contains('stop'));
+      expect(backend.music.last.log.first, 'play music_game_a.ogg');
+      expect(backend.music.last.volume, closeTo(0.4, 1e-9));
+    });
+
+    test(
+      'tension switches to the tension version at the same position',
+      () async {
+        await audio.playMusic('music_game_a', volume: 0.4);
+        await audio.setTension(on: true);
+        expect(audio.tension, isTrue);
+        expect(backend.music.last.log, [
+          'play music_game_a_tension.ogg',
+          'seek 42',
+        ]);
+        await audio.setTension(on: false);
+        expect(audio.tension, isFalse);
+        // The old player is reused for the way back (no player leak).
+        expect(backend.music, hasLength(2));
+        // Menu music has no tension version.
+        await audio.playMusic('music_menu');
+        await audio.setTension(on: true);
+        expect(audio.tension, isFalse);
+      },
+    );
+
+    test('the 7-7 stinger ducks the music, then restores it', () async {
+      await audio.playMusic('music_game_b', volume: 0.5);
+      final f = audio.duck(hold: const Duration(milliseconds: 10));
+      await Future<void>.delayed(Duration.zero);
+      expect(backend.music.single.volume, closeTo(0.15, 1e-9));
+      await f;
+      expect(backend.music.single.volume, closeTo(0.5, 1e-9));
+    });
+
+    test('fatigue: fades out after 10 minutes, returns after a rest', () async {
+      await audio.playMusic('music_game_a', volume: 0.4);
+      now += 9 * 60 * 1000;
+      await audio.musicTick();
+      expect(audio.resting, isFalse);
+      now += 61 * 1000;
+      await audio.musicTick();
+      expect(audio.resting, isTrue);
+      expect(backend.music.single.volume, closeTo(0, 1e-9));
+      now += 3 * 60 * 1000;
+      await audio.musicTick();
+      expect(audio.resting, isFalse);
+      expect(backend.music.single.volume, closeTo(0.4, 1e-9));
+    });
+  });
 }
 
 class _BrokenBackend extends FakeBackend {

@@ -1753,6 +1753,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Got it'**
   String get guideNext;
+
+  /// No description provided for @musicVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Music volume'**
+  String get musicVolume;
+
+  /// No description provided for @sfxVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Effects volume'**
+  String get sfxVolume;
 }
 
 class _AppLocalizationsDelegate

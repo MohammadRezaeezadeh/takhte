@@ -1019,4 +1019,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guideNext => 'Got it';
+
+  @override
+  String get musicVolume => 'Music volume';
+
+  @override
+  String get sfxVolume => 'Effects volume';
 }

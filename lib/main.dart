@@ -23,7 +23,9 @@ Future<void> main() async {
   Sfx.instance
     ..soundOn = s.sound
     ..musicOn = s.music
-    ..hapticsOn = s.haptics;
+    ..hapticsOn = s.haptics
+    ..musicVolume = s.musicVolume
+    ..sfxVolume = s.sfxVolume;
   unawaited(Sfx.instance.preload());
   runApp(
     ProviderScope(

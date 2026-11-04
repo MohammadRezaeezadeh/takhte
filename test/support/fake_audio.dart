@@ -35,9 +35,26 @@ class FakeMusic implements MusicVoice {
   final List<String> log = [];
   bool disposed = false;
   @override
-  Future<void> play(String file, double volume) async => log.add('play $file');
+  Future<void> play(String file, double volume) async {
+    this.volume = volume;
+    log.add('play $file');
+  }
+
   @override
-  Future<void> setVolume(double volume) async => log.add('vol $volume');
+  Future<void> setVolume(double volume) async {
+    this.volume = volume;
+    if (logVolume) log.add('vol $volume');
+  }
+
+  double volume = 0;
+  bool logVolume = false;
+  Duration pos = const Duration(seconds: 42);
+
+  @override
+  Future<Duration?> position() async => pos;
+
+  @override
+  Future<void> seek(Duration at) async => log.add('seek ${at.inSeconds}');
   @override
   Future<void> pause() async => log.add('pause');
   @override

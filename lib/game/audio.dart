@@ -26,17 +26,33 @@ class Sfx {
   void Function(String message)? onLog;
 
   AudioManager? _manager;
-  String _track = 'ambient';
+  String _track = 'music_menu';
+  int _gameTrack = 0;
+  Timer? _tick;
+
+  /// Game tracks alternate between matches.
+  static const gameTracks = ['music_game_a', 'music_game_b'];
+
+  String nextGameTrack() => gameTracks[_gameTrack++ % gameTracks.length];
   bool _ambientWanted = false;
   final _rng = math.Random();
 
   /// The manager, created on first use (null when audio is unavailable).
   AudioManager? get manager {
     if (!available) return null;
-    return _manager ??= AudioManager(
+    final existing = _manager;
+    if (existing != null) return existing;
+    final m = _manager = AudioManager(
       AudioplayersBackend(),
       onLog: (m) => onLog?.call(m),
     );
+    // Fatigue check: music rests after ~10 min and softly returns. (Only for
+    // the real backend; tests inject their own manager.)
+    _tick ??= Timer.periodic(
+      const Duration(seconds: 15),
+      (_) => unawaited(_manager?.musicTick()),
+    );
+    return m;
   }
 
   /// Replaces the manager (tests inject a fake backend).
@@ -70,6 +86,15 @@ class Sfx {
       await m.stopMusic();
     }
   }
+
+  /// Adaptive music: tension version while a player is far behind or the
+  /// bear-off race is on.
+  Future<void> setTension({required bool on}) async {
+    await manager?.setTension(on: on);
+  }
+
+  /// Ducks the music under the 7–7 fanfare.
+  void duckForSeven() => unawaited(manager?.duck());
 
   Future<void> setMusicVolume(double v) async {
     musicVolume = v.clamp(0.0, 1.0);

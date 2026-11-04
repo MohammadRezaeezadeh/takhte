@@ -104,3 +104,9 @@ One line per decision: **decision** — reason.
   - The engine reports only final dice values, so the "unmodified" faces are reconstructed to show what the power did.
 - **Double Seven build-up:** slow-motion throw → hover, wobble and glow with a rising whoosh → slam with a gold flash, bursts, fanfare, environment flare, shake and a three-beat haptic (~2.7 s). Tap to skip; after three 7–7s in a session it plays at 60% length.
 - **Fix:** closing the game screen mid-turn no longer touches `ref` after unmount (the controller stops before persisting).
+- **Music** (`tool/gen_music.dart`, deterministic):
+  - Three long pieces replace the 8-second loops: a calm menu track (2:30, Mahur) and two game tracks (3:00 each, Shur and Homayoun). Each is in A/B form, with motifs varied every round so there is no fixed hook. Voices are a santur-like Karplus-Strong pluck, a soft pad and a light daf, with reverb. Each track's tail is overlap-added onto its head for a seamless loop (measured seam jump ≤1%, no silent stretch, no clipping).
+  - Each game track has a same-length tension version (pulsing low drone, busier daf), crossfaded in at the same position when a player trails by 40+ pips or the bear-off race is on. The 7–7 fanfare ducks the music. Game tracks alternate between matches.
+  - Music defaults to 35% against 100% for effects, with separate sliders in Settings. After 10 minutes of continuous play it fades out, then softly returns 3 minutes later.
+  - Vorbis q1 at 22 kHz mono keeps all five tracks at 2.9 MB. Tests cover crossfade, same-position tension switch, ducking and fatigue.
+- **Version 1.1.0 marks the playtest-fix release (audio, bear-off slowdown, render order, dice, 7–7 odds and moment, choice screen, show-don't-tell, music, problem report).**

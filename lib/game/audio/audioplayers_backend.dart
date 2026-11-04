@@ -82,6 +82,12 @@ class _Music implements MusicVoice {
   Future<void> setVolume(double volume) => p.setVolume(volume);
 
   @override
+  Future<Duration?> position() => p.getCurrentPosition();
+
+  @override
+  Future<void> seek(Duration at) => p.seek(at);
+
+  @override
   Future<void> pause() => p.pause();
 
   @override

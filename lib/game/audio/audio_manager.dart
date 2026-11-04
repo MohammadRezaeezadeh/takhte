@@ -10,6 +10,8 @@ abstract interface class SfxVoice {
 /// One music channel (a streaming player).
 abstract interface class MusicVoice {
   Future<void> play(String file, double volume);
+  Future<Duration?> position();
+  Future<void> seek(Duration at);
   Future<void> setVolume(double volume);
   Future<void> pause();
   Future<void> resume();
@@ -254,23 +256,61 @@ class AudioManager {
 
   void _prune(int now) => _active.removeWhere((a) => a.endMs <= now);
 
-  /// Starts (or switches to) a music track.
+  /// Tracks that have a same-length "_tension" version for adaptive music.
+  static const Set<String> tensionTracks = {'music_game_a', 'music_game_b'};
+
+  /// Crossfade length between tracks / tension versions.
+  Duration crossfade = const Duration(milliseconds: 1800);
+
+  /// Music fades away after this much continuous play, then rests.
+  int fatigueAfterMs = 10 * 60 * 1000;
+  int restMs = 3 * 60 * 1000;
+
+  MusicVoice? _standby;
+  bool _tension = false;
+  bool _tensionPlaying = false;
+  double _duck = 1;
+  double _fatigue = 1;
+  int? _playStartMs;
+  int? _restUntilMs;
+  int _fadeGen = 0;
+
+  bool get tension => _tensionPlaying;
+  bool get resting => _restUntilMs != null;
+
+  double get _effectiveVolume => _musicVolume * _duck * _fatigue;
+
+  String _fileFor(String track, {required bool tension}) =>
+      tension && tensionTracks.contains(track) ? '${track}_tension' : track;
+
+  /// Starts (or crossfades to) a music track.
   Future<void> playMusic(String track, {double? volume}) async {
     if (_disposed) return;
     if (volume != null) _musicVolume = volume;
     if (_musicPlaying && _musicTrack == track) return;
+    final switching = _musicPlaying && _music != null;
     _musicTrack = track;
     _musicPlaying = true;
+    _playStartMs = _clock();
+    _restUntilMs = null;
+    _fatigue = 1;
     if (_paused) return;
-    await _startMusic();
+    if (switching) {
+      await _crossfadeTo(_fileFor(track, tension: _tension));
+      _tensionPlaying = _tension && tensionTracks.contains(track);
+    } else {
+      await _startMusic();
+    }
   }
 
   Future<void> _startMusic() async {
     final track = _musicTrack;
     if (track == null) return;
+    final file = _fileFor(track, tension: _tension);
     try {
       _music ??= await _guard(backend.createMusic());
-      await _guard(_music!.play('$track.ogg', _musicVolume));
+      await _guard(_music!.play('$file.ogg', _effectiveVolume));
+      _tensionPlaying = file != track;
     } on Object catch (e) {
       _fail('music $track: $e');
       final m = _music;
@@ -279,19 +319,116 @@ class AudioManager {
     }
   }
 
-  Future<void> setMusicVolume(double v) async {
-    _musicVolume = v.clamp(0.0, 1.0);
+  /// Fades the current track out and [file] in, optionally from [at].
+  Future<void> _crossfadeTo(String file, {Duration? at}) async {
+    final old = _music;
+    try {
+      final next = _standby ?? await _guard<MusicVoice>(backend.createMusic());
+      _standby = null;
+      await _guard(next.play('$file.ogg', 0));
+      if (at != null) await _guard(next.seek(at));
+      _music = next;
+      final gen = ++_fadeGen;
+      const steps = 12;
+      final step = Duration(microseconds: crossfade.inMicroseconds ~/ steps);
+      for (var i = 1; i <= steps; i++) {
+        await Future<void>.delayed(step);
+        if (gen != _fadeGen || _disposed) break;
+        final f = i / steps;
+        await _guard(next.setVolume(_effectiveVolume * f));
+        if (old != null) {
+          await _guard(old.setVolume(_effectiveVolume * (1 - f)));
+        }
+      }
+      if (old != null) {
+        await _quiet(old.stop());
+        _standby = old;
+      }
+    } on Object catch (e) {
+      _fail('music crossfade: $e');
+    }
+  }
+
+  /// Adaptive music: switch to the tension version (or back) at the same
+  /// position when a player is far behind or the race to bear off is on.
+  Future<void> setTension({required bool on}) async {
+    if (_tension == on) return;
+    _tension = on;
+    final track = _musicTrack;
+    final m = _music;
+    if (!_musicPlaying || _paused || track == null || m == null) return;
+    if (!tensionTracks.contains(track)) return;
+    Duration? at;
+    try {
+      at = await _guard(m.position());
+    } on Object {
+      at = null;
+    }
+    await _crossfadeTo(_fileFor(track, tension: on), at: at);
+    _tensionPlaying = on;
+  }
+
+  /// Lowers the music under a stinger (the 7–7 fanfare), then restores it.
+  Future<void> duck({
+    Duration hold = const Duration(milliseconds: 2400),
+  }) async {
+    _duck = 0.3;
+    await _applyVolume();
+    await Future<void>.delayed(hold);
+    _duck = 1;
+    await _applyVolume();
+  }
+
+  /// Fatigue: call periodically. After [fatigueAfterMs] of play the music
+  /// fades out, rests for [restMs], then softly returns.
+  Future<void> musicTick() async {
+    if (!_musicPlaying || _paused || _disposed) return;
+    final now = _clock();
+    final rest = _restUntilMs;
+    if (rest == null) {
+      final since = _playStartMs ??= now;
+      if (now - since >= fatigueAfterMs) {
+        _restUntilMs = now + restMs;
+        _log('music resting');
+        await _rampFatigue(0);
+      }
+    } else if (now >= rest) {
+      _restUntilMs = null;
+      _playStartMs = now;
+      await _rampFatigue(1);
+    }
+  }
+
+  Future<void> _rampFatigue(double to) async {
+    final from = _fatigue;
+    const steps = 10;
+    for (var i = 1; i <= steps; i++) {
+      _fatigue = from + (to - from) * i / steps;
+      await _applyVolume();
+      await Future<void>.delayed(
+        Duration(microseconds: crossfade.inMicroseconds ~/ steps),
+      );
+    }
+  }
+
+  Future<void> _applyVolume() async {
     final m = _music;
     if (m == null) return;
     try {
-      await _guard(m.setVolume(_musicVolume));
+      await _guard(m.setVolume(_effectiveVolume));
     } on Object catch (e) {
       _fail('music volume: $e');
     }
   }
 
+  Future<void> setMusicVolume(double v) async {
+    _musicVolume = v.clamp(0.0, 1.0);
+    await _applyVolume();
+  }
+
   Future<void> stopMusic() async {
     _musicPlaying = false;
+    _fadeGen++;
     final m = _music;
     if (m == null) return;
     try {
@@ -350,10 +487,14 @@ class AudioManager {
     final all = [for (final l in _voices.values) ...l];
     _voices.clear();
     final m = _music;
+    final st = _standby;
     _music = null;
+    _standby = null;
+    _fadeGen++;
     await Future.wait([
       for (final v in all) _quiet(v.dispose()),
       if (m != null) _quiet(m.dispose()),
+      if (st != null) _quiet(st.dispose()),
     ]);
   }
 

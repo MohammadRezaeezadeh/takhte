@@ -312,39 +312,5 @@ void main() {
   thump(b, 0, 700, 1500, 0.6, 0.3);
   write('pop', b);
 
-  // Ambient loop: a soft drone with occasional santur plucks (8 s, loops).
-  b = buf(8);
-  for (final f in [73.375, 110.0, 146.75]) {
-    const s0 = 0;
-    var phase = 0.0;
-    for (var i = s0; i < b.length; i++) {
-      final u = i / b.length;
-      phase += 2 * math.pi * f / sr;
-      b[i] +=
-          math.sin(phase) * 0.08 * (0.75 + 0.25 * math.sin(2 * math.pi * u));
-    }
-  }
-  const melody = [587.33, 523.25, 466.16, 440.0, 392.0, 440.0, 349.23, 293.66];
-  for (var k = 0; k < melody.length; k++) {
-    pluck(b, 0.3 + k * 0.92, melody[k], 0.18, n);
-  }
-  write('ambient', b, gain: 0.5);
-
-  // In-game loop: lower drone, slower Homayoun-flavoured plucks (8 s).
-  b = buf(8);
-  for (final f in [55.0, 82.5, 110.0]) {
-    var phase = 0.0;
-    for (var i = 0; i < b.length; i++) {
-      final u = i / b.length;
-      phase += 2 * math.pi * f / sr;
-      b[i] +=
-          math.sin(phase) * 0.07 * (0.7 + 0.3 * math.sin(2 * math.pi * 2 * u));
-    }
-  }
-  const game = [440.0, 466.16, 554.37, 587.33, 554.37, 466.16, 440.0, 392.0];
-  for (var k = 0; k < game.length; k++) {
-    pluck(b, 0.5 + k * 0.95, game[k] / 2, 0.16, n);
-    if (k.isEven) pluck(b, 0.5 + k * 0.95 + 0.47, game[k], 0.08, n);
-  }
-  write('ambient_game', b, gain: 0.45);
+  // Music lives in tool/gen_music.dart (long adaptive tracks).
 }

@@ -529,5 +529,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "musicVolume": "Music volume",
+  "sfxVolume": "Effects volume"
 }
