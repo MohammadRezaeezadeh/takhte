@@ -1,3 +1,4 @@
+import 'package:haftnard/core/effects/card_logic.dart';
 import 'package:haftnard/core/effects/cards.dart';
 import 'package:haftnard/core/rng/rng.dart';
 import 'package:haftnard/core/rules/actions.dart';
@@ -207,5 +208,15 @@ void main() {
     );
     final r = roll(s);
     expect(r.picksLeft, 2);
+  });
+
+  test('Time Stop cannot chain', () {
+    var s = pickOnly(
+      sevenState(Board.initial(), [CardId.timeStop], config: noSeven),
+    );
+    s = finishCurrentTurn(roll(s));
+    expect(s.current, Side.white, reason: 'extra turn');
+    final tx = Tx(s);
+    expect(CardLogic.isPlayable(tx, Side.white, CardId.timeStop), isFalse);
   });
 }

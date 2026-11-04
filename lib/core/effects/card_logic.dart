@@ -15,7 +15,13 @@ abstract final class CardLogic {
     }
     switch (card) {
       case CardId.timeStop:
-        return !tx.extraTurn;
+        // No chaining: unavailable during the extra turn and while the
+        // opponent's compensation from a previous Time Stop is pending.
+        return !tx.extraTurn &&
+            !tx.effects.any(
+              (e) =>
+                  e.kind == EffectKind.bonusPick && e.affected == side.opponent,
+            );
       case CardId.lantern:
         return tx.effects.any(
           (e) =>
