@@ -94,6 +94,9 @@ abstract interface class MatchPresenter {
   void resync(GameState state);
 }
 
+/// Tests run the AI synchronously (isolates do not mix with fake async).
+bool kAiUseIsolates = true;
+
 /// Drives a match: applies actions, runs AI turns, supports undo for the
 /// current roll, auto-passes and auto-plays forced moves.
 class MatchController extends ChangeNotifier {
@@ -101,12 +104,13 @@ class MatchController extends ChangeNotifier {
     this.session, {
     this.autoMove = true,
     this.pacing = const Duration(milliseconds: 420),
-    this.useIsolates = true,
+    bool? useIsolates,
     this.viewOnly = false,
     this.onPersist,
     this.onGameFinished,
     GameState? initialState,
-  }) : state = initialState ?? session.match.current.replay() {
+  }) : useIsolates = useIsolates ?? kAiUseIsolates,
+       state = initialState ?? session.match.current.replay() {
     for (final side in Side.values) {
       final seat = session.seat(side);
       _opponents[side] = seat.ai
@@ -116,7 +120,7 @@ class MatchController extends ChangeNotifier {
                 personalityId: seat.personalityId!,
                 seed: session.match.config.seed ^ (side.index + 1) * 7777,
               ),
-              useIsolate: useIsolates,
+              useIsolate: this.useIsolates,
             )
           : const LocalHumanOpponent();
     }

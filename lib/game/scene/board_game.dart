@@ -577,7 +577,9 @@ class BoardGame extends FlameGame implements MatchPresenter {
       );
   }
 
-  Future<void> _tumble(List<_Die> dice, double dur) async {
+  Future<void> _tumble(List<_Die> live, double dur) async {
+    // Work on a snapshot: a resync may replace the live list mid-animation.
+    final dice = List<_Die>.of(live);
     for (final d in dice) {
       d.start = d.pos;
       d.t = 0;

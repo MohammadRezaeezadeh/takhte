@@ -178,8 +178,8 @@ class _PlayerPanelState extends State<PlayerPanel>
         borderRadius: BorderRadius.circular(16),
         color: AppColors.ink.withValues(alpha: 0.88),
         border: Border.all(
-          color: active ? AppColors.goldLight : Colors.white12,
-          width: active ? 2 : 1,
+          color: active ? AppColors.goldLight : Colors.white10,
+          width: 2,
         ),
         boxShadow: active
             ? [
@@ -384,7 +384,7 @@ class ActionBar extends StatelessWidget {
     final c = controller;
     final s = c.state;
     final l = context.l10n;
-    if (!c.waitingForHuman) return const SizedBox(height: 60);
+    if (!c.waitingForHuman) return const SizedBox(height: 64);
     final buttons = <Widget>[];
     void add(Widget w) => buttons.add(
       Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: w),

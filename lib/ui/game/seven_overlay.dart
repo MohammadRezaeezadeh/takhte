@@ -382,42 +382,62 @@ class CardReveal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final def = cardById(cardId);
-    return Panel(
-      glow: AppColors.rarity(def.rarity.index),
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CardFace(
-            card: def,
-            lang: context.lang,
-            width: 88,
-            frameId: frameId,
-            compact: true,
-          ),
-          const SizedBox(width: 12),
-          Flexible(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  context.l10n.opponentChose(who, def.name(context.lang)),
-                  style: const TextStyle(
-                    fontFamily: AppFonts.display,
-                    fontSize: 18,
-                    color: AppColors.goldLight,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  def.desc(context.lang),
-                  style: const TextStyle(fontSize: 13),
-                ),
-              ],
+    return LayoutBuilder(
+      builder: (context, box) => box.maxWidth < 260
+          ? CardFace(
+              card: def,
+              lang: context.lang,
+              width: math.min(88, box.maxWidth),
+              frameId: frameId,
+              compact: true,
+            )
+          : _wide(context, def),
+    );
+  }
+
+  Widget _wide(BuildContext context, CardDef def) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 380),
+      child: Panel(
+        glow: AppColors.rarity(def.rarity.index),
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            CardFace(
+              card: def,
+              lang: context.lang,
+              width: 88,
+              frameId: frameId,
+              compact: true,
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    context.l10n.opponentChose(who, def.name(context.lang)),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontFamily: AppFonts.display,
+                      fontSize: 18,
+                      color: AppColors.goldLight,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    def.desc(context.lang),
+                    maxLines: 4,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
