@@ -455,5 +455,7 @@
         "format": "decimalPattern"
       }
     }
-  }
+  },
+  "attuneCard": "Attune a card",
+  "attuneCardDesc": "Choose a card: it appears three times as often in your 7–7 offers this journey."
 }

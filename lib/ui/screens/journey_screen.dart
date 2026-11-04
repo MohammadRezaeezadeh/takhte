@@ -426,18 +426,21 @@ class _JourneyScreenState extends ConsumerState<JourneyScreen> {
     String title(ShopOffer o) => switch (o.kind) {
       'talisman' => talismanById(o.talisman!).name(lang),
       'banish' => l.removeCard,
+      'attune' => l.attuneCard,
       'offer' => l.upgradeOffer,
       _ => l.luckUp,
     };
     String desc(ShopOffer o) => switch (o.kind) {
       'talisman' => talismanById(o.talisman!).desc(lang),
       'banish' => l.removeCardDesc,
+      'attune' => l.attuneCardDesc,
       'offer' => l.upgradeOfferDesc,
       _ => l.luckUpDesc,
     };
     int glyph(ShopOffer o) => switch (o.kind) {
       'talisman' => talismanById(o.talisman!).glyph,
       'banish' => 21,
+      'attune' => 54,
       'offer' => 0,
       _ => 5,
     };
@@ -539,7 +542,7 @@ class _JourneyScreenState extends ConsumerState<JourneyScreen> {
 
   Future<void> _buy(JourneyRun run, ShopOffer o) async {
     String? banish;
-    if (o.kind == 'banish') {
+    if (o.kind == 'banish' || o.kind == 'attune') {
       final pool = run.cardPool(ref.read(metaProvider).profile.unlockedCards);
       banish = await showPanelDialog<String>(
         context,
@@ -549,7 +552,9 @@ class _JourneyScreenState extends ConsumerState<JourneyScreen> {
           child: Column(
             children: [
               Text(
-                context.l10n.removeCard,
+                o.kind == 'attune'
+                    ? context.l10n.attuneCard
+                    : context.l10n.removeCard,
                 style: const TextStyle(
                   fontFamily: AppFonts.display,
                   fontSize: 22,

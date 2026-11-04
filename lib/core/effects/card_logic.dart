@@ -758,7 +758,15 @@ abstract final class CardLogic {
       ];
       final r = avail[tx.rng.weighted(weights)];
       final list = byRarity[r]!;
-      offer.add(list.removeAt(tx.rng.nextInt(list.length)));
+      if (mods.favored.isEmpty) {
+        offer.add(list.removeAt(tx.rng.nextInt(list.length)));
+      } else {
+        final w = [
+          for (final id in list)
+            if (mods.favored.contains(id)) 3.0 else 1.0,
+        ];
+        offer.add(list.removeAt(tx.rng.weighted(w)));
+      }
     }
     final high = offer.any(
       (c) => cardById(c).rarity.index >= Rarity.epic.index,

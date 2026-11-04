@@ -889,4 +889,11 @@ class AppLocalizationsFa extends AppLocalizations {
 
     return '$nString از $totalString کارت باز شده';
   }
+
+  @override
+  String get attuneCard => 'کوک کردن کارت';
+
+  @override
+  String get attuneCardDesc =>
+      'کارتی را انتخاب کن تا در این سفر سه برابر بیشتر در پیشنهادهای هفت‌هفت تو بیاید.';
 }

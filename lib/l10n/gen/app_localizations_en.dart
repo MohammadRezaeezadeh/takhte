@@ -886,4 +886,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
     return '$nString of $totalString cards unlocked';
   }
+
+  @override
+  String get attuneCard => 'Attune a card';
+
+  @override
+  String get attuneCardDesc =>
+      'Choose a card: it appears three times as often in your 7–7 offers this journey.';
 }

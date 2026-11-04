@@ -1531,6 +1531,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{n} of {total} cards unlocked'**
   String codexProgress(int n, int total);
+
+  /// No description provided for @attuneCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Attune a card'**
+  String get attuneCard;
+
+  /// No description provided for @attuneCardDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a card: it appears three times as often in your 7–7 offers this journey.'**
+  String get attuneCardDesc;
 }
 
 class _AppLocalizationsDelegate

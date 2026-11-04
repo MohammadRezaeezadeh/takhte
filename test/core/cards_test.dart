@@ -96,6 +96,29 @@ void main() {
       expect(sawHigh, isTrue);
     });
 
+    test('favored cards are offered more often', () {
+      var fog = 0;
+      var plain = 0;
+      for (var seed = 0; seed < 400; seed++) {
+        final cfg = GameConfig(
+          p7: 1,
+          seed: seed,
+          offerSize: 1,
+          cardPool: const [
+            CardId.fog,
+            CardId.curse,
+            CardId.brokenDie,
+            CardId.loadedHand,
+          ],
+          white: const SideMods(favored: [CardId.fog]),
+        );
+        final r = roll(preRollState(Board.initial(), config: cfg));
+        if (r.offer.single == CardId.fog) fog++;
+        if (r.offer.single == CardId.curse) plain++;
+      }
+      expect(fog, greaterThan(plain * 2));
+    });
+
     test('card pool restriction is honoured', () {
       const cfg = GameConfig(
         p7: 1,

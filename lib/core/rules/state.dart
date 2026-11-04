@@ -48,6 +48,7 @@ class SideMods {
     this.cardPool,
     this.startCards = const [],
     this.pickBonus = 0,
+    this.favored = const [],
   });
 
   factory SideMods.fromJson(Map<String, Object?> j) => SideMods(
@@ -64,6 +65,7 @@ class SideMods {
     cardPool: (j['pool'] as List<Object?>?)?.cast<String>(),
     startCards: ((j['sc'] as List<Object?>?) ?? const []).cast<String>(),
     pickBonus: j['pb'] as int? ?? 0,
+    favored: ((j['fav'] as List<Object?>?) ?? const []).cast<String>(),
   );
 
   /// Multiplier on this side's 7–7 chance (0 disables).
@@ -98,6 +100,9 @@ class SideMods {
   /// Extra picks at each of this side's 7–7 offers.
   final int pickBonus;
 
+  /// Attuned cards: three times as likely within their rarity.
+  final List<String> favored;
+
   static const SideMods none = SideMods();
 
   Map<String, Object?> toJson() => {
@@ -114,6 +119,7 @@ class SideMods {
     if (cardPool != null) 'pool': cardPool,
     if (startCards.isNotEmpty) 'sc': startCards,
     if (pickBonus != 0) 'pb': pickBonus,
+    if (favored.isNotEmpty) 'fav': favored,
   };
 }
 

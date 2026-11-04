@@ -48,6 +48,18 @@ void main() {
     expect(run.opponentMods(null).cardPool, isNull);
   });
 
+  test('attuning a card makes it more likely in your offers', () {
+    final run = JourneyRun(seed: 5, coins: 200)..openShop();
+    final att = run.shop.firstWhere((o) => o.kind == 'attune');
+    expect(run.buy(att, banishCard: CardId.fog), isTrue);
+    expect(run.attuned, [CardId.fog]);
+    expect(run.playerMods(null).favored, [CardId.fog]);
+    final back = JourneyRun.fromJson(
+      (jsonDecode(jsonEncode(run.toJson())) as Map).cast(),
+    );
+    expect(back.attuned, [CardId.fog]);
+  });
+
   test('losing ends the run unless Second Wind', () {
     final a = JourneyRun(seed: 3)..recordMatch(won: false);
     expect(a.over, isTrue);

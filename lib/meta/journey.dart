@@ -394,6 +394,7 @@ class JourneyRun {
     this.coins = 20,
     List<String>? talismans,
     List<String>? banished,
+    List<String>? attuned,
     this.offerUpgrades = 0,
     this.luckUpgrades = 0,
     this.over = false,
@@ -404,6 +405,7 @@ class JourneyRun {
     this.activeSession,
   }) : talismans = talismans ?? [],
        banished = banished ?? [],
+       attuned = attuned ?? [],
        shop = shop ?? [];
 
   factory JourneyRun.fromJson(Map<String, Object?> j) => JourneyRun(
@@ -417,6 +419,7 @@ class JourneyRun {
     banished: ((j['ban'] as List<Object?>?) ?? const [])
         .cast<String>()
         .toList(),
+    attuned: ((j['att'] as List<Object?>?) ?? const []).cast<String>().toList(),
     offerUpgrades: j['ou'] as int? ?? 0,
     luckUpgrades: j['lu'] as int? ?? 0,
     over: j['over'] as bool? ?? false,
@@ -438,6 +441,9 @@ class JourneyRun {
   int coins;
   final List<String> talismans;
   final List<String> banished;
+
+  /// Attuned (upgraded) cards: offered three times as often.
+  final List<String> attuned;
   int offerUpgrades;
   int luckUpgrades;
   bool over;
@@ -511,6 +517,7 @@ class JourneyRun {
       startLucky: has('horseshoe') ? 1 : 0,
       capDice: bp.capDice,
       pickBonus: has('twin_fate') ? 1 : 0,
+      favored: List.of(attuned),
       cardPool: pool == null ? null : cardPool(pool),
       startCards: [
         for (final e in _startCardTalismans.entries)
@@ -598,6 +605,7 @@ class JourneyRun {
       for (final t in pool.take(3))
         ShopOffer('talisman', price(t.price), talisman: t.id),
       ShopOffer('banish', price(30)),
+      ShopOffer('attune', price(40)),
       ShopOffer('offer', price(85 + 40 * offerUpgrades)),
       ShopOffer('luck', price(60 + 30 * luckUpgrades)),
     ];
@@ -615,6 +623,11 @@ class JourneyRun {
           return false;
         }
         banished.add(banishCard);
+      case 'attune':
+        if (banishCard == null || !kCardById.containsKey(banishCard)) {
+          return false;
+        }
+        if (!attuned.contains(banishCard)) attuned.add(banishCard);
       case 'offer':
         offerUpgrades++;
       case 'luck':
@@ -625,7 +638,7 @@ class JourneyRun {
       for (final s in shop)
         if (!identical(s, o))
           s
-        else if (o.kind == 'banish')
+        else if (o.kind == 'banish' || o.kind == 'attune')
           s
         else if (o.kind == 'offer' || o.kind == 'luck')
           ShopOffer(o.kind, o.price + (o.kind == 'offer' ? 40 : 30)),
@@ -662,6 +675,7 @@ class JourneyRun {
     'coins': coins,
     'tal': talismans,
     'ban': banished,
+    'att': attuned,
     'ou': offerUpgrades,
     'lu': luckUpgrades,
     'over': over,
