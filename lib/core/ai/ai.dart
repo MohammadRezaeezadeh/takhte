@@ -414,6 +414,26 @@ class AiBrain {
         v = 0.4;
       case CardId.hailstorm:
         v = 0.55;
+      case CardId.falconEye:
+        v = 0.4;
+      case CardId.ironDice:
+        v = 0.4;
+      case CardId.eclipse:
+        v = 0.35;
+      case CardId.sultansFavor:
+        v = 0.55;
+      case CardId.bandit:
+        v = 0.45;
+      case CardId.desertRose:
+        v = 0.35;
+      case CardId.twinSuns:
+        v = 0.8;
+      case CardId.coldSnap:
+        v = 0.45;
+      case CardId.pilgrimage:
+        v = 0.3;
+      case CardId.stormEye:
+        v = 0.55;
 
       case CardId.royalRoll:
         v = 0.4;

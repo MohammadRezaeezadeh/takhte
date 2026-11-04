@@ -254,8 +254,8 @@ void main() {
     expect(none.white.rerolls, 1);
   });
 
-  test('catalogue reaches 70 unique cards with unique art', () {
-    expect(kCards.length, 70);
+  test('catalogue reaches 80 unique cards with unique art', () {
+    expect(kCards.length, 80);
     expect(kCards.map((c) => c.glyph).toSet().length, kCards.length);
     for (final c in kCards) {
       expect(c.descFa, isNotEmpty);
@@ -334,6 +334,62 @@ void main() {
       CardLogic.dealOffer(tx, Side.white);
       expect(tx.picksLeft, 2);
       expect(tx.offer.length, greaterThanOrEqualTo(4));
+    });
+
+    test("Sultan's Favor: next own roll is all 4s and 6s", () {
+      for (final r in nextOwnRolls(CardId.sultansFavor)) {
+        expect(r.rolled.every((d) => d == 4 || d == 6), isTrue);
+      }
+    });
+
+    test("Falcon's Eye: next own roll contains a 6", () {
+      for (final r in nextOwnRolls(CardId.falconEye)) {
+        expect(r.rolled, contains(6));
+      }
+    });
+
+    test('Twin Suns: 6-6 next turn and an extra pick', () {
+      for (final r in nextOwnRolls(CardId.twinSuns)) {
+        expect(r.rolled, [6, 6]);
+      }
+    });
+
+    test('Iron Dice: opponent dice max 4', () {
+      for (final r in oppRolls(CardId.ironDice)) {
+        expect(r.rolled.every((d) => d <= 4), isTrue);
+      }
+    });
+
+    test('Cold Snap and Eye of the Storm: opponent rolls one die', () {
+      for (final id in [CardId.coldSnap, CardId.stormEye]) {
+        for (final r in oppRolls(id)) {
+          expect(r.rolled.length, 1, reason: id);
+        }
+      }
+    });
+
+    test('Eclipse blocks 7-7 and shrinks the next offer', () {
+      final s = pickOnly(
+        sevenState(Board.initial(), [CardId.eclipse], config: noSeven),
+      );
+      expect(s.effectsOf(EffectKind.sevenBlock).single.affected, Side.black);
+      expect(s.effectsOf(EffectKind.offerMalus).single.affected, Side.black);
+    });
+
+    test('Desert Rose, Pilgrimage and Bandit give charges', () {
+      final d = pickOnly(
+        sevenState(Board.initial(), [CardId.desertRose], config: noSeven),
+      );
+      expect((d.white.ghost, d.white.lucky), (1, 1));
+      final p = pickOnly(
+        sevenState(Board.initial(), [CardId.pilgrimage], config: noSeven),
+      );
+      expect(p.white.rerolls, 1);
+      expect(p.effectsOf(EffectKind.bonusOffer), hasLength(1));
+      final b = pickOnly(
+        sevenState(Board.initial(), [CardId.bandit], config: noSeven),
+      );
+      expect(b.white.rerolls, 1, reason: 'nothing to steal: gain a reroll');
     });
 
     test('Sevenfold: magnet for me, hex on them', () {

@@ -365,6 +365,7 @@ abstract final class CardLogic {
         );
       case CardId.bloodPact:
         _bloodPact(tx, side);
+        tx.setInv(opp, tx.inv(opp).copyWith(rerolls: tx.inv(opp).rerolls + 1));
       case CardId.gamblersCoin:
         final heads = tx.rng.nextInt(2) == 0;
         tx.events.add(CoinFlipped(side, ownerWins: heads));
@@ -714,6 +715,107 @@ abstract final class CardLogic {
         tx
           ..addEffect(EffectKind.headwind, owner: side, affected: opp, turns: 2)
           ..addEffect(EffectKind.fog, owner: side, affected: opp, turns: 2);
+      case CardId.falconEye:
+        tx.addEffect(
+          EffectKind.sixNext,
+          owner: side,
+          affected: side,
+          turns: 1,
+          immediate: false,
+        );
+        _nextTurn(tx, side, EffectKind.wardOnes);
+      case CardId.ironDice:
+        tx.addEffect(
+          EffectKind.curse,
+          owner: side,
+          affected: opp,
+          turns: 2,
+          count: 4,
+        );
+      case CardId.eclipse:
+        tx
+          ..addEffect(
+            EffectKind.sevenBlock,
+            owner: side,
+            affected: opp,
+            turns: 4,
+          )
+          ..addEffect(
+            EffectKind.offerMalus,
+            owner: side,
+            affected: opp,
+            turns: 9999,
+          );
+      case CardId.sultansFavor:
+        _nextTurn(tx, side, EffectKind.minThree);
+        _nextTurn(tx, side, EffectKind.evenUp);
+      case CardId.bandit:
+        _steal(tx, side);
+        tx.addEffect(
+          EffectKind.offerMalus,
+          owner: side,
+          affected: opp,
+          turns: 9999,
+        );
+      case CardId.desertRose:
+        tx.setInv(
+          side,
+          inv().copyWith(ghost: inv().ghost + 1, lucky: inv().lucky + 1),
+        );
+      case CardId.twinSuns:
+        _nextTurn(tx, side, EffectKind.twinDice);
+        tx
+          ..addEffect(
+            EffectKind.bonusPick,
+            owner: side,
+            affected: side,
+            turns: 9999,
+          )
+          ..addEffect(
+            EffectKind.bonusOffer,
+            owner: side,
+            affected: opp,
+            turns: 9999,
+          );
+      case CardId.coldSnap:
+        tx
+          ..addEffect(
+            EffectKind.brokenDie,
+            owner: side,
+            affected: opp,
+            turns: 1,
+          )
+          ..addEffect(
+            EffectKind.sevenBlock,
+            owner: side,
+            affected: opp,
+            turns: 2,
+          );
+      case CardId.pilgrimage:
+        tx
+          ..setInv(side, inv().copyWith(rerolls: inv().rerolls + 1))
+          ..addEffect(
+            EffectKind.bonusOffer,
+            owner: side,
+            affected: side,
+            turns: 9999,
+          );
+      case CardId.stormEye:
+        tx
+          ..addEffect(
+            EffectKind.brokenDie,
+            owner: side,
+            affected: opp,
+            turns: 1,
+          )
+          ..addEffect(EffectKind.fog, owner: side, affected: opp, turns: 2)
+          ..addEffect(
+            EffectKind.curse,
+            owner: side,
+            affected: opp,
+            turns: 2,
+            count: 5,
+          );
       case CardId.highStakes:
         tx.cubeValue = (tx.cubeValue * 2).clamp(1, 64);
       case CardId.exile:

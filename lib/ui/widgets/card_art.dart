@@ -1383,6 +1383,180 @@ class CardGlyphPainter extends CustomPainter {
             r * 0.12,
             Paint()..color = const Color(0xFFF2C94C),
           );
+      case 70: // Falcon's Eye: golden eye with a dark pupil
+        canvas
+          ..drawOval(
+            Rect.fromCenter(center: c, width: r * 1.8, height: r * 1.0),
+            Paint()..color = const Color(0xFFF2C94C),
+          )
+          ..drawCircle(c, r * 0.38, Paint()..color = const Color(0xFF8C4A12))
+          ..drawCircle(c, r * 0.18, Paint()..color = Colors.black)
+          ..drawCircle(
+            c.translate(-r * 0.1, -r * 0.1),
+            r * 0.06,
+            Paint()..color = Colors.white,
+          );
+      case 71: // Iron Dice: grey die with four pips
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromCenter(center: c, width: r * 1.5, height: r * 1.5),
+            Radius.circular(r * 0.25),
+          ),
+          Paint()..color = const Color(0xFF7D8590),
+        );
+        for (final o in [(-1, -1), (1, -1), (-1, 1), (1, 1)]) {
+          canvas.drawCircle(
+            c.translate(o.$1 * r * 0.38, o.$2 * r * 0.38),
+            r * 0.13,
+            Paint()..color = const Color(0xFF22262B),
+          );
+        }
+      case 72: // Eclipse: dark disc over a glowing ring
+        canvas
+          ..drawCircle(c, r * 0.85, Paint()..color = const Color(0xFFF2C94C))
+          ..drawCircle(
+            c.translate(r * 0.12, -r * 0.05),
+            r * 0.75,
+            Paint()..color = const Color(0xFF14121C),
+          );
+      case 73: // Sultan's Favor: crown
+        canvas.drawPath(
+          Path()
+            ..moveTo(c.dx - r * 0.85, c.dy + r * 0.5)
+            ..lineTo(c.dx - r * 0.85, c.dy - r * 0.35)
+            ..lineTo(c.dx - r * 0.42, c.dy + r * 0.05)
+            ..lineTo(c.dx, c.dy - r * 0.6)
+            ..lineTo(c.dx + r * 0.42, c.dy + r * 0.05)
+            ..lineTo(c.dx + r * 0.85, c.dy - r * 0.35)
+            ..lineTo(c.dx + r * 0.85, c.dy + r * 0.5)
+            ..close(),
+          Paint()..color = const Color(0xFFF2C94C),
+        );
+        for (final dx in [-0.45, 0.0, 0.45]) {
+          canvas.drawCircle(
+            c.translate(dx * r, r * 0.28),
+            r * 0.1,
+            Paint()..color = const Color(0xFFC0392B),
+          );
+        }
+      case 74: // Bandit: masked face
+        canvas
+          ..drawCircle(c, r * 0.8, Paint()..color = const Color(0xFFD9B38C))
+          ..drawRect(
+            Rect.fromCenter(
+              center: c.translate(0, -r * 0.1),
+              width: r * 1.7,
+              height: r * 0.4,
+            ),
+            Paint()..color = const Color(0xFF1E1E1E),
+          );
+        for (final dx in [-0.3, 0.3]) {
+          canvas.drawCircle(
+            c.translate(dx * r, -r * 0.1),
+            r * 0.09,
+            Paint()..color = Colors.white,
+          );
+        }
+      case 75: // Desert Rose: layered petals
+        for (var ring = 0; ring < 3; ring++) {
+          for (var i = 0; i < 5; i++) {
+            final a = i * 2 * math.pi / 5 + ring * 0.6;
+            canvas.drawCircle(
+              c + Offset(math.cos(a), math.sin(a)) * r * (0.55 - ring * 0.18),
+              r * (0.32 - ring * 0.07),
+              Paint()
+                ..color = Color.lerp(
+                  const Color(0xFFE8A0A0),
+                  const Color(0xFFB03A48),
+                  ring / 2,
+                )!,
+            );
+          }
+        }
+      case 76: // Twin Suns: two radiant suns
+        for (final dx in [-0.42, 0.42]) {
+          final sc = c.translate(dx * r, dx * r * 0.3);
+          for (var i = 0; i < 8; i++) {
+            final a = i * math.pi / 4 + time * 0.5;
+            canvas.drawLine(
+              sc + Offset(math.cos(a), math.sin(a)) * r * 0.3,
+              sc + Offset(math.cos(a), math.sin(a)) * r * 0.5,
+              Paint()
+                ..color = const Color(0xFFF5A623)
+                ..strokeWidth = r * 0.07,
+            );
+          }
+          canvas.drawCircle(
+            sc,
+            r * 0.26,
+            Paint()..color = const Color(0xFFF2C94C),
+          );
+        }
+      case 77: // Cold Snap: snowflake
+        for (var i = 0; i < 6; i++) {
+          final a = i * math.pi / 3;
+          final d = Offset(math.cos(a), math.sin(a));
+          final arm = Paint()
+            ..color = const Color(0xFFBFE6FF)
+            ..strokeWidth = r * 0.09
+            ..strokeCap = StrokeCap.round;
+          canvas.drawLine(c, c + d * r * 0.85, arm);
+          final m = c + d * r * 0.5;
+          for (final s in [-1, 1]) {
+            final b = a + s * math.pi / 4;
+            canvas.drawLine(
+              m,
+              m + Offset(math.cos(b), math.sin(b)) * r * 0.25,
+              arm,
+            );
+          }
+        }
+      case 78: // Pilgrimage: arch gateway
+        canvas
+          ..drawRect(
+            Rect.fromCenter(
+              center: c.translate(0, r * 0.2),
+              width: r * 1.5,
+              height: r * 1.2,
+            ),
+            Paint()..color = const Color(0xFF2E86AB),
+          )
+          ..drawCircle(
+            c.translate(0, -r * 0.4),
+            r * 0.75,
+            Paint()..color = const Color(0xFF2E86AB),
+          )
+          ..drawCircle(
+            c.translate(0, -r * 0.2),
+            r * 0.38,
+            Paint()..color = const Color(0xFF14121C),
+          )
+          ..drawRect(
+            Rect.fromCenter(
+              center: c.translate(0, r * 0.3),
+              width: r * 0.76,
+              height: r * 1.0,
+            ),
+            Paint()..color = const Color(0xFF14121C),
+          );
+      case 79: // Eye of the Storm: spiral around a calm centre
+        final spiral = Path()..moveTo(c.dx, c.dy);
+        for (var t = 0.0; t < 4 * math.pi; t += 0.2) {
+          final rr = r * 0.07 * t;
+          spiral.lineTo(
+            c.dx + math.cos(t + time) * rr,
+            c.dy + math.sin(t + time) * rr,
+          );
+        }
+        canvas
+          ..drawPath(
+            spiral,
+            Paint()
+              ..color = const Color(0xFF6C8EBF)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = r * 0.1,
+          )
+          ..drawCircle(c, r * 0.12, Paint()..color = Colors.white);
       default: // Greed: coin sack
         final sack = Path()
           ..moveTo(c.dx - r * 0.3, c.dy - r * 0.55)

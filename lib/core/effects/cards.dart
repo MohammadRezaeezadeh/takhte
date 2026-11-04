@@ -174,6 +174,16 @@ abstract final class CardId {
   static const starReader = 'star_reader';
   static const sevenfold = 'sevenfold';
   static const hailstorm = 'hailstorm';
+  static const falconEye = 'falcon_eye';
+  static const ironDice = 'iron_dice';
+  static const eclipse = 'eclipse';
+  static const sultansFavor = 'sultans_favor';
+  static const bandit = 'bandit';
+  static const desertRose = 'desert_rose';
+  static const twinSuns = 'twin_suns';
+  static const coldSnap = 'cold_snap';
+  static const pilgrimage = 'pilgrimage';
+  static const stormEye = 'storm_eye';
 }
 
 /// The full card catalogue.
@@ -419,8 +429,9 @@ const List<CardDef> kCards = [
     nameFa: 'پیمان خون',
     descEn: 'If all your checkers are home, instantly bear off 2 of them.',
     descFa: 'اگر همهٔ مهره‌هایت در خانه باشند، فوراً دو مهره را خارج کن.',
-    drawbackEn: 'Otherwise your most advanced checker is sent to the bar.',
-    drawbackFa: 'وگرنه جلوترین مهره‌ات به بار فرستاده می‌شود.',
+    drawbackEn:
+        'The pact is paid in blood: your opponent gains a reroll token.',
+    drawbackFa: 'بهای پیمان: حریف یک ژتون تاس دوباره می‌گیرد.',
     glyph: 21,
   ),
   CardDef(
@@ -926,6 +937,113 @@ const List<CardDef> kCards = [
     descEn: "For 2 turns your opponent's dice count 1 less and their doubles do not count.",
     descFa: 'تا دو نوبت از تاس‌های حریف یکی کم می‌شود و جفت‌هایش حساب نمی‌شود.',
     glyph: 68,
+  ),
+  CardDef(
+    id: CardId.falconEye,
+    rarity: Rarity.rare,
+    category: CardCategory.dice,
+    nameEn: "Falcon's Eye",
+    nameFa: 'چشم شاهین',
+    descEn:
+        'Next turn one die is a 6, and a 1 or 2 on the other is rerolled once.',
+    descFa: 'نوبت بعد یک تاس ۶ است و اگر دیگری ۱ یا ۲ بیاید یک بار دوباره ریخته می‌شود.',
+    glyph: 70,
+  ),
+  CardDef(
+    id: CardId.ironDice,
+    rarity: Rarity.common,
+    category: CardCategory.sabotage,
+    nameEn: 'Iron Dice',
+    nameFa: 'تاس آهنی',
+    descEn: "Your opponent's dice are capped at 4 for their next 2 turns.",
+    descFa: 'تاس‌های حریف تا دو نوبت حداکثر ۴ می‌آیند.',
+    glyph: 71,
+  ),
+  CardDef(
+    id: CardId.eclipse,
+    rarity: Rarity.rare,
+    category: CardCategory.sabotage,
+    nameEn: 'Eclipse',
+    nameFa: 'خورشیدگرفتگی',
+    descEn: 'Your opponent cannot roll 7–7 for 4 turns, and their next 7–7 shows one card fewer.',
+    descFa: 'حریف تا چهار نوبت هفت‌هفت نمی‌آورد و هفت‌هفت بعدی‌اش یک کارت کمتر دارد.',
+    glyph: 72,
+  ),
+  CardDef(
+    id: CardId.sultansFavor,
+    rarity: Rarity.epic,
+    category: CardCategory.dice,
+    nameEn: "Sultan's Favor",
+    nameFa: 'عنایت سلطان',
+    descEn: 'Next turn every die you roll is a 4 or a 6.',
+    descFa: 'نوبت بعد همهٔ تاس‌هایت ۴ یا ۶ می‌آیند.',
+    glyph: 73,
+  ),
+  CardDef(
+    id: CardId.bandit,
+    rarity: Rarity.rare,
+    category: CardCategory.tempo,
+    nameEn: 'Bandit',
+    nameFa: 'راهزن',
+    descEn: "Steal one of your opponent's charges (or gain a reroll), and their next 7–7 shows one card fewer.",
+    descFa: 'یکی از ژتون‌های حریف را بدزد (یا یک تاس دوباره بگیر) و هفت‌هفت بعدی‌اش یک کارت کمتر دارد.',
+    glyph: 74,
+  ),
+  CardDef(
+    id: CardId.desertRose,
+    rarity: Rarity.common,
+    category: CardCategory.checker,
+    nameEn: 'Desert Rose',
+    nameFa: 'گل سرخ صحرا',
+    descEn: 'Gain a Ghost Step and a Lucky Charm.',
+    descFa: 'یک «گام شبح» و یک «طلسم بخت» بگیر.',
+    glyph: 75,
+  ),
+  CardDef(
+    id: CardId.twinSuns,
+    rarity: Rarity.legendary,
+    category: CardCategory.tempo,
+    nameEn: 'Twin Suns',
+    nameFa: 'خورشیدهای همزاد',
+    descEn:
+        'Next turn you roll a guaranteed 6–6, and at your next 7–7 you take '
+        'an extra card.',
+    descFa:
+        'نوبت بعد حتماً جفت‌شش می‌آوری و در هفت‌هفت بعدی یک کارت اضافه '
+        'برمی‌داری.',
+    drawbackEn: "Your opponent's next 7–7 offers one extra card.",
+    drawbackFa: 'هفت‌هفت بعدی حریف یک کارت بیشتر پیشنهاد می‌دهد.',
+    glyph: 76,
+  ),
+  CardDef(
+    id: CardId.coldSnap,
+    rarity: Rarity.rare,
+    category: CardCategory.sabotage,
+    nameEn: 'Cold Snap',
+    nameFa: 'سرمای ناگهانی',
+    descEn: 'Next turn your opponent rolls a single die, and they cannot roll 7–7 for 2 turns.',
+    descFa: 'نوبت بعد حریف فقط یک تاس می‌ریزد و تا دو نوبت هفت‌هفت نمی‌آورد.',
+    glyph: 77,
+  ),
+  CardDef(
+    id: CardId.pilgrimage,
+    rarity: Rarity.common,
+    category: CardCategory.tempo,
+    nameEn: 'Pilgrimage',
+    nameFa: 'زیارت',
+    descEn: 'Gain a reroll token, and your next 7–7 shows one extra card.',
+    descFa: 'یک ژتون تاس دوباره بگیر و هفت‌هفت بعدی‌ات یک کارت اضافه دارد.',
+    glyph: 78,
+  ),
+  CardDef(
+    id: CardId.stormEye,
+    rarity: Rarity.epic,
+    category: CardCategory.sabotage,
+    nameEn: 'Eye of the Storm',
+    nameFa: 'چشم توفان',
+    descEn: 'Your opponent rolls a single die next turn, then stays lost in the fog (no doubles, dice max 5) for 2 turns.',
+    descFa: 'نوبت بعد حریف فقط یک تاس می‌ریزد و تا دو نوبت در مه می‌ماند (بدون جفت، تاس حداکثر ۵).',
+    glyph: 79,
   ),
 ];
 
