@@ -12,7 +12,7 @@ List<Move> legalCtx(Board b, List<int> dice, MoveContext ctx) =>
 void main() {
   test('a frozen checker on a higher point still blocks over-bearing', () {
     final b = Board.fromMaps(white: const {5: 1, 2: 1});
-    const ctx = MoveContext(frozen: const {5: 1});
+    const ctx = MoveContext(frozen: {5: 1});
     final moves = legalCtx(b, [6], ctx);
     // The 5-point checker cannot move and still counts as "higher":
     // the 2-point checker cannot bear off with a 6, and nothing else moves.
@@ -21,7 +21,7 @@ void main() {
 
   test('frozen checkers outside home prevent bearing off entirely', () {
     final b = Board.fromMaps(white: const {8: 1, 3: 2});
-    const ctx = MoveContext(frozen: const {8: 1});
+    const ctx = MoveContext(frozen: {8: 1});
     final moves = legalCtx(b, [3, 1], ctx);
     expect(moves.any((m) => m.isBearOff), isFalse);
     expect(
