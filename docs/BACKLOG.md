@@ -1,12 +1,14 @@
 # Backlog (prioritized)
 
-1. Dice-cap cards (Curse, Leaden Dice, Twin Dice) remain weak in AI-vs-AI play; consider teaching the evaluator to value tempo, or redesign.
-2. AI: card-aware lookahead for untargeted board cards (simulate one ply after apply).
-3. On-device profiling pass (frame timing during AI thinking, particle budgets).
-4. Golden tests for key screens (screenshots exist; pin as goldens once stable).
-5. More tricky-position rules tests (bear-off with frozen checkers, toll + bear-off).
-6. AI: use card-aware lookahead for targeted cards (simulate one ply after apply).
-7. Online: redact hidden mines in serialized state for remote clients.
-8. Localization review of Persian copy by a native editor (currently authored in-house).
-9. Music: a second ambient loop per environment.
-10. Per-environment sound tint (reverb/pitch) like boards.
+1. AI: self-play value network for Hard/Master (training in progress), then tier calibration to ≥65% / ≥62% over 2,000 games.
+2. AI: one-sided bear-off database for exact race endgames.
+3. AI: 2-ply search is move-generation bound (~44 ms/move on the server); cache opponent replies or prune candidates.
+4. AI: card-aware lookahead for untargeted board cards (simulate one ply after apply).
+5. On-device profiling pass (frame timing during AI thinking, particle budgets).
+6. Golden tests for key screens (screenshots exist; pin as goldens once stable).
+7. More tricky-position rules tests (bear-off with frozen checkers, toll + bear-off).
+8. AI: use card-aware lookahead for targeted cards (simulate one ply after apply).
+9. Online: redact hidden mines in serialized state for remote clients.
+10. Localization review of Persian copy by a native editor (currently authored in-house).
+11. Music: a second ambient loop per environment.
+12. Per-environment sound tint (reverb/pitch) like boards.

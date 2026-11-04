@@ -122,7 +122,15 @@ class _MainMenuScreenState extends ConsumerState<MainMenuScreen> {
           icon: Icons.play_circle_fill,
           color: AppColors.emerald,
           onPressed: () {
-            final session = MatchSession.fromJson(active);
+            final MatchSession session;
+            try {
+              session = MatchSession.fromJson(active);
+            } on Object {
+              // Damaged or incompatible save: drop it instead of crashing.
+              notifier.saveActiveMatch(null);
+              setState(() {});
+              return;
+            }
             unawaited(_go(GameScreen(session: session)));
           },
         ),

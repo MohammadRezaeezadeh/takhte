@@ -69,10 +69,20 @@ class SaveData {
   factory SaveData.fromJson(Map<String, Object?> raw) {
     final j = migrate(raw);
     Map<String, Object?>? m(Object? o) =>
-        o == null ? null : (o as Map).cast<String, Object?>();
+        o is Map ? o.cast<String, Object?>() : null;
+    // Each section falls back on its own: a damaged field must never wipe
+    // the player's whole progress.
+    T? safe<T>(T Function() f) {
+      try {
+        return f();
+      } on Object {
+        return null;
+      }
+    }
+
     return SaveData(
-      settings: Settings.fromJson(m(j['settings']) ?? const {}),
-      profile: Profile.fromJson(m(j['profile']) ?? const {}),
+      settings: safe(() => Settings.fromJson(m(j['settings']) ?? const {})),
+      profile: safe(() => Profile.fromJson(m(j['profile']) ?? const {})),
       activeMatch: m(j['activeMatch']),
       lastRecord: m(j['lastRecord']),
       journey: m(j['journey']),
@@ -95,7 +105,8 @@ class SaveData {
 
   /// Upgrades older save layouts step by step.
   static Map<String, Object?> migrate(Map<String, Object?> j) {
-    var v = j['version'] as int? ?? 1;
+    final raw = j['version'];
+    var v = raw is int ? raw : 1;
     final out = Map<String, Object?>.of(j);
     while (v < version) {
       switch (v) {
