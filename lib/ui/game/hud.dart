@@ -287,11 +287,7 @@ class _PlayerPanelState extends State<PlayerPanel>
                   ? e.turnsLeft
                   : null,
             ),
-          if (s.config.cubeEnabled &&
-              (s.cubeOwner == side ||
-                  (s.cubeOwner == null &&
-                      side == Side.black &&
-                      s.cubeValue > 1)))
+          if (s.config.cubeEnabled && s.cubeOwner == side)
             _CubeBadge(value: s.cubeValue),
         ],
       ),
@@ -314,7 +310,7 @@ class _CubeBadge extends StatelessWidget {
       border: Border.all(color: AppColors.gold, width: 2),
     ),
     child: Text(
-      '${value < 2 ? 64 : value}',
+      '$value',
       style: const TextStyle(
         color: AppColors.night,
         fontWeight: FontWeight.w900,

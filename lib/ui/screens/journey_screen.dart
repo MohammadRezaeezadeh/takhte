@@ -75,6 +75,10 @@ class _JourneyScreenState extends ConsumerState<JourneyScreen> {
     MatchSession session;
     if (run.activeSession != null) {
       session = MatchSession.fromJson(run.activeSession!);
+      if (session.match.isOver) {
+        _settle(run, stage, session, won: session.match.winner == Side.white);
+        return;
+      }
     } else {
       final p = personalityById(stage.personality);
       session = MatchSession(
@@ -102,7 +106,9 @@ class _JourneyScreenState extends ConsumerState<JourneyScreen> {
         GameScreen(
           session: session,
           persistOverride: (s) {
-            run.activeSession = s.match.isOver ? null : s.toJson();
+            // Keep finished matches too, so a result survives an app kill
+            // before the player taps Continue.
+            run.activeSession = s.toJson();
             _save();
           },
         ),
@@ -112,6 +118,16 @@ class _JourneyScreenState extends ConsumerState<JourneyScreen> {
       setState(() {});
       return;
     }
+    _settle(run, stage, session, won: won);
+  }
+
+  /// Applies a finished match to the run.
+  void _settle(
+    JourneyRun run,
+    JourneyStage stage,
+    MatchSession session, {
+    required bool won,
+  }) {
     final end = session.match.current.replay();
     final res = end.result;
     final inv = end.inv(Side.white);
