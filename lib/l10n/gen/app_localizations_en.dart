@@ -936,7 +936,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpButtons =>
-      'Buttons: undo a move, use a reroll token, auto-play the best move, or finish your turn.';
+      'Buttons: use a reroll token, auto-play the best move, or finish your turn.';
 
   @override
   String get helpEmotes => 'Emotes (bottom corner): send a quick reaction.';

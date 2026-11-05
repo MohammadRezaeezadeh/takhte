@@ -939,7 +939,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get helpButtons =>
-      'دکمه‌ها: برگرداندن حرکت، استفاده از ژتون تکرار تاس، بهترین حرکت خودکار و پایان نوبت.';
+      'دکمه‌ها: استفاده از ژتون تکرار تاس، بهترین حرکت خودکار و پایان نوبت.';
 
   @override
   String get helpEmotes => 'شکلک‌ها (گوشهٔ پایین): یک واکنش سریع بفرست.';

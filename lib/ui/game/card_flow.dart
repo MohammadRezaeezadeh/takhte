@@ -8,21 +8,17 @@ import 'package:haftnard/ui/theme.dart';
 import 'package:haftnard/ui/widgets/card_art.dart';
 import 'package:haftnard/ui/widgets/jewel.dart';
 
-/// The opponent's 7–7: the offer for a moment, then the chosen card large in
-/// the centre with its plain sentence, until the player taps «فهمیدم».
+/// The opponent's 7–7: the chosen card large in the centre with its plain
+/// sentence, until the player taps «فهمیدم».
 class AiPickOverlay extends StatelessWidget {
   const AiPickOverlay({
-    required this.offer,
     required this.picked,
     required this.frameId,
     required this.onAck,
     super.key,
   });
 
-  final List<String> offer;
-
-  /// Null while the opponent is still choosing.
-  final String? picked;
+  final String picked;
   final String frameId;
   final VoidCallback onAck;
 
@@ -35,106 +31,71 @@ class AiPickOverlay extends StatelessWidget {
       color: const Color(0xC0000000),
       child: SafeArea(
         child: Center(
-          child: pick == null
-              ? Column(
+          child: TweenAnimationBuilder<double>(
+            key: ValueKey('ai-pick-$pick'),
+            tween: Tween(begin: 0, end: 1),
+            duration: const Duration(milliseconds: 380),
+            curve: Curves.easeOutBack,
+            builder: (_, v, child) => Transform.scale(
+              scale: 0.6 + 0.4 * v,
+              child: Opacity(opacity: v.clamp(0, 1), child: child),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Panel(
+                key: const ValueKey('ai-pick-overlay'),
+                glow: AppColors.rarity(cardById(pick).rarity.index),
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      l.aiOffer,
+                      l.aiPickedHeader,
+                      textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontFamily: AppFonts.display,
-                        fontSize: 22,
+                        fontSize: 20,
                         color: AppColors.goldLight,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          for (final id in offer)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                              ),
-                              child: CardFace(
-                                card: cardById(id),
-                                lang: lang,
-                                width: 96,
-                                frameId: frameId,
-                              ),
-                            ),
-                        ],
+                    const SizedBox(height: 10),
+                    CardFace(
+                      card: cardById(pick),
+                      lang: lang,
+                      frameId: frameId,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      cardById(pick).name(lang),
+                      style: const TextStyle(
+                        fontFamily: AppFonts.display,
+                        fontSize: 22,
                       ),
+                    ),
+                    const SizedBox(height: 4),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 320),
+                      child: Text(
+                        cardById(pick).desc(lang),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 15, height: 1.5),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    CardTags(card: cardById(pick)),
+                    const SizedBox(height: 12),
+                    JewelButton(
+                      key: const ValueKey('ai-pick-ack'),
+                      label: l.guideNext,
+                      icon: Icons.check,
+                      color: AppColors.emerald,
+                      expand: false,
+                      onPressed: onAck,
                     ),
                   ],
-                )
-              : TweenAnimationBuilder<double>(
-                  key: ValueKey('ai-pick-$pick'),
-                  tween: Tween(begin: 0, end: 1),
-                  duration: const Duration(milliseconds: 380),
-                  curve: Curves.easeOutBack,
-                  builder: (_, v, child) => Transform.scale(
-                    scale: 0.6 + 0.4 * v,
-                    child: Opacity(opacity: v.clamp(0, 1), child: child),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Panel(
-                      key: const ValueKey('ai-pick-overlay'),
-                      glow: AppColors.rarity(cardById(pick).rarity.index),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            l.aiPickedHeader,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontFamily: AppFonts.display,
-                              fontSize: 20,
-                              color: AppColors.goldLight,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          CardFace(
-                            card: cardById(pick),
-                            lang: lang,
-                            frameId: frameId,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            cardById(pick).name(lang),
-                            style: const TextStyle(
-                              fontFamily: AppFonts.display,
-                              fontSize: 22,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 320),
-                            child: Text(
-                              cardById(pick).desc(lang),
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(fontSize: 15, height: 1.5),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          CardTags(card: cardById(pick)),
-                          const SizedBox(height: 12),
-                          JewelButton(
-                            key: const ValueKey('ai-pick-ack'),
-                            label: l.guideNext,
-                            icon: Icons.check,
-                            color: AppColors.emerald,
-                            expand: false,
-                            onPressed: onAck,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
                 ),
+              ),
+            ),
+          ),
         ),
       ),
     );

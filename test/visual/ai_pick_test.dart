@@ -13,6 +13,7 @@ import 'package:haftnard/core/effects/cards.dart';
 import 'package:haftnard/core/rules/actions.dart';
 import 'package:haftnard/core/rules/match.dart';
 import 'package:haftnard/core/rules/state.dart';
+import 'package:haftnard/core/rules/types.dart';
 import 'package:haftnard/game/audio.dart';
 import 'package:haftnard/game/match_controller.dart';
 import 'package:haftnard/game/scene/board_game.dart';
@@ -155,6 +156,68 @@ void main() {
     });
     expect(GameScreen.debugChipFlights, greaterThan(0));
     expect(t.takeException(), isNull);
+    await t.pumpWidget(const SizedBox());
+    await t.pump(const Duration(seconds: 10));
+  });
+
+  testWidgets("the opponent's offer isn't shown; its pick comes after its "
+      '7–7 dice have landed', (t) async {
+    await start(t, const [CardId.fog, CardId.chains, CardId.holyShield]);
+    var sawOffer = false;
+    await playUntil(t, () {
+      if (find.text('Your opponent rolled 7–7').evaluate().isNotEmpty) {
+        sawOffer = true;
+      }
+      return overlay.evaluate().isNotEmpty;
+    });
+    expect(overlay, findsOneWidget);
+    expect(sawOffer, isFalse, reason: 'the three offered cards were shown');
+    // The board already shows the opponent's 7–7 roll (offer phase).
+    final shown = BoardGame.current!.shownState!;
+    expect(shown.phase, Phase.sevenPick);
+    expect(shown.current, Side.black);
+    t
+        .widget<JewelButton>(find.byKey(const ValueKey('ai-pick-ack')))
+        .onPressed!();
+    await t.pumpWidget(const SizedBox());
+    await t.pump(const Duration(seconds: 10));
+  });
+
+  testWidgets('there is no undo button while moving', (t) async {
+    await start(t, const [CardId.fog]);
+    final brain = AiBrain(const AiConfig(difficulty: Difficulty.easy));
+    var checked = 0;
+    for (var i = 0; i < 4000 && checked < 5; i++) {
+      await t.pump(const Duration(milliseconds: 50));
+      final g = BoardGame.current;
+      if (g == null || !g.isLoaded) continue;
+      final ack = find.byKey(const ValueKey('ai-pick-ack'));
+      if (ack.evaluate().isNotEmpty) {
+        t.widget<JewelButton>(ack).onPressed!();
+        continue;
+      }
+      final c = g.controller;
+      if (!c.waitingForHuman) continue;
+      final s = c.state;
+      switch (s.phase) {
+        case Phase.opening:
+          unawaited(c.act(const RollOpening()));
+        case Phase.preRoll:
+          unawaited(c.act(const RollDice()));
+        case Phase.sevenPick:
+          unawaited(c.act(const PickCard(0)));
+        case Phase.moving:
+          if (s.movesThisRoll.isNotEmpty) {
+            // A move was played: the HUD offers no way to take it back.
+            expect(find.byIcon(Icons.undo), findsNothing);
+            checked++;
+          }
+          unawaited(c.act(brain.decide(s).first));
+        default:
+          break;
+      }
+    }
+    expect(checked, greaterThanOrEqualTo(5));
     await t.pumpWidget(const SizedBox());
     await t.pump(const Duration(seconds: 10));
   });

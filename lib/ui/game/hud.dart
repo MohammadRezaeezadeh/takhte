@@ -486,15 +486,8 @@ class ActionBar extends StatelessWidget {
           ),
         );
       case Phase.moving:
-        if (c.canUndo) {
-          add(
-            JewelIconButton(
-              icon: Icons.undo,
-              tooltip: l.undo,
-              onPressed: c.undo,
-            ),
-          );
-        }
+        // No undo button: moves are final (owner's call; undoing after the
+        // last legal move could leave the turn with nothing to do).
         if (Engine.canAlterRoll(s)) {
           final inv = s.inv(s.current);
           if (inv.rerolls > 0) {

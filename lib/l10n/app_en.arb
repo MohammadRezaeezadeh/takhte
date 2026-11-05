@@ -468,7 +468,7 @@
   "helpSeven": "7–7: roll it to pick a power card. It gets likelier every turn without one, and it is certain after 12 dry turns.",
   "helpEffects": "Glowing chips: powers in play, with the turns left. Tap a chip for details.",
   "helpCharges": "Charges: reroll tokens, Lucky Charms, Ghost Steps and Phoenixes you can still use.",
-  "helpButtons": "Buttons: undo a move, use a reroll token, auto-play the best move, or finish your turn.",
+  "helpButtons": "Buttons: use a reroll token, auto-play the best move, or finish your turn.",
   "helpEmotes": "Emotes (bottom corner): send a quick reaction.",
   "@cubeExplain": {
     "placeholders": {

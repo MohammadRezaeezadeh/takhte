@@ -81,8 +81,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   bool _showGameOver = false;
   final List<ToastData> _toasts = [];
 
-  /// The opponent's 7–7: its offer, then its pick, held until acknowledged.
-  List<String>? _aiOffer;
+  /// The opponent's 7–7 pick, held until acknowledged.
   String? _aiPick;
   Completer<void>? _aiAck;
   Timer? _aiAckTimer;
@@ -433,31 +432,21 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     }
   }
 
-  /// Holds the presented step: the opponent's 7–7 offer (~1 s), then its
-  /// pick until the player taps «فهمیدم» (8 s fallback); every card then
-  /// flies to its target.
+  /// Holds the presented step: the opponent's 7–7 pick (after its dice have
+  /// landed) until the player taps «فهمیدم» (8 s fallback); every card then
+  /// flies to its target. The opponent's three offered cards aren't shown.
   Future<void> _gate(GameEvent e) async {
     if (!mounted) return;
     final pass = session.isPassAndPlay;
     final tutorial = widget.tutorial != null;
     // Only pause for a human playing against this AI (not for spectating).
     bool aiVsHuman(Side s) => !ctrl.isHuman(s) && ctrl.isHuman(s.opponent);
-    if (e is SevenRolled && aiVsHuman(e.side) && !pass && !tutorial) {
-      setState(() {
-        _aiOffer = e.offer;
-        _aiPick = null;
-      });
-      await Future<void>.delayed(const Duration(milliseconds: 1000));
-    }
     if (e is CardPicked) {
       _history.insert(0, (who: _name(e.side), cardId: e.cardId));
       if (_history.length > 10) _history.removeLast();
       if (aiVsHuman(e.side) && !pass && !tutorial) {
         final ack = _aiAck = Completer<void>();
-        setState(() {
-          _aiOffer ??= [e.cardId];
-          _aiPick = e.cardId;
-        });
+        setState(() => _aiPick = e.cardId);
         // Auto-continue after 8 s; a cancellable timer so nothing lingers
         // once the player taps (or the screen closes).
         _aiAckTimer = Timer(const Duration(seconds: 8), () {
@@ -468,7 +457,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         if (!mounted) return;
         setState(() {
           _aiPick = null;
-          _aiOffer = null;
           _aiAck = null;
         });
       }
@@ -1203,11 +1191,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               ),
             ),
           ),
-        if (_aiOffer != null)
+        if (_aiPick != null)
           Positioned.fill(
             child: AiPickOverlay(
-              offer: _aiOffer!,
-              picked: _aiPick,
+              picked: _aiPick!,
               frameId: eq[ItemType.cardFrame]!,
               onAck: () {
                 final a = _aiAck;

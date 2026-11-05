@@ -181,3 +181,8 @@ One line per decision: **decision** — reason.
   - Hand-written release notes go in `docs/release_notes/` (CI prefers them over the commit list).
   - The store package is in `docs/store/`: Persian and English listings, privacy policy, a 512 icon, a 1024×500 feature graphic and six Persian 1080×2160 screenshots, rendered by `tool/store_assets_test.dart`.
   - The publishing checklist is in `RELEASE.md`. A private signing key (repository secrets) is still needed before a Play listing.
+- **Owner bugs after v1.3.0:**
+  - **The opponent's three offered cards are no longer shown.** The offer gate ran before the 7–7 roll was presented, so the cards appeared before the dice landed. Only the opponent's pick shows now, once its dice have landed, and it waits for «فهمیدم» (8 s fallback).
+  - **The in-game undo button is gone; moves are final.** Undoing after the last legal move could leave the turn with nothing to do, which locked the game. The controller keeps undo for tests and the LAN move buffer.
+  - The help text no longer mentions undo. Regression tests cover both.
+- **Version 1.3.1.**

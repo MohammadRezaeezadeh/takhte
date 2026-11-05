@@ -1607,7 +1607,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpButtons.
   ///
   /// In en, this message translates to:
-  /// **'Buttons: undo a move, use a reroll token, auto-play the best move, or finish your turn.'**
+  /// **'Buttons: use a reroll token, auto-play the best move, or finish your turn.'**
   String get helpButtons;
 
   /// No description provided for @helpEmotes.

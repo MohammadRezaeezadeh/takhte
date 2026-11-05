@@ -6,7 +6,7 @@ import 'package:haftnard/game/audio.dart';
 import 'package:haftnard/game/scene/board_game.dart';
 
 /// App version shown in Settings (kept in sync with pubspec by a test).
-const String kAppVersion = '1.3.0';
+const String kAppVersion = '1.3.1';
 
 /// Small on-screen readout of real frame timings (build + raster), for
 /// checking the 60 fps target on a device.
