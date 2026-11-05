@@ -12,3 +12,6 @@
 10. Localization review of Persian copy by a native editor (currently authored in-house).
 11. Music: a second ambient loop per environment.
 12. Per-environment sound tint (reverb/pitch) like boards.
+13. LAN: show a QR code with the host address (join by camera) and remember the last host.
+14. LAN: resend across a game boundary after a drop (today the players restart that match).
+15. LAN: an optional "spectator" third phone (read-only stream of batches).
