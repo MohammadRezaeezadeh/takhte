@@ -6,6 +6,7 @@ import 'package:haftnard/core/effects/cards.dart';
 import 'package:haftnard/game/themes/board_themes.dart';
 import 'package:haftnard/game/themes/pieces.dart';
 import 'package:haftnard/ui/theme.dart';
+import 'package:haftnard/ui/widgets/card_icons.dart';
 
 /// Procedural icon for each card (by [CardDef.glyph]).
 class CardGlyphPainter extends CustomPainter {
@@ -18,6 +19,7 @@ class CardGlyphPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final c = size.center(Offset.zero);
     final r = size.shortestSide * 0.38;
+    if (paintClearIcon(canvas, glyph, c, r)) return;
     final fill = Paint()..color = color;
     final stroke = Paint()
       ..color = color

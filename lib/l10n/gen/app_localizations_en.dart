@@ -1025,4 +1025,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sfxVolume => 'Effects volume';
+
+  @override
+  String get aiOffer => 'Your opponent rolled 7–7';
+
+  @override
+  String get aiPickedHeader => 'Your opponent picked this card';
+
+  @override
+  String get cardHistory => 'Cards played';
+
+  @override
+  String get cardHistoryEmpty => 'No cards played yet';
 }

@@ -110,3 +110,27 @@ One line per decision: **decision** — reason.
   - Music defaults to 35% against 100% for effects, with separate sliders in Settings. After 10 minutes of continuous play it fades out, then softly returns 3 minutes later.
   - Vorbis q1 at 22 kHz mono keeps all five tracks at 2.9 MB. Tests cover crossfade, same-position tension switch, ducking and fatigue.
 - **Version 1.1.0 marks the playtest-fix release (audio, bear-off slowdown, render order, dice, 7–7 odds and moment, choice screen, show-don't-tell, music, problem report).**
+- **Memory, exact cause:** in debug builds Riverpod 3's devtools recorder (`RiverpodDevtool.frames`, a static list) keeps every provider event forever, including each disposed ProviderContainer and every state snapshot, so every finished match's save data stayed reachable.
+  - Release builds never record (the observer is debug-only), so the phone APK was not affected by it.
+  - Fix: `trimRiverpodDevtools()` clears it after every game and when the game screen closes.
+  - Most of the earlier "~4 MB/match RSS" was lazy GC in flutter_tester. With forced full GCs the heap is flat apart from JIT code.
+  - The soak test now runs with the VM service. It forces full GCs and asserts at most 2 live SaveService/ProviderContainer and 1 MatchController after 50 matches. Growth in Dart objects from match 5 to match 50 must stay under 5 MB (measured: +2.7 MB, about 60 KB per match); VM-internal JIT code (Code, Instructions, Function…) is not counted because an AOT release build doesn't have it.
+  - **Second cause (tests only):** `HapticFeedback.*` goes over `flutter/platform`, and flutter_tester never answers. Each haptic left a pending future, with its whole stack_trace chain, in `TestDefaultBinaryMessenger._pendingMessages`: about 250 per match, roughly 1.5 MB/match. `test/flutter_test_config.dart` now answers that channel the way a device does. With the fix, retained stack traces dropped from 14,842 to 133.
+  - Each soak match is now its own `testWidgets`. `flutter test` always passes `--chain-stack-traces`, so one long async test body grows a chain without bound. One shared ProviderContainer (via `UncontrolledProviderScope`) keeps it a single app session.
+  - GameScreen clears `game.eventGate` on dispose so Flame's debug DevToolsService (which keeps the last game) does not keep the screen alive.
+  - Known and bounded: Flame's debug DevToolsService holds the last BoardGame. Riverpod's private `_pendingFrame` gets stuck if a *root* container is disposed; the app never disposes it, and the soak test now mirrors the app with one scope.
+- **Checker landing (round 3), real cause:** `resync()` rebuilt every stack from checkers in creation order, not their stack order. After a checker landed on top, the stack could be reshuffled, and `_relayout` then glided the old top checker up over the newcomer.
+  - Now stacks keep their order, surplus checkers leave from the top, arrivals are added on top, and checkers that stay never animate (tall stacks compress instantly before an arrival).
+  - Covered by a 1,000-move identity test (normal moves, hits, bar entry, undo, AI moves, bear-off) that fails within 2 s on the old code. Landing frame sheets for a 3-stack and a 6-stack are in docs/screenshots/landing/.
+- **The dashed last-move lines are removed completely (no replacement, no setting).**
+- **The opponent's 7–7 pick is now readable.**
+  - The presenter has an awaited event gate. The game shows the AI's offer for ~1 s, then the chosen card large in the centre (icon, name, sentence, tags) under «حریف این کارت رو انتخاب کرد».
+  - The game waits until «فهمیدم» (8 s fallback); then the card flies to its target with a trail and an impact. The player's own picks fly too.
+  - Delayed cards fly their HUD chip from the player's panel to the dice when they fire.
+  - A HUD history button lists the last 10 cards from both players with their text.
+  - Tests cover waiting on the tap, the 8 s fallback, the flight, the history and the chip flight.
+- **Card icons (round 3), clarity audit:** rendered all 80 icons at card size and as 32 px chips (`docs/cards/icons/before.png`), then redrew every abstract or lookalike icon as a concrete object in `lib/ui/widgets/card_icons.dart` (`after.png`):
+  - Dice effects: Fog is a thick grey cloud over a die; Freeze/Chains is a snowflake on an ice cube; Broken Die is a die split by a red crack; Curse is a die in a dark aura with a skull; Tailwind/Headwind are a die with a green ↑ or red ↓; Twin Dice are two glowing sixes; Roll Again is a die in a circular arrow; Second Chance is a gold token with a die and an arrow.
+  - Other cards: Lucky Charm is a clover; Quicksand is a checker half-sunk in sand with ↓ arrows; Teleport is a checker with a portal; Time Stop is a clock with a pause sign; Vortex is a funnel; Even Odds is a scale; Silk Purse is a pouch; Shackle is a cuff and ball; Pickpocket is a hand with a coin; Shield Wall is three shields; Caltrops are striped barriers; Mirage is a palm over heat waves; Eclipse is a black sun with a corona; Bait is a thick hook with a worm.
+  - One painter everywhere: the card face, HUD chips, card history, flights and now the board markers. The power layer's emoji badges became the card icon in a rarity-ringed disc, with the turns left beside it (`board_markers.png`).
+

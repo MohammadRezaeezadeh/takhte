@@ -62,10 +62,12 @@ void main() {
     var targeted = false;
     var sawResult = false;
     final brain = AiBrain(const AiConfig(difficulty: Difficulty.easy));
-    for (var i = 0; i < 3000 && !sawResult; i++) {
+    for (var i = 0; i < 3000 && !(sawResult && targeted); i++) {
       await t.pump(const Duration(milliseconds: 50));
-      if (find.byKey(const ValueKey('ai-reveal')).evaluate().isNotEmpty) {
+      final ack = find.byKey(const ValueKey('ai-pick-ack'));
+      if (ack.evaluate().isNotEmpty) {
         sawReveal = true;
+        await t.tap(ack);
       }
       if (find.byKey(const ValueKey('result-banner')).evaluate().isNotEmpty) {
         sawResult = true;

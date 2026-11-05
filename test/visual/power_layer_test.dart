@@ -2,7 +2,6 @@
 // (and nothing for ended ones), plays moments, and dice show what the
 // powers did (Broken Die shatters the second die).
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:haftnard/core/ai/personality.dart';
 import 'package:haftnard/core/effects/cards.dart';
@@ -12,26 +11,23 @@ import 'package:haftnard/game/audio.dart';
 import 'package:haftnard/game/match_controller.dart';
 import 'package:haftnard/game/scene/board_game.dart';
 import 'package:haftnard/game/scene/power_visuals.dart';
-import 'package:haftnard/meta/meta_state.dart';
-import 'package:haftnard/meta/save.dart';
-import 'package:haftnard/meta/settings.dart';
-import 'package:haftnard/ui/app.dart';
 import 'package:haftnard/ui/game/seven_overlay.dart';
 import 'package:haftnard/ui/screens/game_screen.dart';
 
+import 'screens_test.dart' show harness, loadFonts, shot;
+
 void main() {
-  setUpAll(() {
+  setUpAll(() async {
     Sfx.instance.available = false;
     SevenOverlay.useSensors = false;
     kAiUseIsolates = false;
+    await loadFonts();
   });
 
   testWidgets('power indicators follow the live effects exactly', (t) async {
     t.view.devicePixelRatio = 1;
     t.view.physicalSize = const Size(400, 860);
     addTearDown(t.view.reset);
-    final svc = SaveService(MemorySaveStore());
-    svc.data.settings = const Settings(sound: false, music: false);
     final session = MatchSession(
       match: MatchState(
         const MatchConfig(
@@ -56,12 +52,8 @@ void main() {
         name: 'B',
       ),
     );
-    await t.pumpWidget(
-      ProviderScope(
-        overrides: [saveServiceProvider.overrideWithValue(svc)],
-        child: HaftNardApp(home: GameScreen(session: session)),
-      ),
-    );
+    await t.pumpWidget(harness(GameScreen(session: session)));
+    var shots = 0;
     var drewSomething = false;
     var sawSeven = false;
     for (var i = 0; i < 2500 && !session.match.isOver; i++) {
@@ -82,6 +74,10 @@ void main() {
       // Everything live is drawn, and nothing stale lingers.
       expect(drawn, expected);
       if (drawn.isNotEmpty) drewSomething = true;
+      // Board markers use the cards' own icons (SHOT_OUT to look at them).
+      if (drawn.length >= 2 && shots < 2 && i % 40 == 0) {
+        await shot(t, 'markers_${shots++}');
+      }
       if (drewSomething && g.debugShattered > 0 && i > 400) break;
     }
     final g = BoardGame.current!;

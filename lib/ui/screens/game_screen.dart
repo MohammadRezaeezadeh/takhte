@@ -19,9 +19,11 @@ import 'package:haftnard/game/audio.dart';
 import 'package:haftnard/game/match_controller.dart';
 import 'package:haftnard/game/scene/board_game.dart';
 import 'package:haftnard/meta/cosmetics.dart';
+import 'package:haftnard/meta/debug_memory.dart';
 import 'package:haftnard/meta/meta_state.dart';
 import 'package:haftnard/ui/app.dart';
 import 'package:haftnard/ui/game/board_help.dart';
+import 'package:haftnard/ui/game/card_flow.dart';
 import 'package:haftnard/ui/game/card_tags.dart';
 import 'package:haftnard/ui/game/hud.dart';
 import 'package:haftnard/ui/game/overlays.dart';
@@ -53,6 +55,10 @@ class GameScreen extends ConsumerStatefulWidget {
   /// Interactive lessons played on this board.
   final List<TutorialStep>? tutorial;
 
+  /// Test hook: pending chips that flew to their target when they fired.
+  @visibleForTesting
+  static int debugChipFlights = 0;
+
   @override
   ConsumerState<GameScreen> createState() => _GameScreenState();
 }
@@ -64,7 +70,22 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   Rewards? _rewards;
   bool _showGameOver = false;
   final List<ToastData> _toasts = [];
-  (String, String)? _reveal;
+
+  /// The opponent's 7–7: its offer, then its pick, held until acknowledged.
+  List<String>? _aiOffer;
+  String? _aiPick;
+  Completer<void>? _aiAck;
+
+  /// Cards flying to their targets (game coordinates).
+  final List<({String cardId, Offset from, Offset to, bool chip, int id})>
+  _flights = [];
+  int _flightSeq = 0;
+
+  /// Last cards used by both players (newest first).
+  final List<({String who, String cardId})> _history = [];
+
+  /// Effects that were waiting for their turn (to fly their chip in).
+  Set<int> _pendingIds = {};
 
   /// Card the human just played, for the result banner.
   String? _result;
@@ -72,7 +93,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   /// All targets picked; waiting for Confirm (Undo still possible).
   bool _targetsReady = false;
-  Timer? _revealTimer;
   final List<int> _chosen = [];
   int _step = 0;
   bool _stepDone = false;
@@ -130,6 +150,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       ..presenter = game
       ..addListener(_onCtrl);
     _sub = ctrl.events.listen(_onEvents);
+    game.eventGate = _gate;
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => unawaited(ctrl.begin()),
     );
@@ -185,11 +206,14 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   @override
   void dispose() {
+    // Flame's debug DevToolsService keeps the last game; don't let it keep
+    // this screen too.
+    game.eventGate = null;
     for (final t in _emoteTimers.values) {
       t.cancel();
     }
-    _revealTimer?.cancel();
     _resultTimer?.cancel();
+    trimRiverpodDevtools();
     unawaited(Sfx.instance.setTension(on: false));
     unawaited(Sfx.instance.setAmbient(on: true, track: 'music_menu'));
     unawaited(_sub.cancel());
@@ -211,6 +235,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   void _onGameFinished(MatchController c, GameRecord finished, GameState end) {
     if (!mounted) return;
+    trimRiverpodDevtools();
     _meta.saveLastRecord(finished.toJson());
     final humans = {
       for (final s in Side.values)
@@ -352,15 +377,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         case GameEnded(:final winner):
           _aiReact(winner.opponent, 'emo_wellplayed', chance: 0.8);
         case CardPicked(:final side, :final cardId):
-          if (!ctrl.isHuman(side) || session.isPassAndPlay) {
-            if (!ctrl.isHuman(side)) {
-              _revealTimer?.cancel();
-              setState(() => _reveal = (_name(side), cardId));
-              _revealTimer = Timer(const Duration(milliseconds: 1700), () {
-                if (mounted) setState(() => _reveal = null);
-              });
-            }
-          }
           if (ctrl.isHuman(side)) {
             _resultTimer?.cancel();
             setState(() => _result = cardId);
@@ -374,6 +390,120 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     }
   }
 
+  /// Holds the presented step: the opponent's 7–7 offer (~1 s), then its
+  /// pick until the player taps «فهمیدم» (8 s fallback); every card then
+  /// flies to its target.
+  Future<void> _gate(GameEvent e) async {
+    if (!mounted) return;
+    final pass = session.isPassAndPlay;
+    final tutorial = widget.tutorial != null;
+    // Only pause for a human playing against this AI (not for spectating).
+    bool aiVsHuman(Side s) => !ctrl.isHuman(s) && ctrl.isHuman(s.opponent);
+    if (e is SevenRolled && aiVsHuman(e.side) && !pass && !tutorial) {
+      setState(() {
+        _aiOffer = e.offer;
+        _aiPick = null;
+      });
+      await Future<void>.delayed(const Duration(milliseconds: 1000));
+    }
+    if (e is CardPicked) {
+      _history.insert(0, (who: _name(e.side), cardId: e.cardId));
+      if (_history.length > 10) _history.removeLast();
+      if (aiVsHuman(e.side) && !pass && !tutorial) {
+        final ack = _aiAck = Completer<void>();
+        setState(() {
+          _aiOffer ??= [e.cardId];
+          _aiPick = e.cardId;
+        });
+        await Future.any([
+          ack.future,
+          Future<void>.delayed(const Duration(seconds: 8)),
+        ]);
+        if (!mounted) return;
+        setState(() {
+          _aiPick = null;
+          _aiOffer = null;
+          _aiAck = null;
+        });
+      }
+      await _fly(e.side, e.cardId);
+    }
+  }
+
+  /// Where a card acts: a board point it marked, else the affected dice.
+  Offset _cardTarget(Side side, String cardId) {
+    final s = ctrl.state;
+    final meta = cardMeta(cardId);
+    var newest = -1;
+    var point = 0;
+    for (final ef in s.effects) {
+      if (ef.owner == side && ef.point > 0 && ef.id > newest) {
+        newest = ef.id;
+        point = ef.point;
+      }
+    }
+    if (cardById(cardId).target != TargetKind.none && point > 0) {
+      return game.anchorFor(point: point);
+    }
+    final target = meta.who == CardWho.opponent ? side.opponent : side;
+    return game.anchorFor(side: target);
+  }
+
+  Future<void> _fly(
+    Side side,
+    String cardId, {
+    bool chip = false,
+    Offset? from,
+  }) async {
+    if (!mounted || !game.isLoaded) return;
+    final to = _cardTarget(side, cardId);
+    final start = from ?? game.layout.field.center;
+    final id = ++_flightSeq;
+    setState(
+      () => _flights.add((
+        cardId: cardId,
+        from: start,
+        to: to,
+        chip: chip,
+        id: id,
+      )),
+    );
+    await Future<void>.delayed(Duration(milliseconds: chip ? 540 : 640));
+    if (!mounted) return;
+    setState(() => _flights.removeWhere((f) => f.id == id));
+    if (!game.isLoaded) return;
+    game.fx
+      ..burst(to, count: chip ? 16 : 30)
+      ..ring(to, const Color(0xFFFFD36B), size: game.layout.checkerR * 3);
+    Sfx.instance.play('card_pick', rate: chip ? 1.2 : 0.8);
+  }
+
+  /// A delayed card that just started acting: its HUD chip flies from the
+  /// affected player's panel to its dice.
+  void _flyActivatedChips() {
+    final s = ctrl.state;
+    final pending = <int>{
+      for (final e in s.effects)
+        if (!e.isActive(s.turnNumber)) e.id,
+    };
+    for (final e in s.effects) {
+      if (_pendingIds.contains(e.id) && e.isActive(s.turnNumber)) {
+        GameScreen.debugChipFlights++;
+        final top = !ctrl.isHuman(e.affected);
+        final f = game.layout.field;
+        unawaited(
+          _fly(
+            e.owner,
+            cardForEffect(e.kind),
+            chip: true,
+            from: Offset(f.center.dx, top ? f.top : f.bottom),
+          ),
+        );
+      }
+    }
+    _pendingIds = pending;
+  }
+
   /// Tension: someone trails by 40+ pips, or the race to bear off is on.
   static bool _tense(GameState s) {
     if (s.isOver) return false;
@@ -385,6 +515,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   void _onCtrl() {
     if (!mounted) return;
+    if (game.isLoaded) _flyActivatedChips();
     unawaited(Sfx.instance.setTension(on: _tense(ctrl.state)));
     final tut = widget.tutorial;
     if (tut != null &&
@@ -876,6 +1007,17 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final board = Stack(
       children: [
         Positioned.fill(child: GameWidget(game: game)),
+        for (final f in _flights)
+          Positioned.fill(
+            child: CardFlight(
+              key: ValueKey('flight-${f.id}'),
+              cardId: f.cardId,
+              from: f.from,
+              to: f.to,
+              chip: f.chip,
+              onDone: () {},
+            ),
+          ),
         Positioned.fill(child: IgnorePointer(child: _boardSemantics())),
         PositionedDirectional(
           top: 6,
@@ -896,6 +1038,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             onPressed: () => unawaited(
               showBoardHelp(context, cube: ctrl.state.config.cubeEnabled),
             ),
+          ),
+        ),
+        PositionedDirectional(
+          top: 6,
+          end: 110,
+          child: JewelIconButton(
+            key: const ValueKey('card-history-button'),
+            icon: Icons.history,
+            tooltip: context.l10n.cardHistory,
+            onPressed: () => unawaited(showCardHistory(context, _history)),
           ),
         ),
         if (widget.tutorial == null)
@@ -1005,42 +1157,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               ),
             ),
           ),
-        if (_reveal != null)
-          // The AI's pick: big in the centre for ~1.5 s, then it shrinks and
-          // flies down onto the board.
+        if (_aiOffer != null)
           Positioned.fill(
-            child: IgnorePointer(
-              child: Center(
-                child: TweenAnimationBuilder<double>(
-                  key: ValueKey(_reveal),
-                  tween: Tween(begin: 0, end: 1),
-                  duration: const Duration(milliseconds: 1700),
-                  builder: (_, v, child) {
-                    final inT = Curves.easeOutBack.transform(
-                      (v / 0.18).clamp(0, 1),
-                    );
-                    final outT = Curves.easeInCubic.transform(
-                      ((v - 0.82) / 0.18).clamp(0, 1),
-                    );
-                    return Opacity(
-                      opacity: (inT * (1 - outT)).clamp(0, 1),
-                      child: Transform.translate(
-                        offset: Offset(0, outT * 120),
-                        child: Transform.scale(
-                          scale: (0.5 + 0.7 * inT) * (1 - 0.6 * outT),
-                          child: child,
-                        ),
-                      ),
-                    );
-                  },
-                  child: CardReveal(
-                    key: const ValueKey('ai-reveal'),
-                    who: _reveal!.$1,
-                    cardId: _reveal!.$2,
-                    frameId: eq[ItemType.cardFrame]!,
-                  ),
-                ),
-              ),
+            child: AiPickOverlay(
+              offer: _aiOffer!,
+              picked: _aiPick,
+              frameId: eq[ItemType.cardFrame]!,
+              onAck: () => _aiAck?.complete(),
             ),
           ),
         if (_result != null)

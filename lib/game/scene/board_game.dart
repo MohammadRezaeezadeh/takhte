@@ -233,11 +233,6 @@ class BoardGame extends FlameGame implements MatchPresenter {
   GameState? _legalFor;
   List<Move> _legalCache = const [];
 
-  /// The opponent's most recent moves (absolute from/to, 0 = bar, -1 = off),
-  /// shown as faint ghosts so the player can follow what happened.
-  final List<(int, int)> _lastMoves = [];
-  Side? _lastMover;
-
   /// Legal moves for [s], memoised per state instance (rendering asks every
   /// frame; move generation is a DFS).
   List<Move> _legal(GameState s) {
@@ -407,58 +402,80 @@ class BoardGame extends FlameGame implements MatchPresenter {
   };
 
   /// Reassigns checkers to match [s]; animates if [animate].
+  ///
+  /// Stack identity is preserved: checkers already on a slot keep their
+  /// order, surplus checkers leave from the TOP, and newcomers are added on
+  /// top. Only checkers that change slot travel; the others never move
+  /// (a stack that compresses past its visible height snaps instantly).
   @override
   void resync(GameState s, {bool animate = true}) {
     _shown = s;
     if (!isLoaded) return;
     final targets = _targetCounts(s);
+    final previous = {for (final e in _stacks.entries) e.key: e.value};
     _stacks.clear();
-    final pool = {
-      for (final side in Side.values)
-        side: _checkers.where((c) => c.side == side).toList(),
-    };
-    // Keep checkers that are already in a correct slot where possible.
     final assigned = <_Chk>{};
+    final kept = <_Chk>{};
+    // 1. Keep each slot's existing checkers, bottom-up, in their order.
     for (final e in targets.entries) {
       final side = _slotSide(e.key, s);
       final list = <_Chk>[];
-      for (final c in pool[side]!) {
+      for (final c in previous[e.key] ?? const <_Chk>[]) {
         if (list.length >= e.value) break;
-        if (c.slot == e.key && !assigned.contains(c)) {
-          list.add(c);
-          assigned.add(c);
-        }
+        if (c.side != side || assigned.contains(c)) continue;
+        list.add(c);
+        assigned.add(c);
+        kept.add(c);
       }
       _stacks[e.key] = list;
     }
+    // 2. Fill the rest with checkers that are not placed yet; prefer ones
+    //    that were already flying to this slot.
+    final pool = {
+      for (final side in Side.values)
+        side: [
+          for (final c in _checkers)
+            if (c.side == side && !assigned.contains(c)) c,
+        ],
+    };
     for (final e in targets.entries) {
       final side = _slotSide(e.key, s);
       final list = _stacks[e.key]!;
-      for (final c in pool[side]!) {
+      final candidates = pool[side]!
+        ..sort((a, b) {
+          final am = a.slot == e.key ? 0 : 1;
+          final bm = b.slot == e.key ? 0 : 1;
+          return am.compareTo(bm);
+        });
+      for (final c in List<_Chk>.of(candidates)) {
         if (list.length >= e.value) break;
-        if (!assigned.contains(c)) {
-          list.add(c);
-          assigned.add(c);
-          c.slot = e.key;
-        }
+        if (assigned.contains(c)) continue;
+        list.add(c);
+        assigned.add(c);
+        candidates.remove(c);
+        c.slot = e.key;
       }
     }
     for (final e in _stacks.entries) {
-      _relayout(e.key, animate: animate);
+      _relayout(e.key, animate: animate, kept: kept);
     }
     _syncDice(s);
   }
 
-  void _relayout(Slot slot, {bool animate = true}) {
+  void _relayout(Slot slot, {bool animate = true, Set<_Chk>? kept}) {
     final list = _stacks[slot] ?? const [];
     for (var i = 0; i < list.length; i++) {
       final c = list[i];
       if (c.dragging) continue;
       final p = layout.checkerCenter(slot, i, list.length);
-      if (!animate || c.pos == Offset.zero) {
-        c.pos = p;
-      } else if ((c.pos - p).distance > 0.5 && !c.moving) {
-        unawaited(c.glide(p, 0.16 / _speed));
+      if ((c.pos - p).distance <= 0.5) continue;
+      // Checkers that stay on their stack never animate; they only snap if
+      // the stack compresses. Travelling ones keep their own animation.
+      final stays = kept == null || kept.contains(c);
+      if (!animate || c.pos == Offset.zero || (stays && !c.travelling)) {
+        if (!c.travelling) c.pos = p;
+      } else if (!c.moving) {
+        unawaited(c.glide(p, 0.16 / _speed, travel: true));
       }
     }
   }
@@ -490,6 +507,9 @@ class BoardGame extends FlameGame implements MatchPresenter {
       ..slot = to
       ..travelStamp = ++_travelSeq;
     final target = layout.checkerCenter(to, list.length - 1, list.length);
+    // A tall stack compresses instantly before the arrival; nothing on it
+    // moves while the newcomer flies in.
+    _relayout(to, kept: {...list}..remove(c));
     final dist = (c.pos - target).distance;
     final arcH = _cfg.reducedMotion ? 0.0 : math.min(60, dist * 0.25) * arc;
     await c.glide(
@@ -518,6 +538,12 @@ class BoardGame extends FlameGame implements MatchPresenter {
     var lastMoveOff = false;
     for (final e in events) {
       onSceneEvent?.call(e);
+      debugBeforeEvent?.call(e);
+      // The screen may hold the step (e.g. until the player has read the
+      // opponent's 7–7 pick).
+      final gate = eventGate;
+      if (gate != null) await gate(e);
+      if (!isMounted) return;
       switch (e) {
         case OpeningRolled():
           await _rollOpening(e.white, e.black);
@@ -531,16 +557,6 @@ class BoardGame extends FlameGame implements MatchPresenter {
         case SevenRolled():
           await _rollSeven(e.side);
         case MovePlayed(:final side, :final move):
-          if (_lastMover != side) {
-            _lastMoves.clear();
-            _lastMover = side;
-          }
-          if (!controller.isHuman(side) || controller.session.isPassAndPlay) {
-            _lastMoves.add((
-              move.from == Pos.bar ? 0 : toAbsolute(side, move.from),
-              move.to == Pos.off ? -1 : toAbsolute(side, move.to),
-            ));
-          }
           final from = _slotFor(side, move.from);
           final to = _slotFor(side, move.to);
           final c = _takeTop(from, side: side);
@@ -668,6 +684,7 @@ class BoardGame extends FlameGame implements MatchPresenter {
         default:
           break;
       }
+      debugAfterEvent?.call(e);
     }
     // Reconcile anything not explicitly animated (Blood Pact, resyncs).
     resync(after);
@@ -1325,7 +1342,6 @@ class BoardGame extends FlameGame implements MatchPresenter {
     if (top != null) c.drawPicture(top);
     if (theme.pattern == BoardPattern.neon) _neonPulse(c);
     _renderMarkers(c);
-    _renderLastMoves(c);
     _renderHighlights(c);
     _renderCheckers(c);
     _renderDice(c);
@@ -1522,44 +1538,6 @@ class BoardGame extends FlameGame implements MatchPresenter {
     );
   }
 
-  void _renderLastMoves(Canvas c) {
-    final s = _shown;
-    if (_lastMoves.isEmpty || s == null || _lastMover == null) return;
-    // Hide once the mover's opponent starts acting.
-    if (s.current != _lastMover && s.movesThisRoll.isNotEmpty) return;
-    final r = layout.checkerR;
-    final ghost = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6
-      ..color = const Color(0x88FFFFFF);
-    final line = Paint()
-      ..strokeWidth = 1.4
-      ..color = const Color(0x55FFFFFF);
-    for (final (from, to) in _lastMoves) {
-      final a = from == 0
-          ? layout.bar.center
-          : layout.checkerCenter(
-              PointSlot(from),
-              s.board.atAbsolute(from).$2,
-              s.board.atAbsolute(from).$2 + 1,
-            );
-      final b = to == -1
-          ? (_lastMover == Side.white
-                ? layout.whiteTray.center
-                : layout.blackTray.center)
-          : layout.pointRect(to).center;
-      c.drawCircle(a, r * 0.8, ghost);
-      // Dashed connector.
-      final d = b - a;
-      final len = d.distance;
-      if (len < 1) continue;
-      final dir = d / len;
-      for (var t = r; t < len - r; t += 10) {
-        c.drawLine(a + dir * t, a + dir * math.min(t + 5, len - r), line);
-      }
-    }
-  }
-
   Color get _hi => _cfg.colorblind ? const Color(0xFF3DA5FF) : theme.highlight;
 
   void _renderHighlights(Canvas c) {
@@ -1702,6 +1680,39 @@ class BoardGame extends FlameGame implements MatchPresenter {
     top.sort((a, b) => a.travelStamp.compareTo(b.travelStamp));
     return rest..addAll(top);
   }
+
+  /// Awaited before each presented event; lets the UI pause the game.
+  Future<void> Function(GameEvent e)? eventGate;
+
+  /// Board point (absolute) or a side's dice area, in game coordinates.
+  Offset anchorFor({int point = 0, Side? side}) {
+    if (point > 0) {
+      final ps = checkerPositionsAt(point);
+      return ps.isNotEmpty ? ps.last : layout.pointRect(point).center;
+    }
+    return layout.diceCenter(side ?? Side.white);
+  }
+
+  /// Test hooks around every presented event.
+  @visibleForTesting
+  static void Function(GameEvent e)? debugBeforeEvent;
+  @visibleForTesting
+  static void Function(GameEvent e)? debugAfterEvent;
+
+  /// Test hook: every checker by identity.
+  @visibleForTesting
+  List<({int id, Slot slot, int index, Offset pos, bool moving, bool onTop})>
+  debugCheckers() => [
+    for (var i = 0; i < _checkers.length; i++)
+      (
+        id: i,
+        slot: _checkers[i].slot,
+        index: _stacks[_checkers[i].slot]?.indexOf(_checkers[i]) ?? -1,
+        pos: _checkers[i].pos,
+        moving: _checkers[i].moving,
+        onTop: _checkers[i].onTop,
+      ),
+  ];
 
   /// Test hook: what is painted, bottom to top.
   @visibleForTesting

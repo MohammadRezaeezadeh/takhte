@@ -1765,6 +1765,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Effects volume'**
   String get sfxVolume;
+
+  /// No description provided for @aiOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Your opponent rolled 7–7'**
+  String get aiOffer;
+
+  /// No description provided for @aiPickedHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Your opponent picked this card'**
+  String get aiPickedHeader;
+
+  /// No description provided for @cardHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Cards played'**
+  String get cardHistory;
+
+  /// No description provided for @cardHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No cards played yet'**
+  String get cardHistoryEmpty;
 }
 
 class _AppLocalizationsDelegate

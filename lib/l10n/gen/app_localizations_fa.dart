@@ -1028,4 +1028,16 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get sfxVolume => 'بلندی جلوه‌های صوتی';
+
+  @override
+  String get aiOffer => 'حریف هفت‌هفت آورد';
+
+  @override
+  String get aiPickedHeader => 'حریف این کارت رو انتخاب کرد';
+
+  @override
+  String get cardHistory => 'کارت‌های بازی‌شده';
+
+  @override
+  String get cardHistoryEmpty => 'هنوز کارتی بازی نشده';
 }

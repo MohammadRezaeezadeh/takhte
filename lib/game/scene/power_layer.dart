@@ -3,11 +3,14 @@ import 'dart:ui' as ui;
 import 'dart:ui';
 
 import 'package:flame/components.dart';
+import 'package:haftnard/core/effects/cards.dart';
 import 'package:haftnard/game/audio.dart';
 import 'package:haftnard/game/scene/board_game.dart';
 import 'package:haftnard/game/scene/fx.dart';
 import 'package:haftnard/game/scene/paragraph_cache.dart';
 import 'package:haftnard/game/scene/power_visuals.dart';
+import 'package:haftnard/ui/theme.dart';
+import 'package:haftnard/ui/widgets/card_art.dart';
 import 'package:meta/meta.dart';
 
 /// Draws every active power on the board for its whole duration and plays a
@@ -297,7 +300,14 @@ class PowerLayer extends Component {
             );
           }
         }
-        _badge(c, top.translate(r * 0.9, -r * 0.9), '❄', v.turns, alpha);
+        _badge(
+          c,
+          top.translate(r * 0.9, -r * 0.9),
+          '❄',
+          v.turns,
+          alpha,
+          cardId: v.cardId,
+        );
       case VisualKind.shield:
         final pulse = 0.85 + 0.15 * math.sin(t * 3);
         c
@@ -315,7 +325,14 @@ class PowerLayer extends Component {
               ..strokeWidth = 2.5
               ..color = const Color(0xFF8AD8FF).withValues(alpha: 0.85 * alpha),
           );
-        _badge(c, top.translate(r * 1.1, -r * 1.1), '🛡', v.turns, alpha);
+        _badge(
+          c,
+          top.translate(r * 1.1, -r * 1.1),
+          '🛡',
+          v.turns,
+          alpha,
+          cardId: v.cardId,
+        );
       case VisualKind.gate:
         final paint = Paint()
           ..strokeWidth = 3
@@ -332,7 +349,14 @@ class PowerLayer extends Component {
           top.translate(r * 0.9, -r * 1.2),
           paint..strokeWidth = 4,
         );
-        _badge(c, top.translate(r * 1.1, -r * 1.3), '⛩', v.turns, alpha);
+        _badge(
+          c,
+          top.translate(r * 1.1, -r * 1.3),
+          '⛩',
+          v.turns,
+          alpha,
+          cardId: v.cardId,
+        );
       case VisualKind.mine:
         final p = l.pointRect(v.point).center;
         final dash = Paint()
@@ -362,7 +386,7 @@ class PowerLayer extends Component {
               ..color = const Color(0xFFD9B26F).withValues(alpha: 0.6 * alpha),
           );
         }
-        _badge(c, p.translate(r, -r), '⏳', v.turns, alpha);
+        _badge(c, p.translate(r, -r), '⏳', v.turns, alpha, cardId: v.cardId);
       case VisualKind.toll:
         final rect = l.pointRect(v.point);
         final y = rect.center.dy;
@@ -385,7 +409,14 @@ class PowerLayer extends Component {
             Offset(rect.right - 3, y - r * 0.6),
             paint,
           );
-        _badge(c, Offset(rect.right, y - r), '¤', v.turns, alpha);
+        _badge(
+          c,
+          Offset(rect.right, y - r),
+          '¤',
+          v.turns,
+          alpha,
+          cardId: v.cardId,
+        );
       default:
         _side(c, v, t, alpha);
     }
@@ -498,11 +529,59 @@ class PowerLayer extends Component {
         break;
     }
     if (glyph != null) {
-      _badge(c, at.translate(sz * 1.5, -sz * 0.8), glyph, v.turns, alpha);
+      _badge(
+        c,
+        at.translate(sz * 1.5, -sz * 0.8),
+        glyph,
+        v.turns,
+        alpha,
+        cardId: v.cardId,
+      );
     }
   }
 
-  void _badge(Canvas c, Offset at, String glyph, int? turns, double alpha) {
+  /// A marker: the card's own icon (the same one as on the card and the HUD
+  /// chip) in a dark disc, with the turns left beside it. [glyph] is only a
+  /// fallback for effects without a card.
+  void _badge(
+    Canvas c,
+    Offset at,
+    String glyph,
+    int? turns,
+    double alpha, {
+    String? cardId,
+  }) {
+    final card = cardId == null ? null : kCardById[cardId];
+    if (card != null) {
+      const r = 11.0;
+      final color = AppColors.rarity(card.rarity.index);
+      c
+        ..drawCircle(
+          at,
+          r + 1.5,
+          Paint()..color = color.withValues(alpha: alpha),
+        )
+        ..drawCircle(
+          at,
+          r,
+          Paint()..color = Color.fromRGBO(20, 16, 36, 0.92 * alpha),
+        );
+      if (alpha < 0.99) {
+        c.saveLayer(
+          Rect.fromCircle(center: at, radius: r),
+          Paint()..color = Color.fromRGBO(0, 0, 0, alpha),
+        );
+      } else {
+        c.save();
+      }
+      c.translate(at.dx - r, at.dy - r);
+      CardGlyphPainter(card.glyph, color).paint(c, const Size(r * 2, r * 2));
+      c.restore();
+      if (turns != null) {
+        _badge(c, at.translate(r + 7, r * 0.6), '', turns, alpha);
+      }
+      return;
+    }
     final digits = turns == null
         ? ''
         : game.persianDigits
@@ -512,7 +591,11 @@ class PowerLayer extends Component {
               .map((d) => '۰۱۲۳۴۵۶۷۸۹'[int.parse(d)])
               .join()
         : '$turns';
-    final label = digits.isEmpty ? glyph : '$glyph $digits';
+    final label = digits.isEmpty
+        ? glyph
+        : glyph.isEmpty
+        ? digits
+        : '$glyph $digits';
     final para = _text.get('b|$label', () {
       final pb =
           ui.ParagraphBuilder(ui.ParagraphStyle(textAlign: TextAlign.center))
@@ -521,6 +604,7 @@ class PowerLayer extends Component {
                 color: const Color(0xFFFFFFFF),
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
+                fontFamily: AppFonts.body,
               ),
             )
             ..addText(label);
