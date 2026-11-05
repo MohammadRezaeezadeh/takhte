@@ -164,7 +164,7 @@ void main() {
         daily: true,
       )
       ..noteEvent(mine: true, phoenix: true, coinWin: true)
-      ..updateSettings(const Settings(language: 'fa'))
+      ..updateSettings(const Settings())
       ..saveActiveMatch({'x': 1})
       ..saveLastRecord({'y': 2})
       ..saveJourney({'z': 3})

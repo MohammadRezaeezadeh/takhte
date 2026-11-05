@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'dart:ui';
 
 import 'package:haftnard/game/themes/pieces.dart';
@@ -172,10 +173,23 @@ bool paintClearIcon(Canvas c, int glyph, Offset o, double r) {
         final d = Offset(math.cos(a), math.sin(a)) * r * 0.55;
         c.drawLine(o - d, o + d, flake);
       }
-    case 8: // Fog: a thick grey cloud covering most of a die
-      paintDie(c, o.translate(-r * 0.25, -r * 0.4), r * 0.95, 3, bone);
-      cloud(o.translate(r * 0.05, r * 0.12), r * 0.86, fill(0xFF8E98A3));
-      cloud(o.translate(r * 0.05, r * 0.2), r * 0.7, fill(0xFFC9D1D8));
+    case 8: // Fog: a die swallowed by a thick grey cloud, wisps across it
+      paintDie(c, o.translate(r * 0.2, -r * 0.3), r * 1.05, 5, bone);
+      final wisp = line(0xE6CFD6DE, r * 0.17);
+      c
+        ..drawLine(
+          o.translate(-r * 0.9, -r * 0.62),
+          o.translate(r * 0.55, -r * 0.62),
+          wisp,
+        )
+        ..drawLine(
+          o.translate(-r * 0.55, -r * 0.3),
+          o.translate(r * 0.95, -r * 0.3),
+          wisp,
+        );
+      cloud(o.translate(0, r * 0.22), r * 0.98, fill(0xFF7D8894));
+      cloud(o.translate(-r * 0.05, r * 0.3), r * 0.8, fill(0xFFB7C1CB));
+      cloud(o.translate(r * 0.1, r * 0.42), r * 0.5, fill(0xFFDCE2E8));
     case 9: // Curse: a die in a dark aura, a skull above it
       c.drawCircle(
         o.translate(0, r * 0.2),
@@ -198,41 +212,47 @@ bool paintClearIcon(Canvas c, int glyph, Offset o, double r) {
         )
         ..drawCircle(skull.translate(-r * 0.12, 0), r * 0.08, fill(0xFF1A1A1A))
         ..drawCircle(skull.translate(r * 0.12, 0), r * 0.08, fill(0xFF1A1A1A));
-    case 16: // Teleport: a checker jumping through a portal ring
+    case 16: // Teleport: a checker vanishes into one portal, out of another
+      Paint portal(int argb) => line(argb, r * 0.15);
+      final left = o.translate(-r * 0.55, r * 0.35);
+      final right = o.translate(r * 0.55, -r * 0.35);
+      for (final (at, col) in [(left, 0xFF9B7BFF), (right, 0xFF6CF2FF)]) {
+        c
+          ..drawOval(
+            Rect.fromCenter(center: at, width: r * 0.95, height: r * 0.42),
+            fill((col & 0x00FFFFFF) | 0x55000000),
+          )
+          ..drawOval(
+            Rect.fromCenter(center: at, width: r * 0.95, height: r * 0.42),
+            portal(col),
+          );
+      }
+      // The checker popping out of the right portal.
       c
-        ..drawOval(
-          Rect.fromCenter(
-            center: o.translate(r * 0.45, 0),
-            width: r * 0.7,
-            height: r * 1.6,
-          ),
-          line(0xFFB79CFF, r * 0.16),
-        )
+        ..drawCircle(right.translate(0, -r * 0.32), r * 0.3, fill(0xFFF3E9D2))
         ..drawCircle(
-          o.translate(-r * 0.5, r * 0.35),
-          r * 0.38,
-          fill(0xFFF3E9D2),
-        )
-        ..drawCircle(
-          o.translate(-r * 0.5, r * 0.35),
-          r * 0.38,
+          right.translate(0, -r * 0.32),
+          r * 0.3,
           line(0xFF8C6A48, r * 0.07),
         );
       final arc = Path()
-        ..moveTo(o.dx - r * 0.45, o.dy - r * 0.1)
+        ..moveTo(left.dx, left.dy - r * 0.2)
         ..quadraticBezierTo(
-          o.dx - r * 0.1,
-          o.dy - r * 0.9,
-          o.dx + r * 0.3,
-          o.dy - r * 0.3,
+          o.dx - r * 0.55,
+          o.dy - r * 0.95,
+          right.dx - r * 0.4,
+          right.dy - r * 0.45,
         );
-      c.drawPath(arc, line(0xFFB79CFF, r * 0.1));
+      c.drawPath(arc, line(0xFFFFD36B, r * 0.09));
       arrowHead(
-        o.translate(r * 0.3, -r * 0.3),
-        0.9,
-        r * 0.25,
-        fill(0xFFB79CFF),
+        right.translate(-r * 0.36, -r * 0.43),
+        0.15,
+        r * 0.24,
+        fill(0xFFFFD36B),
       );
+      for (final d in const [Offset(0.95, -0.95), Offset(-0.95, -0.2)]) {
+        c.drawCircle(o + d * r, r * 0.08, fill(0xFFFFD36B));
+      }
     case 18: // Quicksand: a checker half sunk in sand, sinking arrows
       final top = o.translate(0, -r * 0.05);
       c
@@ -548,6 +568,43 @@ bool paintClearIcon(Canvas c, int glyph, Offset o, double r) {
           o.dy + r * 0.55,
         );
       c.drawPath(worm, line(0xFFFF7A9C, r * 0.22));
+    case 29: // Lantern of Truth: a bright lantern casting rays
+      final glow = Paint()
+        ..shader = ui.Gradient.radial(o, r * 1.1, const [
+          Color(0xAAFFD36B),
+          Color(0x00FFD36B),
+        ]);
+      c.drawCircle(o, r * 1.1, glow);
+      final rays = line(0xFFFFE9A8, r * 0.08);
+      for (var i = 0; i < 8; i++) {
+        final a = i * math.pi / 4;
+        final d = Offset(math.cos(a), math.sin(a));
+        c.drawLine(o + d * r * 0.78, o + d * r * 1.02, rays);
+      }
+      final body = RRect.fromRectAndRadius(
+        Rect.fromCenter(
+          center: o.translate(0, r * 0.08),
+          width: r * 0.8,
+          height: r * 1.0,
+        ),
+        Radius.circular(r * 0.18),
+      );
+      c
+        ..drawRRect(body, fill(0xFFFFE08A))
+        ..drawRRect(body, line(0xFF8A5A10, r * 0.1))
+        ..drawCircle(o.translate(0, r * 0.1), r * 0.2, fill(0xFFFFFFFF))
+        ..drawLine(
+          o.translate(0, -r * 0.42),
+          o.translate(0, -r * 0.62),
+          line(0xFF8A5A10, r * 0.1),
+        )
+        ..drawArc(
+          Rect.fromCircle(center: o.translate(0, -r * 0.72), radius: r * 0.16),
+          math.pi,
+          math.pi,
+          false,
+          line(0xFF8A5A10, r * 0.08),
+        );
     default:
       return false;
   }

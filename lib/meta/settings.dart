@@ -1,7 +1,7 @@
 /// User preferences (persisted).
 class Settings {
   const Settings({
-    this.language = 'system',
+    this.language = 'fa',
     this.homeOnRight = true,
     this.animSpeed = 1,
     this.sound = true,
@@ -22,7 +22,12 @@ class Settings {
   });
 
   factory Settings.fromJson(Map<String, Object?> j) => Settings(
-    language: j['language'] as String? ?? 'system',
+    // Persian is the default; the old "follow the phone" choice (which
+    // showed English on English phones) becomes Persian too.
+    language: switch (j['language']) {
+      'en' => 'en',
+      _ => 'fa',
+    },
     homeOnRight: j['homeOnRight'] as bool? ?? true,
     animSpeed: (j['animSpeed'] as num?)?.toDouble() ?? 1,
     sound: j['sound'] as bool? ?? true,
@@ -42,7 +47,7 @@ class Settings {
     showFps: j['showFps'] as bool? ?? false,
   );
 
-  /// 'system', 'en' or 'fa'.
+  /// 'fa' (default) or 'en'.
   final String language;
 
   /// White's home board on the bottom right (counter-clockwise play).

@@ -64,6 +64,7 @@ void main() {
     );
     final svc = SaveService(MemorySaveStore());
     svc.data.settings = const Settings(
+      language: 'en',
       sound: false,
       music: false,
       animSpeed: 2,

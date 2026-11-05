@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:haftnard/core/ai/personality.dart';
 import 'package:haftnard/core/rules/match.dart';
+import 'package:haftnard/core/rules/seven_odds.dart';
 import 'package:haftnard/core/rules/state.dart';
 import 'package:haftnard/game/match_controller.dart';
 import 'package:haftnard/meta/meta_state.dart';
@@ -11,7 +13,6 @@ import 'package:haftnard/ui/app.dart';
 import 'package:haftnard/ui/screens/game_screen.dart';
 import 'package:haftnard/ui/screens/lan_screen.dart';
 import 'package:haftnard/ui/theme.dart';
-import 'package:haftnard/ui/widgets/avatar.dart';
 import 'package:haftnard/ui/widgets/jewel.dart';
 import 'package:haftnard/ui/widgets/menu_background.dart';
 import 'package:haftnard/ui/widgets/top_bar.dart';
@@ -27,7 +28,8 @@ class _PlaySetupScreenState extends ConsumerState<PlaySetupScreen> {
   GameMode _mode = GameMode.seven;
   bool _passPlay = false;
   bool _lan = false;
-  String _personality = 'sage';
+  SevenLevel _seven = SevenLevel.normal;
+  final math.Random _rng = math.Random();
   Difficulty _difficulty = Difficulty.medium;
   int _length = 1;
   bool _cube = false;
@@ -45,6 +47,7 @@ class _PlaySetupScreenState extends ConsumerState<PlaySetupScreen> {
 
   MatchConfig _config(int seed) => MatchConfig(
     mode: _mode,
+    p7: _seven.base,
     length: _length,
     cubeEnabled: _cube,
     seed: seed,
@@ -65,7 +68,8 @@ class _PlaySetupScreenState extends ConsumerState<PlaySetupScreen> {
   void _start() {
     final l = context.l10n;
     final seed = DateTime.now().microsecondsSinceEpoch & 0x7FFFFFFF;
-    final p = personalityById(_personality);
+    // The computer opponent is a surprise: a random personality each game.
+    final p = kPersonalities[_rng.nextInt(kPersonalities.length)];
     final session = MatchSession(
       match: MatchState(_config(seed)),
       white: SeatConfig.human(_passPlay ? l.player1 : l.you),
@@ -88,7 +92,9 @@ class _PlaySetupScreenState extends ConsumerState<PlaySetupScreen> {
     String label, {
     required bool selected,
     required VoidCallback onTap,
+    Key? key,
   }) => Padding(
+    key: key,
     padding: const EdgeInsets.all(4),
     child: ChoiceChip(
       label: Text(
@@ -133,7 +139,6 @@ class _PlaySetupScreenState extends ConsumerState<PlaySetupScreen> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final lang = context.lang;
     return Scaffold(
       body: MenuBackground(
         child: SafeArea(
@@ -181,55 +186,57 @@ class _PlaySetupScreenState extends ConsumerState<PlaySetupScreen> {
                             children: [
                               SizedBox(
                                 height: 128,
-                                child: ListView(
-                                  scrollDirection: Axis.horizontal,
+                                child: Row(
                                   children: [
-                                    for (final p in kPersonalities)
-                                      _OpponentTile(
-                                        name: p.name(lang),
-                                        tagline: p.tagline(lang),
-                                        avatar: Avatar.forPersonality(
-                                          p,
-                                          size: 58,
+                                    Expanded(
+                                      child: _OpponentTile(
+                                        key: const ValueKey('ai-tile'),
+                                        name: l.computerOpponent,
+                                        tagline: l.computerOpponentDesc,
+                                        avatar: const Icon(
+                                          Icons.casino,
+                                          size: 52,
+                                          color: AppColors.goldLight,
                                         ),
-                                        selected:
-                                            !_passPlay &&
-                                            !_lan &&
-                                            _personality == p.id,
+                                        selected: !_passPlay && !_lan,
                                         onTap: () => setState(() {
                                           _passPlay = false;
                                           _lan = false;
-                                          _personality = p.id;
                                         }),
                                       ),
-                                    _OpponentTile(
-                                      name: l.modePassPlay,
-                                      tagline: l.modePassPlayDesc,
-                                      avatar: const Icon(
-                                        Icons.people,
-                                        size: 52,
-                                        color: AppColors.goldLight,
-                                      ),
-                                      selected: _passPlay,
-                                      onTap: () => setState(() {
-                                        _passPlay = true;
-                                        _lan = false;
-                                      }),
                                     ),
-                                    _OpponentTile(
-                                      key: const ValueKey('lan-tile'),
-                                      name: l.lanPlay,
-                                      tagline: l.lanPlayDesc,
-                                      avatar: const Icon(
-                                        Icons.wifi,
-                                        size: 52,
-                                        color: AppColors.goldLight,
+                                    Expanded(
+                                      child: _OpponentTile(
+                                        name: l.modePassPlay,
+                                        tagline: l.modePassPlayDesc,
+                                        avatar: const Icon(
+                                          Icons.people,
+                                          size: 52,
+                                          color: AppColors.goldLight,
+                                        ),
+                                        selected: _passPlay,
+                                        onTap: () => setState(() {
+                                          _passPlay = true;
+                                          _lan = false;
+                                        }),
                                       ),
-                                      selected: _lan,
-                                      onTap: () => setState(() {
-                                        _lan = true;
-                                        _passPlay = false;
-                                      }),
+                                    ),
+                                    Expanded(
+                                      child: _OpponentTile(
+                                        key: const ValueKey('lan-tile'),
+                                        name: l.lanPlay,
+                                        tagline: l.lanPlayDesc,
+                                        avatar: const Icon(
+                                          Icons.wifi,
+                                          size: 52,
+                                          color: AppColors.goldLight,
+                                        ),
+                                        selected: _lan,
+                                        onTap: () => setState(() {
+                                          _lan = true;
+                                          _passPlay = false;
+                                        }),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -257,6 +264,40 @@ class _PlaySetupScreenState extends ConsumerState<PlaySetupScreen> {
                             ],
                           ),
                         ),
+                        if (_mode == GameMode.seven)
+                          _section(
+                            l.sevenOdds,
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Wrap(
+                                  children: [
+                                    for (final lv in SevenLevel.values)
+                                      _chip(
+                                        switch (lv) {
+                                          SevenLevel.low => l.sevenLow,
+                                          SevenLevel.normal => l.sevenNormal,
+                                          SevenLevel.high => l.sevenHigh,
+                                          SevenLevel.veryHigh =>
+                                            l.sevenVeryHigh,
+                                        },
+                                        key: ValueKey('seven-${lv.name}'),
+                                        selected: _seven == lv,
+                                        onTap: () =>
+                                            setState(() => _seven = lv),
+                                      ),
+                                  ],
+                                ),
+                                Text(
+                                  l.sevenOddsDesc,
+                                  style: const TextStyle(
+                                    color: AppColors.muted,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         _section(
                           l.matchLength,
                           Column(
@@ -307,6 +348,7 @@ class _PlaySetupScreenState extends ConsumerState<PlaySetupScreen> {
                           ),
                         ] else
                           JewelButton(
+                            key: const ValueKey('start-button'),
                             label: l.start,
                             icon: Icons.play_arrow,
                             color: AppColors.emerald,

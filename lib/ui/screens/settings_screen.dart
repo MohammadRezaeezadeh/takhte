@@ -119,7 +119,6 @@ class SettingsScreen extends ConsumerWidget {
                           child: Column(
                             children: [
                               seg<String>(l.language, s.language, [
-                                ('system', l.languageSystem),
                                 ('fa', 'فارسی'),
                                 ('en', 'English'),
                               ], (v) => set(s.copyWith(language: v))),

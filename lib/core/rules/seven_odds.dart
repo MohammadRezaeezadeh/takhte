@@ -23,13 +23,33 @@ abstract final class SevenOdds {
   /// The n-th consecutive own turn without a 7–7 always rolls one.
   static const int guaranteeTurn = 12;
 
+  /// Dry own turns after which a 7–7 is guaranteed, for a [base] chance.
+  /// Scales with the chance so every level keeps the same shape; the
+  /// default base gives exactly [guaranteeTurn].
+  static int guaranteeFor(double base) => (0.6 / base).round().clamp(4, 24);
+
   /// Chance of a 7–7 on an own turn after [dry] own turns without one.
   static double chance(int dry, {double base = SevenOdds.base}) {
     if (base <= 0) return 0;
-    const last = guaranteeTurn - 1;
+    final guarantee = guaranteeFor(base);
+    final last = guarantee - 1;
+    final ramp = guarantee - (guaranteeTurn - rampStart);
     if (dry >= last) return 1;
-    if (dry < rampStart) return base.clamp(0.0, 1.0);
-    final t = (dry - rampStart + 1) / (last - rampStart + 1);
+    if (dry < ramp) return base.clamp(0.0, 1.0);
+    final t = (dry - ramp + 1) / (last - ramp + 1);
     return (base + (1 - base) * math.pow(t, 2)).clamp(0.0, 1.0);
   }
+}
+
+/// How often 7–7 comes up, chosen when setting up a game.
+enum SevenLevel {
+  low(0.025),
+  normal(SevenOdds.base),
+  high(0.10),
+  veryHigh(0.18);
+
+  SevenLevel(this.base);
+
+  /// Base chance per own turn (the drought guarantee scales with it).
+  final double base;
 }

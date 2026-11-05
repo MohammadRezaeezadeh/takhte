@@ -161,3 +161,14 @@ One line per decision: **decision** — reason.
     - The lobby on screen from the Play menu up to the game starting.
     - A full LAN match in the real game screen, including the lost-connection banner and emotes.
 - **Version 1.2.0 adds LAN/hotspot multiplayer.**
+- **Owner feedback after v1.2.0:**
+  - **No opponent picker.** The setup screen offers Computer, Two players (one phone) or Friend (Wi-Fi). The computer is a random personality each game, a surprise you meet on the board, and difficulty is still chosen.
+  - **7–7 chance level** in setup (Seven mode): Low 2.5%, Normal 5% (unchanged), High 10%, Very high 18% per own turn.
+    - The drought guarantee scales with the chance (`round(0.6 / base)`, clamped to 4–24 turns): Low 24, Normal 12 (as before), High 6, Very high 4.
+    - Normal keeps its exact odds, so saves and replays are unchanged. LAN games use the host's level.
+  - **Persian is the default language.** The "follow the phone" option was removed, and old saves with it open in Persian (it showed English on English phones). English stays one tap away in Settings.
+  - **Second icon pass:**
+    - Fog: a die swallowed by a thick three-layer cloud with fog wisps across it.
+    - Teleport: two portals, with the checker popping out of the second.
+    - Lantern of Truth: a bright lantern with rays.
+- **Version 1.2.1.**

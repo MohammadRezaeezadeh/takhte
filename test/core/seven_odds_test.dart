@@ -141,4 +141,44 @@ void main() {
     expect(maxDry, lessThan(SevenOdds.guaranteeTurn));
     expect(sevens / 60, inInclusiveRange(2.0, 4.5));
   });
+
+  test('the four 7–7 levels: rarer to much more often, each with a cap', () {
+    // Turns per 7–7 for each level, from the per-turn chance and its pity.
+    double turnsPerSeven(SevenLevel lv) {
+      final rng = Rng.seeded(77);
+      var dry = 0;
+      var sevens = 0;
+      var maxDry = 0;
+      const turns = 200000;
+      for (var i = 0; i < turns; i++) {
+        if (rng.nextDouble() < SevenOdds.chance(dry, base: lv.base)) {
+          sevens++;
+          dry = 0;
+        } else {
+          dry++;
+          if (dry > maxDry) maxDry = dry;
+        }
+      }
+      expect(
+        maxDry,
+        lessThan(SevenOdds.guaranteeFor(lv.base)),
+        reason: '$lv drought cap',
+      );
+      return turns / sevens;
+    }
+
+    final t = {for (final lv in SevenLevel.values) lv: turnsPerSeven(lv)};
+    expect(t[SevenLevel.low], greaterThan(t[SevenLevel.normal]! * 1.4));
+    expect(t[SevenLevel.normal], greaterThan(t[SevenLevel.high]! * 1.4));
+    expect(t[SevenLevel.high], greaterThan(t[SevenLevel.veryHigh]! * 1.3));
+    // Normal keeps its tuned odds exactly.
+    expect(SevenLevel.normal.base, SevenOdds.base);
+    expect(SevenOdds.guaranteeFor(SevenOdds.base), SevenOdds.guaranteeTurn);
+    for (var d = 0; d < 12; d++) {
+      expect(
+        SevenOdds.chance(d),
+        d >= 11 ? 1 : (d < 9 ? SevenOdds.base : greaterThan(SevenOdds.base)),
+      );
+    }
+  });
 }

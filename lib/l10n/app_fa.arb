@@ -302,5 +302,13 @@
   "lanErrNoAnswer": "این آدرس جواب نداد.",
   "lanLost": "اتصال قطع شد؛ داریم دوباره وصل می‌شیم…",
   "lanLeft": "دوستت از بازی رفت.",
-  "lanSyncing": "همگام‌سازی…"
+  "lanSyncing": "همگام‌سازی…",
+  "computerOpponent": "کامپیوتر",
+  "computerOpponentDesc": "هر بازی یه حریف تصادفی",
+  "sevenOdds": "شانس جفت‌هفت",
+  "sevenLow": "کم",
+  "sevenNormal": "معمولی",
+  "sevenHigh": "زیاد",
+  "sevenVeryHigh": "خیلی زیاد",
+  "sevenOddsDesc": "جفت‌هفت بیشتر یعنی کارت بیشتر و بازی شلوغ‌تر."
 }

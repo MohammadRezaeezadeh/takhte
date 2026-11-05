@@ -37,19 +37,19 @@ void main() {
     await t.pumpWidget(harness(const PlaySetupScreen()));
     await t.pump(const Duration(milliseconds: 300));
     final tile = find.byKey(const ValueKey('lan-tile'));
-    await t.scrollUntilVisible(
-      tile,
-      200,
-      scrollable: find
-          .byWidgetPredicate(
-            (w) => w is Scrollable && w.axisDirection == AxisDirection.right,
-          )
-          .first,
-    );
+    await t.ensureVisible(tile);
     await t.tap(tile);
     await t.pump(const Duration(milliseconds: 300));
     final hostButton = find.byKey(const ValueKey('lan-host-button'));
-    await t.ensureVisible(hostButton);
+    await t.scrollUntilVisible(
+      hostButton,
+      150,
+      scrollable: find
+          .byWidgetPredicate(
+            (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+          )
+          .first,
+    );
     await t.tap(hostButton);
     for (var i = 0; i < 10; i++) {
       await _real(t);

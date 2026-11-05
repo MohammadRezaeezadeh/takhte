@@ -15,7 +15,7 @@ void main() {
     await svc.load();
     svc.data.profile.coins = 1234;
     svc.data.profile.owned.add('board_neon');
-    svc.data.settings = const Settings(language: 'fa', sound: false);
+    svc.data.settings = const Settings(sound: false);
     await svc.save();
     final svc2 = SaveService(store);
     final d = await svc2.load();

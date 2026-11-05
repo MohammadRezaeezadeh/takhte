@@ -1103,4 +1103,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lanSyncing => 'Syncing…';
+
+  @override
+  String get computerOpponent => 'Computer';
+
+  @override
+  String get computerOpponentDesc => 'A random opponent every game';
+
+  @override
+  String get sevenOdds => '7–7 chance';
+
+  @override
+  String get sevenLow => 'Low';
+
+  @override
+  String get sevenNormal => 'Normal';
+
+  @override
+  String get sevenHigh => 'High';
+
+  @override
+  String get sevenVeryHigh => 'Very high';
+
+  @override
+  String get sevenOddsDesc => 'More 7–7 means more cards and a wilder game.';
 }

@@ -73,6 +73,7 @@ void main() {
     tester.view.physicalSize = const Size(400, 860);
     int? picked;
     final svc = SaveService(MemorySaveStore());
+    svc.data.settings = const Settings(language: 'en');
     await tester.pumpWidget(
       ProviderScope(
         overrides: [saveServiceProvider.overrideWithValue(svc)],

@@ -58,11 +58,7 @@ void mutate(Object? root, List<Object> path, math.Random r) {
 void main() {
   final rich =
       SaveData(
-          settings: const Settings(
-            language: 'fa',
-            sound: false,
-            animSpeed: 1.6,
-          ),
+          settings: const Settings(sound: false, animSpeed: 1.6),
           profile: Profile()
             ..coins = 4321
             ..xp = 900,

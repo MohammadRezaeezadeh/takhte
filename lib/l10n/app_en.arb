@@ -556,5 +556,13 @@
   "lanErrNoAnswer": "No answer from that address.",
   "lanLost": "Connection lost — reconnecting…",
   "lanLeft": "Your friend left the game.",
-  "lanSyncing": "Syncing…"
+  "lanSyncing": "Syncing…",
+  "computerOpponent": "Computer",
+  "computerOpponentDesc": "A random opponent every game",
+  "sevenOdds": "7–7 chance",
+  "sevenLow": "Low",
+  "sevenNormal": "Normal",
+  "sevenHigh": "High",
+  "sevenVeryHigh": "Very high",
+  "sevenOddsDesc": "More 7–7 means more cards and a wilder game."
 }

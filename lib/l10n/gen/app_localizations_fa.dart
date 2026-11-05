@@ -1105,4 +1105,28 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get lanSyncing => 'همگام‌سازی…';
+
+  @override
+  String get computerOpponent => 'کامپیوتر';
+
+  @override
+  String get computerOpponentDesc => 'هر بازی یه حریف تصادفی';
+
+  @override
+  String get sevenOdds => 'شانس جفت‌هفت';
+
+  @override
+  String get sevenLow => 'کم';
+
+  @override
+  String get sevenNormal => 'معمولی';
+
+  @override
+  String get sevenHigh => 'زیاد';
+
+  @override
+  String get sevenVeryHigh => 'خیلی زیاد';
+
+  @override
+  String get sevenOddsDesc => 'جفت‌هفت بیشتر یعنی کارت بیشتر و بازی شلوغ‌تر.';
 }

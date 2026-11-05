@@ -1915,6 +1915,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Syncing…'**
   String get lanSyncing;
+
+  /// No description provided for @computerOpponent.
+  ///
+  /// In en, this message translates to:
+  /// **'Computer'**
+  String get computerOpponent;
+
+  /// No description provided for @computerOpponentDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A random opponent every game'**
+  String get computerOpponentDesc;
+
+  /// No description provided for @sevenOdds.
+  ///
+  /// In en, this message translates to:
+  /// **'7–7 chance'**
+  String get sevenOdds;
+
+  /// No description provided for @sevenLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get sevenLow;
+
+  /// No description provided for @sevenNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get sevenNormal;
+
+  /// No description provided for @sevenHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get sevenHigh;
+
+  /// No description provided for @sevenVeryHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Very high'**
+  String get sevenVeryHigh;
+
+  /// No description provided for @sevenOddsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'More 7–7 means more cards and a wilder game.'**
+  String get sevenOddsDesc;
 }
 
 class _AppLocalizationsDelegate

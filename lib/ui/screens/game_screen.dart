@@ -85,6 +85,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   List<String>? _aiOffer;
   String? _aiPick;
   Completer<void>? _aiAck;
+  Timer? _aiAckTimer;
 
   /// Cards flying to their targets (game coordinates).
   final List<({String cardId, Offset from, Offset to, bool chip, int id})>
@@ -253,6 +254,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       t.cancel();
     }
     _resultTimer?.cancel();
+    _aiAckTimer?.cancel();
     trimRiverpodDevtools();
     unawaited(Sfx.instance.setTension(on: false));
     unawaited(Sfx.instance.setAmbient(on: true, track: 'music_menu'));
@@ -456,10 +458,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           _aiOffer ??= [e.cardId];
           _aiPick = e.cardId;
         });
-        await Future.any([
-          ack.future,
-          Future<void>.delayed(const Duration(seconds: 8)),
-        ]);
+        // Auto-continue after 8 s; a cancellable timer so nothing lingers
+        // once the player taps (or the screen closes).
+        _aiAckTimer = Timer(const Duration(seconds: 8), () {
+          if (!ack.isCompleted) ack.complete();
+        });
+        await ack.future;
+        _aiAckTimer?.cancel();
         if (!mounted) return;
         setState(() {
           _aiPick = null;
@@ -1204,7 +1209,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               offer: _aiOffer!,
               picked: _aiPick,
               frameId: eq[ItemType.cardFrame]!,
-              onAck: () => _aiAck?.complete(),
+              onAck: () {
+                final a = _aiAck;
+                if (a != null && !a.isCompleted) a.complete();
+              },
             ),
           ),
         if (_result != null)
