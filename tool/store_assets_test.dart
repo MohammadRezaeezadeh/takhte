@@ -1,7 +1,8 @@
 // Renders the store listing graphics into docs/store/:
 //   flutter test tool/store_assets_test.dart
 // * icon-512.png (Play Store icon), feature-graphic.png (1024×500)
-// * screenshots/*.png — Persian phone screenshots at 1080×2160 (2:1).
+// * screenshots/*.png — Persian phone screenshots at 1080×1920 (9:16).
+// * previews/ (1080×1920) and previews_landscape/ (1920×1080): captioned.
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -149,7 +150,7 @@ Future<void> _shot(WidgetTester t, String name) async {
   await t.runAsync(() async {
     final ro = t.renderObject<RenderRepaintBoundary>(find.byKey(_boundary));
     await _save(
-      await ro.toImage(pixelRatio: 2.7),
+      await ro.toImage(pixelRatio: 1080 / 405),
       '$out/screenshots/$name.png',
     );
   });
@@ -170,7 +171,7 @@ void main() {
   });
 
   Future<void> phone(WidgetTester t) async {
-    const size = Size(400, 800);
+    const size = Size(405, 720);
     await t.binding.setSurfaceSize(size);
     t.view.devicePixelRatio = 1;
     t.view.physicalSize = size;
@@ -310,86 +311,109 @@ void main() {
         if (!file.existsSync()) continue;
         final codec = await ui.instantiateImageCodec(file.readAsBytesSync());
         final shot = (await codec.getNextFrame()).image;
-        await _canvas('$out/previews/${e.key}.png', 1080, 2160, (c, s) {
-          final rect = Offset.zero & s;
-          c.drawRect(
-            rect,
-            Paint()
-              ..shader = ui.Gradient.linear(
-                Offset.zero,
-                Offset(0, s.height),
-                const [Color(0xFF2A2468), Color(0xFF0B0F1F)],
-              ),
+        for (final landscape in [false, true]) {
+          await _canvas(
+            landscape
+                ? '$out/previews_landscape/${e.key}.png'
+                : '$out/previews/${e.key}.png',
+            landscape ? 1920 : 1080,
+            landscape ? 1080 : 1920,
+            (c, s) => _preview(c, s, shot, e.value, landscape: landscape),
           );
-          final lattice = Paint()..color = const Color(0x12FFD36B);
-          for (var x = 0; x < 6; x++) {
-            for (var y = 0; y < 4; y++) {
-              BoardArt.star(
-                c,
-                Offset(x * 216.0 + (y.isOdd ? 108 : 0), y * 130.0 + 40),
-                30,
-                8,
-                lattice,
-              );
-            }
-          }
-          _text(
-            c,
-            e.value[0],
-            Offset(s.width / 2, 170),
-            104,
-            const Color(0xFFFFD36B),
-          );
-          _text(
-            c,
-            e.value[1],
-            Offset(s.width / 2, 300),
-            46,
-            const Color(0xFFF3E9D2),
-            family: 'Vazirmatn',
-          );
-          // The screenshot in a rounded "phone" with a gold rim.
-          const top = 400.0;
-          final h = s.height - top - 50;
-          final w = h / 2;
-          final frame = RRect.fromRectAndRadius(
-            Rect.fromLTWH((s.width - w) / 2, top, w, h),
-            const Radius.circular(48),
-          );
-          c
-            ..drawRRect(
-              frame.inflate(14),
-              Paint()
-                ..color = const Color(0x66FFB347)
-                ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 30),
-            )
-            ..drawRRect(
-              frame.inflate(10),
-              Paint()..color = const Color(0xFF15122A),
-            )
-            ..save()
-            ..clipRRect(frame)
-            ..drawImageRect(
-              shot,
-              Rect.fromLTWH(
-                0,
-                0,
-                shot.width.toDouble(),
-                shot.height.toDouble(),
-              ),
-              frame.outerRect,
-              Paint()..filterQuality = FilterQuality.high,
-            )
-            ..restore()
-            ..drawRRect(
-              frame.inflate(10),
-              Paint()
-                ..color = const Color(0xFFD4AF37)
-                ..style = PaintingStyle.stroke
-                ..strokeWidth = 5,
-            );
-        });
+        }
       }
     });
   });
 }
+
+/// A captioned store image: the screenshot in a gold-rimmed "phone" and a
+/// big Persian title (above it in portrait, beside it in landscape).
+void _preview(
+  Canvas c,
+  Size s,
+  ui.Image shot,
+  List<String> caption, {
+  required bool landscape,
+}) {
+  final rect = Offset.zero & s;
+  c.drawRect(
+    rect,
+    Paint()
+      ..shader = ui.Gradient.linear(
+        Offset.zero,
+        Offset(landscape ? s.width : 0, s.height),
+        const [Color(0xFF2A2468), Color(0xFF0B0F1F)],
+      ),
+  );
+  final lattice = Paint()..color = const Color(0x12FFD36B);
+  for (var x = 0; x < (s.width / 216).ceil() + 1; x++) {
+    for (var y = 0; y < (s.height / 260).ceil() + 1; y++) {
+      BoardArt.star(
+        c,
+        Offset(x * 216.0 + (y.isOdd ? 108 : 0), y * 260.0 + 40),
+        30,
+        8,
+        lattice,
+      );
+    }
+  }
+  final Rect phone;
+  if (landscape) {
+    const pad = 70.0;
+    final h = s.height - pad * 2;
+    final w = h * 9 / 16;
+    phone = Rect.fromLTWH(180, pad, w, h);
+    final cx = phone.right + (s.width - phone.right) / 2;
+    _text(c, caption[0], Offset(cx, s.height / 2 - 80), 120, gold);
+    _text(
+      c,
+      caption[1],
+      Offset(cx, s.height / 2 + 70),
+      50,
+      ivory,
+      family: 'Vazirmatn',
+    );
+  } else {
+    _text(c, caption[0], Offset(s.width / 2, 150), 100, gold);
+    _text(
+      c,
+      caption[1],
+      Offset(s.width / 2, 270),
+      44,
+      ivory,
+      family: 'Vazirmatn',
+    );
+    const top = 360.0;
+    final h = s.height - top - 50;
+    final w = h * 9 / 16;
+    phone = Rect.fromLTWH((s.width - w) / 2, top, w, h);
+  }
+  final frame = RRect.fromRectAndRadius(phone, const Radius.circular(44));
+  c
+    ..drawRRect(
+      frame.inflate(14),
+      Paint()
+        ..color = const Color(0x66FFB347)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 30),
+    )
+    ..drawRRect(frame.inflate(10), Paint()..color = const Color(0xFF15122A))
+    ..save()
+    ..clipRRect(frame)
+    ..drawImageRect(
+      shot,
+      Rect.fromLTWH(0, 0, shot.width.toDouble(), shot.height.toDouble()),
+      phone,
+      Paint()..filterQuality = FilterQuality.high,
+    )
+    ..restore()
+    ..drawRRect(
+      frame.inflate(10),
+      Paint()
+        ..color = const Color(0xFFD4AF37)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 5,
+    );
+}
+
+const Color gold = Color(0xFFFFD36B);
+const Color ivory = Color(0xFFF3E9D2);

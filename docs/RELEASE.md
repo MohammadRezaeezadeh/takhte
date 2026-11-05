@@ -31,7 +31,7 @@ Switching from the CI key to a real key requires uninstalling the old build once
 3. **Store page:** `docs/store/` has everything:
    - `listing_fa.md` and `listing_en.md`: name, short and full description, category, rating.
    - `icon-512.png` and `feature-graphic.png` (1024×500).
-   - `screenshots/`: six Persian phone shots, 1080×2160.
+   - `screenshots/`: eight Persian phone shots, 1080×1920 (9:16); `previews/` (1080×1920) and `previews_landscape/` (1920×1080, 16:9) are the captioned store versions.
    - `privacy.md`: a privacy policy to host and link (no data collected).
    - Re-render the graphics with `flutter test tool/store_assets_test.dart`.
 4. **Content rating questionnaire:** no violence, no real-money gambling (cards are a game mechanic, no purchases with money), no user data.
