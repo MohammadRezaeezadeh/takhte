@@ -164,16 +164,22 @@ jobs:
             done
           fi
           prev=$(git tag --list 'v*' --sort=-creatordate | head -1)
+          # Hand-written notes for a version win over the commit list.
+          written="docs/release_notes/v$version.md"
           {
             echo "## HaftNard $tag"
             echo
-            echo "Download **haftnard-arm64.apk** for most phones (or haftnard-universal.apk)."
-            echo
-            echo "### Changes"
-            if [ -n "$prev" ]; then
-              git log "$prev..HEAD" --no-merges --pretty='- %s' | head -40
+            if [ -f "$written" ]; then
+              cat "$written"
             else
-              git log --no-merges --pretty='- %s' | head -40
+              echo "Download **haftnard-arm64.apk** for most phones (or haftnard-universal.apk)."
+              echo
+              echo "### Changes"
+              if [ -n "$prev" ]; then
+                git log "$prev..HEAD" --no-merges --pretty='- %s' | head -40
+              else
+                git log --no-merges --pretty='- %s' | head -40
+              fi
             fi
           } > notes.md
           echo "tag=$tag" >> "$GITHUB_OUTPUT"

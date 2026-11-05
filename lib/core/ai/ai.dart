@@ -1,5 +1,6 @@
 import 'dart:isolate';
 
+import 'package:haftnard/core/ai/bearoff.dart';
 import 'package:haftnard/core/ai/eval.dart';
 import 'package:haftnard/core/ai/nn_eval.dart';
 import 'package:haftnard/core/ai/nn_weights.dart';
@@ -60,6 +61,13 @@ class AiBrain {
 
   /// Equity-like score in (-1, 1) for `mine`, who has just moved.
   double _value(List<int> mine, List<int> theirs) {
+    // Both sides only bearing off: the exact table plays perfectly.
+    if (mine[0] != 15 &&
+        theirs[0] != 15 &&
+        BearOff.isHome(mine) &&
+        BearOff.isHome(theirs)) {
+      return 2 * BearOff.winProb(mine, theirs) - 1;
+    }
     if (!_useNet || mine[0] == 15 || theirs[0] == 15) {
       return Evaluator.evaluate(mine, theirs, _w);
     }

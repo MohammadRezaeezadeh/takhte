@@ -24,3 +24,20 @@ keytool -genkeypair -v -keystore release.jks -alias haftnard -keyalg RSA -keysiz
 ```
 
 Switching from the CI key to a real key requires uninstalling the old build once.
+
+## Publishing checklist (راهنمای انتشار)
+1. **Signing key (required once before Google Play):** create `release.jks` with the `keytool` command above. Add the four repository secrets (Settings → Secrets and variables → Actions) and push any commit; CI then signs with your key. Keep the `.jks` file and passwords safe: Play needs the same key for every update. With Play App Signing you upload with this key and Google re-signs.
+2. **Build:** every green push publishes a GitHub Release with `haftnard.aab` (upload this to Play) and APKs (direct install, e.g. Bazaar / Myket / direct download).
+3. **Store page:** `docs/store/` has everything:
+   - `listing_fa.md` and `listing_en.md`: name, short and full description, category, rating.
+   - `icon-512.png` and `feature-graphic.png` (1024×500).
+   - `screenshots/`: six Persian phone shots, 1080×2160.
+   - `privacy.md`: a privacy policy to host and link (no data collected).
+   - Re-render the graphics with `flutter test tool/store_assets_test.dart`.
+4. **Content rating questionnaire:** no violence, no real-money gambling (cards are a game mechanic, no purchases with money), no user data.
+5. **Release notes** for a version go in `docs/release_notes/v<version>.md`; CI uses them instead of the commit list.
+
+**فارسی، خلاصه:**
+1. یک بار کلید امضا بسازید و چهار secret را در GitHub اضافه کنید. فایل کلید و رمزها را جای امن نگه دارید.
+2. بعد از هر push سبز، فایل `haftnard.aab` را از صفحه‌ی Release در Google Play بارگذاری کنید. برای کافه‌بازار، مایکت یا نصب مستقیم، فایل APK را بردارید.
+3. متن‌ها، آیکون، تصویر شاخص، اسکرین‌شات‌ها و سیاست حریم خصوصی در پوشه‌ی `docs/store/` آماده است.

@@ -196,12 +196,13 @@ class _MainMenuScreenState extends ConsumerState<MainMenuScreen> {
         ],
       ),
       JewelButton(
-        label: l.online,
-        subtitle: l.comingSoon,
-        icon: Icons.public,
-        color: const Color(0xFF2A2A3A),
+        key: const ValueKey('menu-lan'),
+        label: l.lanPlay,
+        subtitle: l.lanPlayDesc,
+        icon: Icons.wifi,
+        color: const Color(0xFF1E4A66),
         accent: AppColors.turquoiseLight,
-        onPressed: () => _onlineTeaser(context),
+        onPressed: () => unawaited(_go(const PlaySetupScreen(lan: true))),
       ),
     ];
     return Scaffold(
@@ -285,42 +286,6 @@ class _MainMenuScreenState extends ConsumerState<MainMenuScreen> {
       if (i < ws.length - 1) const SizedBox(height: 12),
     ],
   ];
-
-  void _onlineTeaser(BuildContext context) {
-    final l = context.l10n;
-    unawaited(
-      showDialog<void>(
-        context: context,
-        builder: (_) => Dialog(
-          backgroundColor: Colors.transparent,
-          child: Panel(
-            glow: AppColors.turquoiseLight,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.public,
-                  size: 56,
-                  color: AppColors.turquoiseLight,
-                ),
-                const SizedBox(height: 8),
-                OrnateTitle(l.comingSoon, size: 26),
-                const SizedBox(height: 8),
-                Text(l.onlineTeaser, textAlign: TextAlign.center),
-                const SizedBox(height: 16),
-                JewelButton(
-                  label: l.ok,
-                  onPressed: () => Navigator.pop(context),
-                  height: 52,
-                  fontSize: 18,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _DailyBanner extends StatelessWidget {

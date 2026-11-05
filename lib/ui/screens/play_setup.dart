@@ -18,7 +18,10 @@ import 'package:haftnard/ui/widgets/menu_background.dart';
 import 'package:haftnard/ui/widgets/top_bar.dart';
 
 class PlaySetupScreen extends ConsumerStatefulWidget {
-  const PlaySetupScreen({super.key});
+  const PlaySetupScreen({super.key, this.lan = false});
+
+  /// Open with "Friend (Wi-Fi)" already chosen (from the main menu).
+  final bool lan;
 
   @override
   ConsumerState<PlaySetupScreen> createState() => _PlaySetupScreenState();
@@ -27,7 +30,7 @@ class PlaySetupScreen extends ConsumerStatefulWidget {
 class _PlaySetupScreenState extends ConsumerState<PlaySetupScreen> {
   GameMode _mode = GameMode.seven;
   bool _passPlay = false;
-  bool _lan = false;
+  late bool _lan = widget.lan;
   SevenLevel _seven = SevenLevel.normal;
   final math.Random _rng = math.Random();
   Difficulty _difficulty = Difficulty.medium;
