@@ -1789,6 +1789,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No cards played yet'**
   String get cardHistoryEmpty;
+
+  /// No description provided for @lanPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend (Wi-Fi)'**
+  String get lanPlay;
+
+  /// No description provided for @lanPlayDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Two phones, same Wi-Fi or hotspot'**
+  String get lanPlayDesc;
+
+  /// No description provided for @lanHost.
+  ///
+  /// In en, this message translates to:
+  /// **'Create game'**
+  String get lanHost;
+
+  /// No description provided for @lanJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Join a game'**
+  String get lanJoin;
+
+  /// No description provided for @lanWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for your friend…'**
+  String get lanWaiting;
+
+  /// No description provided for @lanYourAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Your address'**
+  String get lanYourAddress;
+
+  /// No description provided for @lanHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Both phones on the same Wi-Fi, or turn on the hotspot on one phone and connect the other to it.'**
+  String get lanHelp;
+
+  /// No description provided for @lanSearching.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for games…'**
+  String get lanSearching;
+
+  /// No description provided for @lanNoGames.
+  ///
+  /// In en, this message translates to:
+  /// **'No game found yet. You can also type the host\'s address.'**
+  String get lanNoGames;
+
+  /// No description provided for @lanAddressHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Host address (e.g. 192.168.43.1)'**
+  String get lanAddressHint;
+
+  /// No description provided for @lanConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get lanConnect;
+
+  /// No description provided for @lanYourName.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name'**
+  String get lanYourName;
+
+  /// No description provided for @lanHostDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Host'**
+  String get lanHostDefault;
+
+  /// No description provided for @lanGuestDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest'**
+  String get lanGuestDefault;
+
+  /// No description provided for @lanErrUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach that address.'**
+  String get lanErrUnreachable;
+
+  /// No description provided for @lanErrFull.
+  ///
+  /// In en, this message translates to:
+  /// **'That game already has two players.'**
+  String get lanErrFull;
+
+  /// No description provided for @lanErrVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Your friend has a different version of the game.'**
+  String get lanErrVersion;
+
+  /// No description provided for @lanErrNoAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'No answer from that address.'**
+  String get lanErrNoAnswer;
+
+  /// No description provided for @lanLost.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection lost — reconnecting…'**
+  String get lanLost;
+
+  /// No description provided for @lanLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Your friend left the game.'**
+  String get lanLeft;
+
+  /// No description provided for @lanSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing…'**
+  String get lanSyncing;
 }
 
 class _AppLocalizationsDelegate

@@ -1037,4 +1037,70 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cardHistoryEmpty => 'No cards played yet';
+
+  @override
+  String get lanPlay => 'Friend (Wi-Fi)';
+
+  @override
+  String get lanPlayDesc => 'Two phones, same Wi-Fi or hotspot';
+
+  @override
+  String get lanHost => 'Create game';
+
+  @override
+  String get lanJoin => 'Join a game';
+
+  @override
+  String get lanWaiting => 'Waiting for your friend…';
+
+  @override
+  String get lanYourAddress => 'Your address';
+
+  @override
+  String get lanHelp =>
+      'Both phones on the same Wi-Fi, or turn on the hotspot on one phone and connect the other to it.';
+
+  @override
+  String get lanSearching => 'Looking for games…';
+
+  @override
+  String get lanNoGames =>
+      'No game found yet. You can also type the host\'s address.';
+
+  @override
+  String get lanAddressHint => 'Host address (e.g. 192.168.43.1)';
+
+  @override
+  String get lanConnect => 'Connect';
+
+  @override
+  String get lanYourName => 'Your name';
+
+  @override
+  String get lanHostDefault => 'Host';
+
+  @override
+  String get lanGuestDefault => 'Guest';
+
+  @override
+  String get lanErrUnreachable => 'Couldn\'t reach that address.';
+
+  @override
+  String get lanErrFull => 'That game already has two players.';
+
+  @override
+  String get lanErrVersion =>
+      'Your friend has a different version of the game.';
+
+  @override
+  String get lanErrNoAnswer => 'No answer from that address.';
+
+  @override
+  String get lanLost => 'Connection lost — reconnecting…';
+
+  @override
+  String get lanLeft => 'Your friend left the game.';
+
+  @override
+  String get lanSyncing => 'Syncing…';
 }

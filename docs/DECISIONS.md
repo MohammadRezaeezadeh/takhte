@@ -134,3 +134,30 @@ One line per decision: **decision** — reason.
   - Other cards: Lucky Charm is a clover; Quicksand is a checker half-sunk in sand with ↓ arrows; Teleport is a checker with a portal; Time Stop is a clock with a pause sign; Vortex is a funnel; Even Odds is a scale; Silk Purse is a pouch; Shackle is a cuff and ball; Pickpocket is a hand with a coin; Shield Wall is three shields; Caltrops are striped barriers; Mirage is a palm over heat waves; Eclipse is a black sun with a corona; Bait is a thick hook with a worm.
   - One painter everywhere: the card face, HUD chips, card history, flights and now the board markers. The power layer's emoji badges became the card icon in a rarity-ringed disc, with the turns left beside it (`board_markers.png`).
 
+- **LAN / hotspot multiplayer (no server)** (`lib/net/lan/`):
+  - Play → "Friend (Wi-Fi)": one phone taps *Create game* (picking the mode, length and cube as usual) and plays White. The other taps *Join a game* and plays Black.
+  - **Transport:** plain TCP between the phones, one JSON object per line (`SocketChannel`). There is no server and no plugin: only `dart:io`, plus the `INTERNET` and `ACCESS_NETWORK_STATE` permissions (release builds had neither).
+  - **Discovery, three ways:**
+    1. The host broadcasts a UDP beacon every second.
+    2. The guest probes every address of its /24 subnets on the game port. This works where broadcast is filtered, which is common on hotspots and on Android without a multicast lock.
+    3. The guest can type the address shown on the host's screen (`ip` or `ip:port`).
+  - **Sync:** both phones run the same deterministic engine from the host's seed and config, so only actions travel.
+    - The local player's moves stay local and undoable until the next non-move action (Done, a roll, a pick…). Then they go out as one batch, with the hash of the state they reached.
+    - The receiver replays the batch and checks the hash before showing it. On a mismatch, the host's committed log wins (`need` → `log` → `adoptLog`).
+  - **Robustness:**
+    - A heartbeat every 2 s; 7 s of silence means the connection is lost. The heartbeat counts silent ping intervals rather than wall-clock time, so it also works under the tests' fake time.
+    - The guest retries the host every 2 s, and the host keeps listening during the match. On reconnect, each side resends the committed actions the other is missing.
+    - Leaving mid-match sends `bye`, which counts as resigning on the other phone. A different protocol version, or a third phone, is refused with a clear message.
+  - **Not covered:** hidden information (landmines) is not hidden from a modified client on LAN; that needs the server plan in `ONLINE_PLAN.md`. A drop exactly across a game boundary is not resent, so the players restart that match.
+  - LAN games are not saved for resume. They reward like pass-and-play (no coin farming). Emotes go over the wire, and AI "reactions" are off.
+  - **MatchController:**
+    - A `SeatConfig.remote` seat is played by `RemoteOpponent` through the link, and a remote seat never gets the "play the first legal action" fallback.
+    - A pump request that arrives while a pass is unwinding now schedules another pass instead of being dropped. This was found by the desync test: the adopted log was never played.
+    - Forced auto-moves no longer notify listeners after dispose.
+  - **Tests:**
+    - Two controllers play full 3-point Seven matches over an in-memory wire with undos, comparing states whenever their logs match.
+    - Drop and reconnect with catch-up; resign and leave; recovery from a corrupted batch.
+    - Real loopback sockets: probe, join, version and full refusals, rejoin.
+    - The lobby on screen from the Play menu up to the game starting.
+    - A full LAN match in the real game screen, including the lost-connection banner and emotes.
+- **Version 1.2.0 adds LAN/hotspot multiplayer.**

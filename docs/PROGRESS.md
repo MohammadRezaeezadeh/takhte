@@ -18,6 +18,7 @@ Every green push publishes a GitHub Release (see `RELEASE.md`).
 | M6 9 boards, 7 environments, 9 checkers, 7 dice, backs/frames, victory FX, emotes, store, locker, economy | done |
 | M7 Journey: map, 15 bosses, 60 talismans, run shop, daily seed | done |
 | M8 progression, achievements, stats, icon, splash, release build | done |
+| LAN / hotspot multiplayer (no server): discovery, sync with hashes, reconnect | done |
 
 ## Content counts
 * Cards: **80** · Talismans: **60** · Bosses: 14 + final.

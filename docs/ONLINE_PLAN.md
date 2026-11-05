@@ -1,4 +1,9 @@
-# Online plan (not implemented in v1)
+# Online plan
+
+LAN / hotspot play is implemented without a server (see `lib/net/lan/` and
+the LAN entry in `DECISIONS.md`); it uses the same `RemoteOpponent` /
+`RemoteTransport` seam and the same state-hash checks. The internet plan
+below (authoritative server) is still future work.
 
 ## Principle
 The server is authoritative and replays the same pure-Dart engine

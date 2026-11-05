@@ -9,6 +9,7 @@ import 'package:haftnard/game/match_controller.dart';
 import 'package:haftnard/meta/meta_state.dart';
 import 'package:haftnard/ui/app.dart';
 import 'package:haftnard/ui/screens/game_screen.dart';
+import 'package:haftnard/ui/screens/lan_screen.dart';
 import 'package:haftnard/ui/theme.dart';
 import 'package:haftnard/ui/widgets/avatar.dart';
 import 'package:haftnard/ui/widgets/jewel.dart';
@@ -25,6 +26,7 @@ class PlaySetupScreen extends ConsumerStatefulWidget {
 class _PlaySetupScreenState extends ConsumerState<PlaySetupScreen> {
   GameMode _mode = GameMode.seven;
   bool _passPlay = false;
+  bool _lan = false;
   String _personality = 'sage';
   Difficulty _difficulty = Difficulty.medium;
   int _length = 1;
@@ -41,21 +43,31 @@ class _PlaySetupScreenState extends ConsumerState<PlaySetupScreen> {
     };
   }
 
+  MatchConfig _config(int seed) => MatchConfig(
+    mode: _mode,
+    length: _length,
+    cubeEnabled: _cube,
+    seed: seed,
+    cardPool: ref.read(metaProvider).profile.unlockedCards,
+  );
+
+  void _lanGo({required bool host}) {
+    final seed = DateTime.now().microsecondsSinceEpoch & 0x7FFFFFFF;
+    unawaited(
+      Navigator.of(context).push(
+        fadeRoute<void>(
+          host ? LanScreen.host(config: _config(seed)) : const LanScreen.join(),
+        ),
+      ),
+    );
+  }
+
   void _start() {
-    final meta = ref.read(metaProvider);
     final l = context.l10n;
     final seed = DateTime.now().microsecondsSinceEpoch & 0x7FFFFFFF;
     final p = personalityById(_personality);
     final session = MatchSession(
-      match: MatchState(
-        MatchConfig(
-          mode: _mode,
-          length: _length,
-          cubeEnabled: _cube,
-          seed: seed,
-          cardPool: meta.profile.unlockedCards,
-        ),
-      ),
+      match: MatchState(_config(seed)),
       white: SeatConfig.human(_passPlay ? l.player1 : l.you),
       black: _passPlay
           ? SeatConfig.human(l.player2)
@@ -181,9 +193,12 @@ class _PlaySetupScreenState extends ConsumerState<PlaySetupScreen> {
                                           size: 58,
                                         ),
                                         selected:
-                                            !_passPlay && _personality == p.id,
+                                            !_passPlay &&
+                                            !_lan &&
+                                            _personality == p.id,
                                         onTap: () => setState(() {
                                           _passPlay = false;
+                                          _lan = false;
                                           _personality = p.id;
                                         }),
                                       ),
@@ -196,13 +211,30 @@ class _PlaySetupScreenState extends ConsumerState<PlaySetupScreen> {
                                         color: AppColors.goldLight,
                                       ),
                                       selected: _passPlay,
-                                      onTap: () =>
-                                          setState(() => _passPlay = true),
+                                      onTap: () => setState(() {
+                                        _passPlay = true;
+                                        _lan = false;
+                                      }),
+                                    ),
+                                    _OpponentTile(
+                                      key: const ValueKey('lan-tile'),
+                                      name: l.lanPlay,
+                                      tagline: l.lanPlayDesc,
+                                      avatar: const Icon(
+                                        Icons.wifi,
+                                        size: 52,
+                                        color: AppColors.goldLight,
+                                      ),
+                                      selected: _lan,
+                                      onTap: () => setState(() {
+                                        _lan = true;
+                                        _passPlay = false;
+                                      }),
                                     ),
                                   ],
                                 ),
                               ),
-                              if (!_passPlay) ...[
+                              if (!_passPlay && !_lan) ...[
                                 const SizedBox(height: 8),
                                 Text(
                                   l.difficulty,
@@ -258,14 +290,30 @@ class _PlaySetupScreenState extends ConsumerState<PlaySetupScreen> {
                             ],
                           ),
                         ),
-                        JewelButton(
-                          label: l.start,
-                          icon: Icons.play_arrow,
-                          color: AppColors.emerald,
-                          height: 70,
-                          fontSize: 28,
-                          onPressed: _start,
-                        ),
+                        if (_lan) ...[
+                          JewelButton(
+                            key: const ValueKey('lan-host-button'),
+                            label: l.lanHost,
+                            icon: Icons.wifi_tethering,
+                            color: AppColors.emerald,
+                            onPressed: () => _lanGo(host: true),
+                          ),
+                          const SizedBox(height: 10),
+                          JewelButton(
+                            key: const ValueKey('lan-join-button'),
+                            label: l.lanJoin,
+                            icon: Icons.login,
+                            onPressed: () => _lanGo(host: false),
+                          ),
+                        ] else
+                          JewelButton(
+                            label: l.start,
+                            icon: Icons.play_arrow,
+                            color: AppColors.emerald,
+                            height: 70,
+                            fontSize: 28,
+                            onPressed: _start,
+                          ),
                       ],
                     ),
                   ),
@@ -330,15 +378,19 @@ class _ModeTile extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontFamily: AppFonts.display,
-                      fontSize: 22,
-                      color: AppColors.goldLight,
+                  Expanded(
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.fade,
+                      softWrap: false,
+                      style: const TextStyle(
+                        fontFamily: AppFonts.display,
+                        fontSize: 22,
+                        color: AppColors.goldLight,
+                      ),
                     ),
                   ),
-                  const Spacer(),
                   if (selected)
                     const Icon(
                       Icons.check_circle,
@@ -364,6 +416,7 @@ class _OpponentTile extends StatelessWidget {
     required this.avatar,
     required this.selected,
     required this.onTap,
+    super.key,
   });
   final String name;
   final String tagline;

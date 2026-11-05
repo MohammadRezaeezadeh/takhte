@@ -12,11 +12,21 @@ import 'package:haftnard/core/rules/move_gen.dart';
 import 'package:haftnard/core/rules/record.dart';
 import 'package:haftnard/core/rules/state.dart';
 import 'package:haftnard/core/rules/types.dart';
+import 'package:haftnard/net/lan/lan_link.dart';
+import 'package:haftnard/net/remote_opponent.dart';
 
 /// Serializable description of who sits on a side.
 class SeatConfig {
   const SeatConfig.human(this.name)
     : ai = false,
+      remote = false,
+      personalityId = null,
+      difficulty = null;
+
+  /// A player on another device (LAN).
+  const SeatConfig.remote(this.name)
+    : ai = false,
+      remote = true,
       personalityId = null,
       difficulty = null;
 
@@ -24,7 +34,8 @@ class SeatConfig {
     required this.personalityId,
     required this.difficulty,
     this.name = '',
-  }) : ai = true;
+  }) : ai = true,
+       remote = false;
 
   factory SeatConfig.fromJson(Map<String, Object?> j) => j['ai'] == true
       ? SeatConfig.ai(
@@ -32,9 +43,12 @@ class SeatConfig {
           difficulty: Difficulty.values.byName(j['d']! as String),
           name: j['n'] as String? ?? '',
         )
+      : j['r'] == true
+      ? SeatConfig.remote(j['n'] as String? ?? '')
       : SeatConfig.human(j['n'] as String? ?? '');
 
   final bool ai;
+  final bool remote;
   final String name;
   final String? personalityId;
   final Difficulty? difficulty;
@@ -44,6 +58,7 @@ class SeatConfig {
 
   Map<String, Object?> toJson() => {
     'ai': ai,
+    if (remote) 'r': true,
     'n': name,
     if (personalityId != null) 'p': personalityId,
     if (difficulty != null) 'd': difficulty!.name,
@@ -70,12 +85,16 @@ class MatchSession {
   final SeatConfig white;
   final SeatConfig black;
 
-  /// 'quick', 'passplay', 'journey', 'tutorial'.
+  /// 'quick', 'passplay', 'journey', 'tutorial', 'lan'.
   final String origin;
 
   SeatConfig seat(Side s) => s == Side.white ? white : black;
 
-  bool get isPassAndPlay => !white.ai && !black.ai;
+  bool get isPassAndPlay =>
+      !white.ai && !black.ai && !white.remote && !black.remote;
+
+  /// Played against another device on the local network.
+  bool get isLan => white.remote || black.remote;
 
   Map<String, Object?> toJson() => {
     'match': match.toJson(),
@@ -99,7 +118,7 @@ bool kAiUseIsolates = true;
 
 /// Drives a match: applies actions, runs AI turns, supports undo for the
 /// current roll, auto-passes and auto-plays forced moves.
-class MatchController extends ChangeNotifier {
+class MatchController extends ChangeNotifier implements LanMatchHost {
   MatchController(
     this.session, {
     this.autoMove = true,
@@ -108,13 +127,16 @@ class MatchController extends ChangeNotifier {
     this.viewOnly = false,
     this.onPersist,
     this.onGameFinished,
+    this.lan,
     GameState? initialState,
   }) : useIsolates = useIsolates ?? kAiUseIsolates,
        state = initialState ?? session.match.current.replay() {
     live++;
     for (final side in Side.values) {
       final seat = session.seat(side);
-      _opponents[side] = seat.ai
+      _opponents[side] = seat.remote
+          ? RemoteOpponent(lan!)
+          : seat.ai
           ? AiOpponent(
               AiConfig(
                 difficulty: seat.difficulty!,
@@ -125,7 +147,11 @@ class MatchController extends ChangeNotifier {
             )
           : const LocalHumanOpponent();
     }
+    lan?.bind(this);
   }
+
+  /// The other device's end of a LAN game (null otherwise).
+  final LanLink? lan;
 
   final MatchSession session;
   bool autoMove;
@@ -150,6 +176,7 @@ class MatchController extends ChangeNotifier {
       StreamController.broadcast();
   bool _busy = false;
   bool _pumping = false;
+  bool _pumpAgain = false;
   bool _disposed = false;
   bool aiThinking = false;
   GameRecord? lastFinished;
@@ -212,6 +239,7 @@ class MatchController extends ChangeNotifier {
     if (!canUndo) return;
     state = _undo.removeLast();
     match.current.actions.removeLast();
+    lan?.localUndo();
     presenter?.resync(state);
     onPersist?.call(this);
     notifyListeners();
@@ -238,8 +266,14 @@ class MatchController extends ChangeNotifier {
   Future<void> _apply(GameAction a) async {
     final before = state;
     final r = Engine.apply(state, a);
+    final game = match.results.length;
     match.current.actions.add(a);
     state = r.state;
+    final link = lan;
+    if (link != null &&
+        (a is Resign ? isHuman(a.side) : isHuman(Engine.actor(before)))) {
+      link.localAction(a, state, game: game);
+    }
     _busy = true;
     notifyListeners();
     if (!_events.isClosed) _events.add(r.events);
@@ -296,8 +330,15 @@ class MatchController extends ChangeNotifier {
   }
 
   Future<void> _pump() async {
-    if (_pumping || _disposed || viewOnly) return;
+    if (_disposed || viewOnly) return;
+    if (_pumping) {
+      // Asked while a pass is unwinding (e.g. a LAN log was adopted mid-
+      // pass): run another pass afterwards instead of dropping the request.
+      _pumpAgain = true;
+      return;
+    }
     _pumping = true;
+    _pumpAgain = false;
     try {
       while (!state.isOver && !_disposed) {
         final actor = Engine.actor(state);
@@ -325,6 +366,9 @@ class MatchController extends ChangeNotifier {
           if (a is PlayMove) await _delay(0.35);
         }
         if (applied == 0) {
+          // A remote player's turn comes only from them (a desync is
+          // recovered by the link adopting the host's log).
+          if (_opponents[actor] is RemoteOpponent) break;
           // Defensive: never stall. Play the first legal action.
           final legal = Engine.legalActions(state);
           if (legal.isEmpty) break;
@@ -335,6 +379,10 @@ class MatchController extends ChangeNotifier {
       _pumping = false;
       aiThinking = false;
       if (!_disposed) notifyListeners();
+    }
+    if (_pumpAgain && !_disposed) {
+      _pumpAgain = false;
+      await _pump();
     }
   }
 
@@ -376,8 +424,37 @@ class MatchController extends ChangeNotifier {
       await _delay(0.3);
     }
     _autoRunning = false;
-    notifyListeners();
+    // The screen may have closed during the forced moves.
+    if (!_disposed) notifyListeners();
     return false;
+  }
+
+  // ------------------------------------------------------------- LAN host
+
+  @override
+  int get gameNumber => match.results.length;
+
+  @override
+  List<GameAction> get gameLog => match.current.actions;
+
+  @override
+  GameConfig get gameConfig => match.current.config;
+
+  @override
+  Future<void> remoteResign(Side side) => resign(side);
+
+  @override
+  Future<void> adoptLog(List<GameAction> log) async {
+    if (_disposed) return;
+    _undo.clear();
+    match.current.actions
+      ..clear()
+      ..addAll(log);
+    state = match.current.replay();
+    presenter?.resync(state);
+    onPersist?.call(this);
+    notifyListeners();
+    await _pump();
   }
 
   /// Controllers created and not yet disposed (leak checks).

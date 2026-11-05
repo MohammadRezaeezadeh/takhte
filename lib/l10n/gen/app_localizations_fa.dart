@@ -1040,4 +1040,69 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get cardHistoryEmpty => 'هنوز کارتی بازی نشده';
+
+  @override
+  String get lanPlay => 'دوست (وای‌فای)';
+
+  @override
+  String get lanPlayDesc => 'دو گوشی، یه وای‌فای یا هات‌اسپات';
+
+  @override
+  String get lanHost => 'ساختن بازی';
+
+  @override
+  String get lanJoin => 'پیوستن به بازی';
+
+  @override
+  String get lanWaiting => 'منتظر دوستت…';
+
+  @override
+  String get lanYourAddress => 'آدرس تو';
+
+  @override
+  String get lanHelp =>
+      'هر دو گوشی روی یه وای‌فای باشن؛ یا یکی هات‌اسپات رو روشن کنه و اون یکی بهش وصل شه.';
+
+  @override
+  String get lanSearching => 'دنبال بازی می‌گردیم…';
+
+  @override
+  String get lanNoGames =>
+      'هنوز بازی‌ای پیدا نشد. می‌تونی آدرس میزبان رو هم بنویسی.';
+
+  @override
+  String get lanAddressHint => 'آدرس میزبان (مثلاً 192.168.43.1)';
+
+  @override
+  String get lanConnect => 'وصل شو';
+
+  @override
+  String get lanYourName => 'اسمت';
+
+  @override
+  String get lanHostDefault => 'میزبان';
+
+  @override
+  String get lanGuestDefault => 'مهمان';
+
+  @override
+  String get lanErrUnreachable => 'به این آدرس وصل نشدیم.';
+
+  @override
+  String get lanErrFull => 'این بازی پره؛ دو نفر دارن بازی می‌کنن.';
+
+  @override
+  String get lanErrVersion => 'نسخه‌ی بازی دوستت فرق داره.';
+
+  @override
+  String get lanErrNoAnswer => 'این آدرس جواب نداد.';
+
+  @override
+  String get lanLost => 'اتصال قطع شد؛ داریم دوباره وصل می‌شیم…';
+
+  @override
+  String get lanLeft => 'دوستت از بازی رفت.';
+
+  @override
+  String get lanSyncing => 'همگام‌سازی…';
 }

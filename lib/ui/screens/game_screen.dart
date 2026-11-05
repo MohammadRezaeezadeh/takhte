@@ -21,6 +21,8 @@ import 'package:haftnard/game/scene/board_game.dart';
 import 'package:haftnard/meta/cosmetics.dart';
 import 'package:haftnard/meta/debug_memory.dart';
 import 'package:haftnard/meta/meta_state.dart';
+import 'package:haftnard/net/lan/lan_link.dart';
+import 'package:haftnard/net/lan/lan_lobby.dart';
 import 'package:haftnard/ui/app.dart';
 import 'package:haftnard/ui/game/board_help.dart';
 import 'package:haftnard/ui/game/card_flow.dart';
@@ -42,9 +44,17 @@ class GameScreen extends ConsumerStatefulWidget {
     this.persistOverride,
     this.sceneOverride,
     this.tutorial,
+    this.lan,
+    this.onLanReady,
   });
 
   final MatchSession session;
+
+  /// A LAN game: the connection to the other phone.
+  final LanSession? lan;
+
+  /// Called once the controller is bound to [lan] (attaches the channel).
+  final VoidCallback? onLanReady;
 
   /// Journey mode stores the session inside the run instead of `activeMatch`.
   final void Function(MatchSession s)? persistOverride;
@@ -99,6 +109,14 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   String? _tipText;
   String get _tip => _tipText ??= randomTip(context.lang);
   final Map<Side, String> _emotes = {};
+  StreamSubscription<String>? _lanEmotes;
+  LanStatus _lanStatus = LanStatus.connected;
+
+  void _onLanStatus() {
+    if (!mounted) return;
+    setState(() => _lanStatus = widget.lan!.link.status.value);
+  }
+
   final Map<Side, Timer> _emoteTimers = {};
   final math.Random _emoteRng = math.Random();
 
@@ -118,7 +136,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       pacing: Duration(milliseconds: (440 / st.animSpeed).round()),
       onPersist: _persist,
       onGameFinished: _onGameFinished,
+      lan: widget.lan?.link,
     );
+    final lan = widget.lan;
+    if (lan != null) {
+      lan.link.status.addListener(_onLanStatus);
+      _lanEmotes = lan.link.emotes.listen(
+        (id) => _emote(lan.link.remoteSide, id),
+      );
+      widget.onLanReady?.call();
+    }
     game = BoardGame(
       controller: ctrl,
       config:
@@ -173,7 +200,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   /// AI personalities occasionally react to big moments.
   void _aiReact(Side ai, String itemId, {double chance = 0.55}) {
-    if (ctrl.isHuman(ai) || session.origin == 'tutorial') return;
+    if (ctrl.isHuman(ai) || session.origin == 'tutorial' || session.isLan) {
+      return;
+    }
     if (_emoteRng.nextDouble() > chance) return;
     Timer(Duration(milliseconds: 500 + _emoteRng.nextInt(500)), () {
       if (mounted) _emote(ai, itemId);
@@ -201,7 +230,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         ],
       ),
     );
-    if (id != null && mounted) _emote(side, id);
+    if (id != null && mounted) {
+      _emote(side, id);
+      widget.lan?.link.sendEmote(id);
+    }
   }
 
   @override
@@ -209,6 +241,14 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     // Flame's debug DevToolsService keeps the last game; don't let it keep
     // this screen too.
     game.eventGate = null;
+    final lan = widget.lan;
+    if (lan != null) {
+      lan.link.status.removeListener(_onLanStatus);
+      unawaited(_lanEmotes?.cancel());
+      // Leaving mid-match counts as resigning on the other phone.
+      if (!ctrl.match.isOver) lan.link.leave();
+      unawaited(lan.close());
+    }
     for (final t in _emoteTimers.values) {
       t.cancel();
     }
@@ -225,7 +265,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   void _persist(MatchController c) {
     if (!mounted) return;
-    if (session.origin == 'tutorial') return;
+    if (session.origin == 'tutorial' || session.isLan) return;
     if (widget.persistOverride != null) {
       widget.persistOverride!(session);
       return;
@@ -250,7 +290,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         end: end,
         humanSides: humans,
         difficulty: aiSeat?.difficulty?.name ?? 'human',
-        passAndPlay: session.isPassAndPlay,
+        // LAN games reward like pass-and-play (no coin farming).
+        passAndPlay: session.isPassAndPlay || session.isLan,
         matchOver: c.match.isOver,
         matchWon: winner != null && humans.contains(winner),
         matchLength: c.match.config.length,
@@ -1335,6 +1376,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                     ),
                   ),
                 ),
+              if (widget.lan != null && _lanStatus != LanStatus.connected)
+                Positioned(
+                  top: 8,
+                  left: 16,
+                  right: 16,
+                  child: _LanBanner(status: _lanStatus),
+                ),
               if (s.isOver && _showGameOver)
                 Positioned.fill(
                   child: ColoredBox(color: Colors.black45, child: _gameOver()),
@@ -1357,4 +1405,42 @@ String difficultyName(BuildContext context, Difficulty d) {
     Difficulty.hard => l.diffHard,
     Difficulty.master => l.diffMaster,
   };
+}
+
+class _LanBanner extends StatelessWidget {
+  const _LanBanner({required this.status});
+  final LanStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final (text, color) = switch (status) {
+      LanStatus.left => (l.lanLeft, AppColors.ruby),
+      LanStatus.desync => (l.lanSyncing, AppColors.lapis),
+      _ => (l.lanLost, AppColors.ruby),
+    };
+    return Material(
+      key: const ValueKey('lan-banner'),
+      color: color.withValues(alpha: 0.92),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        child: Row(
+          children: [
+            Icon(
+              status == LanStatus.left ? Icons.person_off : Icons.wifi_off,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                text,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

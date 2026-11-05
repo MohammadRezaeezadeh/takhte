@@ -2,9 +2,9 @@ import 'package:haftnard/core/opponent.dart';
 import 'package:haftnard/core/rules/actions.dart';
 import 'package:haftnard/core/rules/state.dart';
 
-/// Placeholder for online play. A future implementation will send the local
-/// player's actions to an authoritative server and receive the remote
-/// player's actions from it; see docs/ONLINE_PLAN.md.
+/// A player on another device. Their actions arrive through a
+/// [RemoteTransport]: today the LAN link (lib/net/lan), later perhaps an
+/// authoritative server (docs/ONLINE_PLAN.md).
 class RemoteOpponent implements Opponent {
   RemoteOpponent(this.transport);
 
@@ -15,11 +15,12 @@ class RemoteOpponent implements Opponent {
 
   @override
   Future<List<GameAction>> decide(GameState state) =>
-      transport.nextActions(turn: state.turnNumber);
+      transport.nextActions(state);
 }
 
-/// Network seam (not implemented in v1).
+/// Network seam.
 abstract interface class RemoteTransport {
-  Future<List<GameAction>> nextActions({required int turn});
+  /// The remote player's next actions from [state] (waits for them).
+  Future<List<GameAction>> nextActions(GameState state);
   Future<void> submit(List<GameAction> actions, {required int stateHash});
 }
