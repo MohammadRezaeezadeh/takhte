@@ -25,6 +25,7 @@ import 'package:haftnard/ui/game/seven_overlay.dart';
 import 'package:haftnard/ui/screens/codex_screen.dart';
 import 'package:haftnard/ui/screens/game_screen.dart';
 import 'package:haftnard/ui/screens/journey_screen.dart';
+import 'package:haftnard/ui/screens/locker_screen.dart';
 import 'package:haftnard/ui/screens/main_menu.dart';
 import 'package:haftnard/ui/screens/play_setup.dart';
 
@@ -269,5 +270,126 @@ void main() {
     await t.pumpWidget(_app(const CodexScreen(), _svc()));
     await _settle(t);
     await _shot(t, '6-codex');
+  });
+
+  testWidgets('friend over Wi-Fi', (t) async {
+    await phone(t);
+    await t.pumpWidget(_app(const PlaySetupScreen(lan: true), _svc()));
+    await _settle(t);
+    await t.drag(find.byType(Scrollable).first, const Offset(0, -900));
+    await _settle(t);
+    await _shot(t, '7-friend');
+  });
+
+  testWidgets('customization', (t) async {
+    await phone(t);
+    await t.pumpWidget(_app(const LockerScreen(), _svc()));
+    await _settle(t);
+    await _shot(t, '8-locker');
+  });
+
+  // Store "promo" versions: each screenshot on the game's night-blue
+  // background under a big Persian caption (1080×2160).
+  testWidgets('captioned previews', (t) async {
+    const captions = {
+      '1-menu': ['تخته‌نرد ایرانی', 'با یه پیچش جادویی'],
+      '2-game': ['قدرت کارت‌ها', 'رو روی صفحه ببین'],
+      '3-seven': ['جفت‌هفت بیار', 'کارت قدرتت رو انتخاب کن'],
+      '4-setup': ['بازی رو خودت بساز', 'شانس جفت‌هفت، سختی، طول مسابقه'],
+      '5-journey': ['سفر ماجراجویی', '۱۵ رئیس و ۶۰ طلسم'],
+      '6-codex': ['۸۰ کارت قدرت', 'هر کدوم با نشونه‌ی خودش'],
+      '7-friend': [
+        'با دوستت بازی کن',
+        'روی وای‌فای یا هات‌اسپات، بدون اینترنت',
+      ],
+      '8-locker': ['سلیقه‌ی خودت', 'تخته، مهره، تاس و محیط دلخواه'],
+    };
+    await t.runAsync(() async {
+      for (final e in captions.entries) {
+        final file = File('$out/screenshots/${e.key}.png');
+        if (!file.existsSync()) continue;
+        final codec = await ui.instantiateImageCodec(file.readAsBytesSync());
+        final shot = (await codec.getNextFrame()).image;
+        await _canvas('$out/previews/${e.key}.png', 1080, 2160, (c, s) {
+          final rect = Offset.zero & s;
+          c.drawRect(
+            rect,
+            Paint()
+              ..shader = ui.Gradient.linear(
+                Offset.zero,
+                Offset(0, s.height),
+                const [Color(0xFF2A2468), Color(0xFF0B0F1F)],
+              ),
+          );
+          final lattice = Paint()..color = const Color(0x12FFD36B);
+          for (var x = 0; x < 6; x++) {
+            for (var y = 0; y < 4; y++) {
+              BoardArt.star(
+                c,
+                Offset(x * 216.0 + (y.isOdd ? 108 : 0), y * 130.0 + 40),
+                30,
+                8,
+                lattice,
+              );
+            }
+          }
+          _text(
+            c,
+            e.value[0],
+            Offset(s.width / 2, 170),
+            104,
+            const Color(0xFFFFD36B),
+          );
+          _text(
+            c,
+            e.value[1],
+            Offset(s.width / 2, 300),
+            46,
+            const Color(0xFFF3E9D2),
+            family: 'Vazirmatn',
+          );
+          // The screenshot in a rounded "phone" with a gold rim.
+          const top = 400.0;
+          final h = s.height - top - 50;
+          final w = h / 2;
+          final frame = RRect.fromRectAndRadius(
+            Rect.fromLTWH((s.width - w) / 2, top, w, h),
+            const Radius.circular(48),
+          );
+          c
+            ..drawRRect(
+              frame.inflate(14),
+              Paint()
+                ..color = const Color(0x66FFB347)
+                ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 30),
+            )
+            ..drawRRect(
+              frame.inflate(10),
+              Paint()..color = const Color(0xFF15122A),
+            )
+            ..save()
+            ..clipRRect(frame)
+            ..drawImageRect(
+              shot,
+              Rect.fromLTWH(
+                0,
+                0,
+                shot.width.toDouble(),
+                shot.height.toDouble(),
+              ),
+              frame.outerRect,
+              Paint()..filterQuality = FilterQuality.high,
+            )
+            ..restore()
+            ..drawRRect(
+              frame.inflate(10),
+              Paint()
+                ..color = const Color(0xFFD4AF37)
+                ..style = PaintingStyle.stroke
+                ..strokeWidth = 5,
+            );
+        });
+      }
+    });
   });
 }
